@@ -134,7 +134,7 @@ def get_netlist_data(input_file, output_file = 'output.txt', subtract = 0):
 																				   #之后调用 circuit 类型的 mosfet 函数把每个 m 的信息保存成一个 mosfet
 						print('Netlist')
 						for i in circuit.mos:
-							print(i.number, i.drain, i.gate, i.source, i.bulk, i.type, i.L, i.W)
+							print(i.number, i.drain, i.gate, i.source, i.bulk, i.type, 'L =', i.L, 'W =', i.W)
 						print()
 						total_width = circuit.cal_width() 
 
