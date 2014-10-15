@@ -1,0 +1,3 @@
+m1 vdd a net01 gnd
+m2 net01 b net02 gnd
+m3 net02 c gnd gnd
