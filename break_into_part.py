@@ -59,6 +59,7 @@ def break_into_part(filename, break_point):
 			return(None)
 
 
+
 break_into_part('netlist_lvs_3NAND_2_NP.txt', '** End of subcircuit definition.\n')
 #list = [10, 100, 1000, 10000]
 #iterate(list)
