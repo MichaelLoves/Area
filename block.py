@@ -18,5 +18,5 @@ gate_contact = Block(0.54, W)
 # 两个 gate 之间没有 contact
 gate_gate = Block(0.26, W)
 
-print(round(gate.width + edge_contact.width, 2)) #round(num, 2) 后面一个数字用来控制返回精度
 
+print(round(gate.width + edge_contact.width, 2)) #round(num, 2) 后面一个数字用来控制返回精度
