@@ -29,6 +29,16 @@ m0 out in vdd vdd P L=180e-9 W=2e-6
 ** End of subcircuit definition.
 
 ** Library name: error_tolerance
+** Cell name: or
+** View name: schematic
+.subckt inv gnd in out vdd
+m0 vdd a or gnd N L=180e-9 W=2e-6
+m1 vdd b or gnd N L=180e-9 W=2e-6
+m3 gnd b net09 gnd P L=180e-9 W=5e-6
+m2 net09 a or gnd P L=180e-9 W=5e-6
+** End of subcircuit definition.
+
+** Library name: error_tolerance
 ** Cell name: 3NAND_2_NP_error_node
 ** View name: schematic
 xi63 gnd cd_3 net278 vdd inv

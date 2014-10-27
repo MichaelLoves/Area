@@ -79,14 +79,44 @@ class Circuit:
 						gate_gate_width += gate_gate.width
 
 		gate_width = gate.width * self.line_m_list()
-		width = vdd_width + gnd_width + gate_width + gate_gate_width
+		width = round(vdd_width + gnd_width + gate_width + gate_gate_width, 2) #保留小数点后两位有效数字
 
-		print("vdd_width", vdd_width, "u")
-		print('gnd_width', gnd_width, "u")
-		print('gate_width', gate_width, "u")
-		print('gate_gate_width', gate_gate_width, "u")
+		#print("vdd_width", vdd_width, "u")
+		#print('gnd_width', gnd_width, "u")
+		#print('gate_width', gate_width, "u")
+		#print('gate_gate_width', gate_gate_width, "u")
 		print("width =", width, "u")
+		print()
 		return(width)
+
+	#寻找 path, 以其中一条为 main path, 其余部分作为独立部分处理
+	def find_path(self):
+		path = []
+		top_level_mos = []
+		bot_level_mos = []
+		for mos in self.mos:
+			if mos.type == "N" and mos.drain == "vdd":
+				top_source = mos.source
+				top_level_mos.append(mos)
+				print(top_source)
+			elif mos.type == "P" and mos.drain == "gnd":
+				down_source = mos.source
+				bot_level_mos.append(mos)
+				print(down_source)
+		while top_source != down_source:
+			for mos in self.mos:
+				if mos.type == "N" and mos.drain == top_level_mos[0].source:
+					top_source = mos.source
+					path.append(mos)
+				elif mos.type == "P" and mos.source == top_level_mos[0].source:
+					top_source = mos.drain
+					path.append(mos)
+		path.insert(0, top_level_mos[0])
+		path.append(bot_level_mos[0])
+
+		print("path")
+		for item in path:
+			print(item.number)
 
 
 #查找一个元素的所有位置
@@ -137,6 +167,7 @@ def get_netlist_data(input_file, output_file = 'output.txt', subtract = 0):
 							print(i.number, i.drain, i.gate, i.source, i.bulk, i.type, 'L =', i.L, 'W =', i.W)
 						print()
 						total_width = circuit.cal_width() 
+						circuit.find_path()
 
 			else:                     				   #若未指定 subcircuit 则输出整个 netlist
 				top_level_circuit = list_of_circuits[-1]
@@ -157,7 +188,7 @@ opts, args = getopt.getopt(sys.argv[1:], "hi:o:s:")   #命令行输入
 input_file, output_file, subtract = '', '', ''
 
 def usage():
-	print('Usage: ' + sys.argv[0] + ' -i inputfile -o outputfile -s subtract_circuit')
+	print('Usage: ' + sys.argv[0] + ' -i inputfile -o outputfile -s extract_subcircuit')
 	print('-s: Default as 0 which means output netlist of the top level circuit')
 
 for op, value in opts:
@@ -167,7 +198,7 @@ for op, value in opts:
 		output_file = value
 	elif op == "-s":
 		subtract = value
-	elif op == "-h":
+	elif op == "-h" or (len(sys.argv) <= 4):
 		usage()
 		sys.exit()
 
