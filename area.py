@@ -89,11 +89,33 @@ class Circuit:
 		print()
 		return(width)
 
-	#寻找 path, 以其中一条为 main path, 其余部分作为独立部分处理
+		#寻找 path, 以其中一条为 main path, 其余部分作为独立部分处理
 	def find_path(self):
 		path = []
 		top_level_mos = []
 		bot_level_mos = []
+		top_level_mos_gate = []
+
+		#寻找 NMOS tree 最上面的 net 编号 即最上端 PMOS 下面的 net
+		temp1 = []
+		temp2 = []
+		for part in self.mos:		
+			for part2 in self.mos:
+				if part.type == 'P' and part.source == 'vdd' and part.gate == part2.gate and part.number != part2.number:
+					temp1.append(part)
+		top_level_mos = list(set(temp1))
+
+		for mos in top_level_mos:
+			temp2.append(mos.gate)
+		top_level_mos_gate = list(set(temp2))
+		
+		for part in self.mos:
+			if part.type == 'N' and part.gate in top_level_mos_gate:
+				bot_level_mos.append(part)
+		for i in bot_level_mos:
+			print(i.number)
+
+		
 		for mos in self.mos:
 			if mos.type == "N" and mos.drain == "vdd":
 				top_source = mos.source
@@ -117,7 +139,6 @@ class Circuit:
 		print("path")
 		for item in path:
 			print(item.number)
-
 
 #查找一个元素的所有位置
 def find_all_index(arr, search):
@@ -168,6 +189,8 @@ def get_netlist_data(input_file, output_file = 'output.txt', subtract = 0):
 						print()
 						total_width = circuit.cal_width() 
 						circuit.find_path()
+						
+						circuit.find_top_level()
 
 			else:                     				   #若未指定 subcircuit 则输出整个 netlist
 				top_level_circuit = list_of_circuits[-1]
