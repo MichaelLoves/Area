@@ -98,6 +98,7 @@ class Circuit:
 
 		#寻找 path, 以其中一条为 main path, 其余部分作为独立部分处理
 
+	#暂时不知道可以干嘛...
 	def iterate_node(self, top_node, bot_node, path):       #判断上面 mos 的 source 是否等于 bot_node 若不同 将 top_node 赋值为下面 mos 的 source
 		if top_node == bot_node:                       
 			return(list(set(path)))                         #top_node 和 bot_node 相等之后输出 path 列表 ps 下面的判断逻辑有错误 所以会有重复元素出现
@@ -107,33 +108,39 @@ class Circuit:
 					path.append(mos)
 					top_node = mos.source
 					self.iterate_node(top_node, bot_node, path)	
-		
+
+	#输入两个点 找出两点间存在的 mos
+	def search_mid_mos(self, top_node, bot_node):
+		list = []
+		for mos in self.mos:
+			if mos.drain == top_node or mos.source == top_node and (mos.drain == bot_node or mos.source == bot_node):
+				list.append(mos)
+		return(list)
+
 	def find_path(self):
-		#path = []
 		top_level_mos = []
 		bot_level_mos = []
 		top_level_mos_gate = []
 
-		#寻找 NMOS tree 最上面的 net 编号 即最上端 PMOS 的 drain 端
-		#和 NMOS tree 最下面的 net 编号 即最下端 NMOS 的 drain 端
+		#找出 precharge PMOS 和 foot NMOS
 		temp1 = []
 		temp2 = []
 		temp3 = []
 		for part in self.mos:		
 			for part2 in self.mos:
-				if part.type == 'P' and part.source == 'vdd' and part.gate == part2.gate and part.number != part2.number:
+				if part.type == 'P' and part.gate == part2.gate and part.number != part2.number:
 					temp1.append(part)
 		top_level_mos = sorted(set(temp1), key=temp1.index)  #去处相同元素而不打乱顺序
 
-		for mos in top_level_mos:
+		for mos in top_level_mos:             #获得两边最上端 PMOS 的 gate 的信号 好找到与之对应的 foot NMOS 
 			temp2.append(mos.gate)
-		top_level_mos_gate = list(set(temp2))
+		top_level_mos_gate = list(set(temp2)) #[cd_n, precharge]
 		
 		for part in self.mos:
 			if part.type == 'N' and part.gate in top_level_mos_gate:
 				bot_level_mos.append(part)
 
-		#创建两个 pipeline class 用来保存各自的 top_node 和 bot_node 但每次的顺序有可能改变
+		#创建两个 pipeline class 用来保存各自的 top_node 和 bot_node 但每次 pipeline 的顺序有可能改变
 		pipeline1 = Pipeline()
 		pipeline2 = Pipeline()
 		for mos in top_level_mos:
@@ -154,75 +161,96 @@ class Circuit:
 			print(mos.number)
 		print('bot_level_mos')
 		print(pipeline1.bot_level_mos[0].number)
-
 		
-		top_node_1 = pipeline1.top_level_mos[0].drain #net038  or net018
-		top_node_2 = pipeline1.top_level_mos[1].drain #net49   or net035
-		bot_node_1 = pipeline1.bot_level_mos[0].drain
+		#寻找 top_node(precharge PMOS 下面的 net 编号) 和 bot_node(foot NMOS 上面的编号) 
+		#因为 netlist 中的 drain 和 source 是对称的 所以需要考虑两次
+		if pipeline1.top_level_mos[0].drain == 'vdd':   
+			top_node_1 = pipeline1.top_level_mos[0].source
+		else:
+			top_node_1 = pipeline1.top_level_mos[0].drain     	#net038  or net018		
+
+		if pipeline1.top_level_mos[1].drain == 'vdd':
+			top_node_2 = pipeline1.top_level_mos[1].source
+		else:
+			top_node_2 = pipeline1.top_level_mos[1].drain		#net49   or net035		
+
+		if pipeline1.bot_level_mos[0].drain == 'gnd':
+			bot_node_1 = pipeline1.bot_level_mos[0].source
+		else:
+			bot_node_1 = pipeline1.bot_level_mos[0].drain       #net22 or net016
 		print('top_node:', top_node_1, top_node_2)
 		print('bot_node:', bot_node_1)
 		print()
 		
-		temp4 = []
-		#找出与最上面的 PMOS 相连的 NMOS 并以它们为基础 搜索每一条路线
+
+		top_level_nmos = []
+		bot_level_nmos = []
+		#找出与最上面的 PMOS 相连的一排 NMOS 
 		for mos in self.mos:
-			if mos.type == 'N' and (mos.drain == top_node_1 or mos.drain == top_node_2):
-				temp4.append(mos)
-	
-		print('path')
-		for mos in temp4:
-			path = []
-			print('top mos:', mos.number)
-			self.iterate_node(mos.source, bot_node_1, path)  #查找从 mos.source 到 bot_node 的路线
-			path.insert(0, mos)							   #插入最上层 NMOS
-			for mos in path:							   #去处最下面的 foot NMOS -> 还是因为逻辑判断有误...
-				if mos == pipeline1.bot_level_mos[0]:
-					path.remove(mos)
-
-			path_sorted = sorted(set(path), key=path.index) #又是去处相同元素 还能不能好好判断了啊喂
-			for mos in path_sorted:
-				print(mos.number)
-			print()
-
-
-		# pipeline 2
-		print('pipeline2:')
-		print('top_level_mos')
-		for mos in pipeline2.top_level_mos:
-			print(mos.number)
-		print('bot_level_mos')
-		print(pipeline2.bot_level_mos[0].number)
-
-		
-		top_node_3 = pipeline2.top_level_mos[0].drain #net038  or net018
-		top_node_4 = pipeline2.top_level_mos[1].drain #net49   or net035
-		bot_node_2 = pipeline2.bot_level_mos[0].drain
-		print('top_node:', top_node_3, top_node_4)
-		print('bot_node:', bot_node_2)
-		print()
-		
-		temp5 = []
-		#找出与最上面的 PMOS 相连的 NMOS 并以它们为基础 搜索每一条路线
+			if mos.type == 'N' and (top_node_1 in (mos.drain or mos.source) or top_node_2 in (mos.drain or mos.source)):
+				top_level_nmos.append(mos)
+		#找出与最下面的 foot NMOS 相连的一排 NMOS
 		for mos in self.mos:
-			if mos.type == 'N' and (mos.drain == top_node_3 or mos.drain == top_node_4):
-				temp5.append(mos)
-	
-		print('path')
-		for mos in temp5:
-			path_2 = []
-			print('top mos:', mos.number)
-			self.iterate_node(mos.source, bot_node_2, path_2)  #查找从 mos.source 到 bot_node 的路线
-			path_2.insert(0, mos)							   #插入最上层 NMOS
-			for mos in path_2:							   #去处最下面的 foot NMOS -> 还是因为逻辑判断有误...
-				if mos == pipeline2.bot_level_mos[0]:
-					path_2.remove(mos)
+			if mos.type == 'N' and (bot_node_1 in mos.drain or bot_node_1 in mos.source) and not ('gnd' in mos.drain or 'gnd' in mos.source):
+				bot_level_nmos.append(mos)
 
-			path_sorted = sorted(set(path_2), key=path_2.index) #又是去处相同元素 还能不能好好判断了啊喂
-			for mos in path_sorted:
-				print(mos.number)
-			print()
+		print('bot_level_nmos')
+		for i in bot_level_nmos:
+			print(i.number)
 
 
+		#top_level_nmos 下面的 net 编号
+		print('top_search_node')
+		top_search_node = []
+		for mos in top_level_nmos:
+			if mos.drain == top_node_1 or mos.drain == top_node_2:
+				top_search_node.append(mos.source)
+			else:
+				top_search_node.append(mos.drain)
+		print(top_search_node)
+			
+		#bot_level_nmos 上面的 net 编号
+		print('bot_search_node')
+		bot_search_node = []
+		for mos in bot_level_nmos:
+			if mos.drain == bot_node_1:
+				bot_search_node.append(mos.source)
+			else:
+				bot_search_node.append(mos.drain)
+		print(bot_search_node)
+
+		#从每一个 top_level_nmos 里的 mos 出发 因为还是涉及到 drain 和 source 对称的问题 所以分为两个部分 但是做的事情是完全一致的
+		#确认最上排 mos 下面的点和最下排 mos 上面的点 比如 net28 和 net16 之后找到两个点之间所有可能的路径 作为一个 list 返回
+		#之后对于 list 中的每条路径 加上最上排的 mos 和最下排的 mos 组成完整的三段路径
+		for mos in top_level_nmos:
+			mid_node_list = []
+			if mos.drain in top_search_node:
+				for node in bot_search_node:
+					mid_node_list = self.search_mid_mos(mos.drain, node)
+				for mid_node in mid_node_list:
+					path = []
+					path.append(mos)
+					path.append(mid_node)
+					for bot_nmos in bot_level_nmos:
+						if (mid_node.drain == bot_nmos.drain or mid_node.drain == bot_nmos.source) \
+						   or (mid_node.source == bot_nmos.drain or mid_node.source == bot_nmos.source):
+						   path.append(bot_nmos)
+			else:
+				print('mos', mos.number)
+				for node in bot_search_node:
+					mid_node_list = self.search_mid_mos(mos.source, node)
+				for mid_node in mid_node_list:
+					path = []
+					path.append(mos)
+					path.append(mid_node)
+					for bot_nmos in bot_level_nmos:
+						if (mid_node.drain == bot_nmos.drain or mid_node.drain == bot_nmos.source) \
+						   or (mid_node.source == bot_nmos.drain or mid_node.source == bot_nmos.source):
+						   path.append(bot_nmos)
+					print('path')
+					for i in path:
+						print(i.number)
+		
 
 #查找一个元素的所有位置
 def find_all_index(arr, search):
