@@ -4,25 +4,15 @@ import sys, getopt
 
 
 class Block:
-	"""定义连接部分的width和height"""
-	def __init__(self, width, height):
-		self.width = width     #宽度
-		self.height = height   #高度
-
-W = 2.0 #transistor 的宽度 单位: μ
-
-# gate
-gate = Block(0.18, W+0.22)
-
-# 边缘处的 contact 
-edge_contact = Block(0.48, W)
-
-# 两个 gate 之间的 contact
-gate_contact = Block(0.54, W)
-
-# 两个 gate 之间没有 contact
-gate_gate = Block(0.26, W)
-
+	"""用于生成path之后拼接的模块, 基本模块名称有 
+	gate(最基本的 gate, L为固定的0.18), edge_contact(边缘处的 contact), 
+	gate_contact_gate_sw(两个相同W的gate之间的 contact), gate_contact_gate_dw(两个不同W的gate之间的 contact),
+	gate_gate_sw(两个相同W的gate之间的space), gate_gate_dw(两个不同W的gate之间的space)
+	"""
+	def __init__(self, block_name, L, W):
+		self.block_name = block_name   #block 名称
+		self.L = L     				   #宽度 单位:μ
+		self.W = W   				   #高度
 
 class MOSFET:
 	"""用来储存 MOSFET 的番号, 四个端子, 类型和长宽的信息"""
@@ -66,37 +56,38 @@ class Circuit:
 		for i in range(line_num):
 			self.mos.append('m%d' %i)  #把列表填满 m1, m2... 之后再用每一项去创建一个class MOSFET 的 instance
 			self.mos[i] = (MOSFET(list_of_m[i][0], list_of_m[i][1], list_of_m[i][2], \
-							 list_of_m[i][3], list_of_m[i][4], list_of_m[i][5], list_of_m[i][6].strip("L="), list_of_m[i][7].strip('W='))) 
+							 list_of_m[i][3], list_of_m[i][4], list_of_m[i][5], list_of_m[i][6].strip("L=").strip("e-9"), list_of_m[i][7].strip('W=').strip('e-9')))
+			self.mos[i].L = float(self.mos[i].L)/1000.   #把gate的L(比如180)换算为0.18 单位为 u
+			self.mos[i].W = float(self.mos[i].W)/1000.
 
-	def cal_width(self):   						#计算 circuit 的 width
-		vdd_width = 0                     		#连接 vdd 处的宽度
-		gnd_width = 0					  		#连接 gnd 处的宽度
-		gate_gate_width = 0				  		#gate 与 gate 之间的宽度
-		gate_width = 0					  		#gate 的总宽度	
+	#对于读入的 path 生成 block 返回 block 的 list 和长度 L
+	def create_block(self, path):
+		entire_block = []
+		entire_block_L = 0
+
+		#先判断需要计算的 path 中是否只包含一个 mos
+		if len(path) == 1:
+			entire_block.append(Block('edge_contact' ,0.48, path[0].W)) 		  #填加一个边缘处的 edge_contact
+			entire_block.append(Block('gate', 0.18, path[0].W))					  #填加一个 gate
+			entire_block.append(Block('edge_contact' ,0.48, path[0].W))			  #填加一个边缘处的 edge_contact
 		
-		#判断各 m 部分之间的连接状态 需要研究 topology 理论之后重写
-		for m_part in self.mos:
-			if 'vdd' in m_part.drain or 'vdd' in m_part.source:
-				vdd_width += edge_contact.width
-			if 'gnd' in m_part.drain or 'gnd' in m_part.source:
-				gnd_width += edge_contact.width
+		else:
+			entire_block.append(Block('edge_contact' ,0.48, path[0].W)) 		  #填加一个边缘处的 edge_contact
+			for mos1 in path[:-1]:
+				entire_block.append(Block('gate', mos1.L, mos1.W)) 		  #填加最左侧的 gate			
+				if mos1.W == path[path.index(mos1)+1].W:		  #比较当前 gate 和下面一个 gate 的 W 是否相同
+					entire_block.append(Block('gate_contact_gate_sw' ,0.26, mos1.W))      #填加一个 gate_contact_gate_sw
+				else:
+					entire_block.append(Block('gate_contact_gate_dw', 0.1, mos1.W))		  #填加一个 gate_contact_gate_dw
+					entire_block.append(Block('gate_contact_gate_dw' ,0.32, path[path.index(mos1)+1].W))
+			entire_block.append(Block('gate', 0.18, path[-1].W))		  #填加最右侧的 gate
+			entire_block.append(Block('edge_contact' ,0.48, path[-1].W))    	  #填加最右面的 edge_contact
 
-				for part in self.mos:
-					if (m_part.number != part.number) and (part.drain == m_part.source):
-						gate_gate_width += gate_gate.width
+		for part in entire_block:
+			entire_block_L += float(part.L)
 
-		gate_width = gate.width * self.line_m_list()
-		width = round(vdd_width + gnd_width + gate_width + gate_gate_width, 2) #保留小数点后两位有效数字
+		return(entire_block, entire_block_L)
 
-		#print("vdd_width", vdd_width, "u")
-		#print('gnd_width', gnd_width, "u")
-		#print('gate_width', gate_width, "u")
-		#print('gate_gate_width', gate_gate_width, "u")
-		print("width =", width, "u")
-		print()
-		return(width)
-
-		#寻找 path, 以其中一条为 main path, 其余部分作为独立部分处理
 
 	#暂时不知道可以干嘛...
 	def iterate_node(self, top_node, bot_node, path):       #判断上面 mos 的 source 是否等于 bot_node 若不同 将 top_node 赋值为下面 mos 的 source
@@ -219,9 +210,10 @@ class Circuit:
 				bot_search_node.append(mos.drain)
 		print(bot_search_node)
 
-		#从每一个 top_level_nmos 里的 mos 出发 因为还是涉及到 drain 和 source 对称的问题 所以分为两个部分 但是做的事情是完全一致的
-		#确认最上排 mos 下面的点和最下排 mos 上面的点 比如 net28 和 net16 之后找到两个点之间所有可能的路径 作为一个 list 返回
-		#之后对于 list 中的每条路径 加上最上排的 mos 和最下排的 mos 组成完整的三段路径
+		'''从每一个 top_level_nmos 里的 mos 出发 因为还是涉及到 drain 和 source 对称的问题 所以分为两个部分 但是做的事情是完全一致的
+		确认最上排 mos 下面的点和最下排 mos 上面的点 比如 net28 和 net16 之后找到两个点之间所有可能的路径 作为一个 list 返回
+		之后对于 list 中的每条路径 加上最上排的 mos 和最下排的 mos 组成完整的三段路径'''
+		total_path = []
 		for mos in top_level_nmos:
 			mid_node_list = []
 			if mos.drain in top_search_node:
@@ -236,7 +228,7 @@ class Circuit:
 						   or (mid_node.source == bot_nmos.drain or mid_node.source == bot_nmos.source):
 						   path.append(bot_nmos)
 			else:
-				print('mos', mos.number)
+				#print('mos', mos.number)
 				for node in bot_search_node:
 					mid_node_list = self.search_mid_mos(mos.source, node)
 				for mid_node in mid_node_list:
@@ -244,13 +236,11 @@ class Circuit:
 					path.append(mos)
 					path.append(mid_node)
 					for bot_nmos in bot_level_nmos:
-						if (mid_node.drain == bot_nmos.drain or mid_node.drain == bot_nmos.source) \
-						   or (mid_node.source == bot_nmos.drain or mid_node.source == bot_nmos.source):
-						   path.append(bot_nmos)
-					print('path')
-					for i in path:
-						print(i.number)
-		
+						if (mid_node.drain == bot_nmos.drain or mid_node.drain == bot_nmos.source) or (mid_node.source == bot_nmos.drain or mid_node.source == bot_nmos.source):
+							path.append(bot_nmos)
+							total_path.append(path)
+		return(total_path)
+
 
 #查找一个元素的所有位置
 def find_all_index(arr, search):
@@ -298,8 +288,19 @@ def get_netlist_data(input_file, output_file = 'output.txt', subtract = 0):
 						for i in circuit.mos:
 							print(i.number, i.drain, i.gate, i.source, i.bulk, i.type, 'L =', i.L, 'W =', i.W)
 						print()
-						total_width = circuit.cal_width() 
-						circuit.find_path()
+						total_path = circuit.find_path()
+
+						print('entire_block')
+						for path in total_path:
+							print('mos num', path[0].number)
+							print('path')
+							for mos in path:
+								print(mos.number)	#对于读入的 path 生成 block 返回 block 的 list 和长度 L
+							entire_block, entire_block_L = circuit.create_block(path)
+							print('entire_block_L')
+							for part in entire_block:
+								print(part.block_name, part.L)
+							print(entire_block_L)
 
 			else:                     				   #若未指定 subcircuit 则输出整个 netlist
 				top_level_circuit = list_of_circuits[-1]
@@ -309,7 +310,7 @@ def get_netlist_data(input_file, output_file = 'output.txt', subtract = 0):
 					print(i.number, i.drain, i.gate, i.source, i.bulk, i.type, 'L=', i.L, 'W=', i.W)
 				total_width = top_level_circuit.cal_width()
 
-			output.write("width =" + str(total_width) + "u")
+			#output.write("width =" + str(total_width) + "u")
 			output.close()
 
 	except IOError as err:
