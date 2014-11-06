@@ -379,7 +379,7 @@ def get_netlist_data(input_file, output_file = 'output.txt', subtract = 0):
 							#	print(part.block_name, part.L)
 							#print(path_block_L)
 						
-						
+						'''
 						print('test for merge_entire_path')	
 						merged_entire_path = deepcopy(entire_path)
 
@@ -412,7 +412,7 @@ def get_netlist_data(input_file, output_file = 'output.txt', subtract = 0):
 
 							#merged_entire_path.append(main_path)
 							#merged_entire_path.append(isolated_path)										
-
+						'''
 										
 
 						#print('merged_entire_path')
