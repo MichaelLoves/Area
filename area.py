@@ -1,6 +1,7 @@
 import pickle
 import re
 import sys, getopt
+from copy import deepcopy
 
 
 class Block:
@@ -60,10 +61,9 @@ class Circuit:
 			self.mos[i].L = float(self.mos[i].L)/1000.   #把gate的L(比如180)换算为0.18 单位为 u
 			self.mos[i].W = float(self.mos[i].W)/1000.
 
-	#对于读入的 path 生成 block 返回 block 的 list 和长度 L
+	#对于读入的 path 生成 block 返回 block 的 list 
 	def create_block(self, path):
 		entire_block = []
-		entire_block_L = 0
 
 		#先判断需要计算的 path 中是否只包含一个 mos
 		if len(path) == 1:
@@ -83,11 +83,40 @@ class Circuit:
 			entire_block.append(Block('gate', 0.18, path[-1].W))		  #填加最右侧的 gate
 			entire_block.append(Block('edge_contact' ,0.48, path[-1].W))    	  #填加最右面的 edge_contact
 
-		for part in entire_block:
-			entire_block_L += float(part.L)
+		return(entire_block)
 
-		return(entire_block, entire_block_L)
+	#读入两个 path 去除其中重复的 mos 
+	#以长度 L 短的一方作为 main_path 去除相同元素后的另一方作为 isolated_path 
+	def merge_path(self, path_1, path_2):
+		path_1_L, path_2_L = 0, 0
+		temp1 = deepcopy(path_1)
+		temp2 = deepcopy(path_2)	
 
+		for block in self.create_block(path_1):
+			path_1_L += block.L
+
+		for block in self.create_block(path_2):
+			path_2_L += block.L
+
+		if has_same_mos(temp1, temp2):
+			if path_1_L <= path_2_L:
+				main_path = temp1
+				for mos1 in temp1:
+					for mos2 in temp2:
+						if mos1.number == mos2.number:
+							temp2.remove(mos2)
+				isolated_path = temp2
+				return(main_path, isolated_path)
+			else:
+				main_path = temp2
+				for mos1 in temp1:
+					for mos2 in temp2:
+						if mos1.number == mos2.number:
+							temp1.remove(mos1)
+				isolated_path = temp1
+				return(main_path, isolated_path)
+		else:
+			return(temp1, temp2)
 
 	#暂时不知道可以干嘛...
 	def iterate_node(self, top_node, bot_node, path):       #判断上面 mos 的 source 是否等于 bot_node 若不同 将 top_node 赋值为下面 mos 的 source
@@ -169,8 +198,8 @@ class Circuit:
 			bot_node_1 = pipeline1.bot_level_mos[0].source
 		else:
 			bot_node_1 = pipeline1.bot_level_mos[0].drain       #net22 or net016
-		print('top_node:', top_node_1, top_node_2)
-		print('bot_node:', bot_node_1)
+		#print('top_node:', top_node_1, top_node_2)
+		#print('bot_node:', bot_node_1)
 		print()
 		
 
@@ -185,35 +214,34 @@ class Circuit:
 			if mos.type == 'N' and (bot_node_1 in mos.drain or bot_node_1 in mos.source) and not ('gnd' in mos.drain or 'gnd' in mos.source):
 				bot_level_nmos.append(mos)
 
-		print('bot_level_nmos')
-		for i in bot_level_nmos:
-			print(i.number)
+		#print('bot_level_nmos')
+		#for i in bot_level_nmos:
+		#	print(i.number)
 
-
-		#top_level_nmos 下面的 net 编号
-		print('top_search_node')
+		'''top_level_nmos 下面的 net 编号'''
+		#print('top_search_node')
 		top_search_node = []
 		for mos in top_level_nmos:
 			if mos.drain == top_node_1 or mos.drain == top_node_2:
 				top_search_node.append(mos.source)
 			else:
 				top_search_node.append(mos.drain)
-		print(top_search_node)
+		#print(top_search_node)
 			
-		#bot_level_nmos 上面的 net 编号
-		print('bot_search_node')
+		'''bot_level_nmos 上面的 net 编号'''
+		#print('bot_search_node')
 		bot_search_node = []
 		for mos in bot_level_nmos:
 			if mos.drain == bot_node_1:
 				bot_search_node.append(mos.source)
 			else:
 				bot_search_node.append(mos.drain)
-		print(bot_search_node)
+		#print(bot_search_node)
 
 		'''从每一个 top_level_nmos 里的 mos 出发 因为还是涉及到 drain 和 source 对称的问题 所以分为两个部分 但是做的事情是完全一致的
 		确认最上排 mos 下面的点和最下排 mos 上面的点 比如 net28 和 net16 之后找到两个点之间所有可能的路径 作为一个 list 返回
 		之后对于 list 中的每条路径 加上最上排的 mos 和最下排的 mos 组成完整的三段路径'''
-		total_path = []
+		entire_path = []
 		for mos in top_level_nmos:
 			mid_node_list = []
 			if mos.drain in top_search_node:
@@ -238,8 +266,50 @@ class Circuit:
 					for bot_nmos in bot_level_nmos:
 						if (mid_node.drain == bot_nmos.drain or mid_node.drain == bot_nmos.source) or (mid_node.source == bot_nmos.drain or mid_node.source == bot_nmos.source):
 							path.append(bot_nmos)
-							total_path.append(path)
-		return(total_path)
+							entire_path.append(path)
+		return(entire_path)
+
+def display(func_name, mos_list):
+	print(func_name)
+	for mos in mos_list:
+		print(mos.number)
+	print()
+
+def equal(list1, list2):
+	'''判断两个列表中的 mos 是否完全相同'''
+	same_node = 0
+	if len(list1) != len(list2):
+		return(False)
+	for mos1 in list1:
+		for mos2 in list2:
+			if mos1.number == mos2.number:
+				same_node += 1
+			else:
+				continue
+	if same_node == len(list1):
+		return(True)
+	else:
+		return(False)
+
+def has_same_mos(list1, list2):
+	'''判断两个列表中是否含有相同mos
+ 	遇到一个相同的便马上停止 返回 True'''
+	for mos1 in list1:
+		for mos2 in list2:
+			if mos1.number == mos2.number:
+				return(True)
+			else:
+				continue
+
+def find_shared_mos(list1, list2):
+	shared_mos = []
+	for mos1 in list1:
+		for mos2 in list2:
+			if mos1.number == mos2.number:
+				shared_mos.append(mos1)
+			else:
+				continue
+	return(shared_mos)
 
 
 #查找一个元素的所有位置
@@ -284,23 +354,98 @@ def get_netlist_data(input_file, output_file = 'output.txt', subtract = 0):
 						list_of_m = circuit.m_list()    #把 subcircuit 以 m 开头的部分填加到 list_of_m list 中
 						circuit.mosfet([m_part.split() for m_part in list_of_m]) #[]:对于 list_of_m 中的每个部分以空格分隔开来 ['m1 out in'] -> ['m1', 'out', 'in']
 																				   #之后调用 circuit 类型的 mosfet 函数把每个 m 的信息保存成一个 mosfet
-						print('Netlist')
-						for i in circuit.mos:
-							print(i.number, i.drain, i.gate, i.source, i.bulk, i.type, 'L =', i.L, 'W =', i.W)
-						print()
-						total_path = circuit.find_path()
+						#print('Netlist')
+						#for i in circuit.mos:
+						#	print(i.number, i.drain, i.gate, i.source, i.bulk, i.type, 'L =', i.L, 'W =', i.W)
+						#print()
+						
+						entire_path = circuit.find_path()
 
-						print('entire_block')
-						for path in total_path:
-							print('mos num', path[0].number)
-							print('path')
-							for mos in path:
-								print(mos.number)	#对于读入的 path 生成 block 返回 block 的 list 和长度 L
-							entire_block, entire_block_L = circuit.create_block(path)
-							print('entire_block_L')
-							for part in entire_block:
-								print(part.block_name, part.L)
-							print(entire_block_L)
+						#print('entire_path')
+						#for path in entire_path:
+						#	display(path)
+
+						#print('entire_block')
+						#for path in entire_path:
+						#	path_block_L = 0
+						#	print('top mos', path[0].number)
+						#	print('path')
+						#	for mos in path:
+						#		print(mos.number)	#对于读入的 path 生成 block 返回 block 的 list 和长度 L
+						#	path_block = circuit.create_block(path)
+						#	for block in path_block:
+						#		path_block_L += block.L
+							#print('path_block_L')
+							#for part in path_block:
+							#	print(part.block_name, part.L)
+							#print(path_block_L)
+						
+						
+						print('test for merge_entire_path')	
+						merged_entire_path = deepcopy(entire_path)
+
+						for path1 in merged_entire_path:
+							for path2 in merged_entire_path[merged_entire_path.index(path1):]:
+								if has_same_mos(path1, path2) and not equal(path1, path2):
+									display('path1', path1)
+									display('path2', path2)
+
+									main_path, isolated_path = circuit.merge_path(path1, path2)
+
+									merged_entire_path.remove(path1)
+									merged_entire_path.remove(path2)
+									display('main_path', main_path)
+									print('merged_entire_path') 
+									for path in merged_entire_path:
+										display('path', path)
+									
+									new_merged_entire_path = main_path.extend(merged_entire_path)
+									print('after extend')
+									for path in merged_entire_path:
+										display('path', path)
+
+									merged_entire_path.extend(isolated_path)
+									
+									display('main_path', main_path)
+									display('isolated_path', isolated_path)
+
+									display('merged_entire_path', merged_entire_path)
+
+							#merged_entire_path.append(main_path)
+							#merged_entire_path.append(isolated_path)										
+
+										
+
+						#print('merged_entire_path')
+						#for path in merged_entire_path:
+						#	for mos in path:
+						#		print(mos.number)
+						#	print()
+						
+						
+						'''						
+						print('test for merge_path')
+						path_1 = []
+						path_2 = []
+						#for path in entire_path:
+						#	print('mos num', path[0].number)
+						#	for mos in path:
+						#		print(mos.number)
+						for path in entire_path:
+							if path[0].number == 'm13' or path[0].number == 'm49':  #16 53
+								path_1 = deepcopy(path)
+						for path in entire_path:
+							if path[0].number == 'm14' or path[0].number == 'm51':  
+								path_2 = deepcopy(path)
+						display('path_1', path_1)
+						display('path_2', path_2)
+
+						main_path, isolated_path = circuit.merge_path(path_1, path_2)
+						display('main_path', main_path)
+						display('isolated_path', isolated_path)
+						'''
+
+
 
 			else:                     				   #若未指定 subcircuit 则输出整个 netlist
 				top_level_circuit = list_of_circuits[-1]
