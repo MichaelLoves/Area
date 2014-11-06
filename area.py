@@ -85,7 +85,7 @@ class Circuit:
 
 		#根据长度重新排列并返回最小L的path
 		path_list.sort(key = lambda path:path[-1])
-		return(path_list[0])
+		return(path_list[0][1])
 
 	#对于读入的 path 生成 block 返回 block 的 list 
 	def create_block(self, path, return_L = 0):
@@ -281,18 +281,26 @@ class Circuit:
 				#print('mos', mos.number)
 				for node in bot_search_node:
 					mid_node_list = self.search_mid_mos(mos.source, node)
-				if len(mid_node_list) != 1:  		#端子存在并联时
-					print('mos num', mos.number)
-					self.fork(mos, mid_node_list)
-
-				for mid_node in mid_node_list:
-					path = []
-					path.append(mos)
-					path.append(mid_node)
-					for bot_nmos in bot_level_nmos:
-						if (mid_node.drain == bot_nmos.drain or mid_node.drain == bot_nmos.source) or (mid_node.source == bot_nmos.drain or mid_node.source == bot_nmos.source):
-							path.append(bot_nmos)
-							entire_path.append(path)
+					if len(mid_node_list) != 1:  		#端子存在并联时
+						print('mos num', mos.number)
+						mid_node = self.fork(mos, mid_node_list)
+						print('mid_node', mid_node.number)
+						path = []
+						path.append(mos)
+						path.append(mid_node)
+						for bot_nmos in bot_level_nmos:
+							if (mid_node.drain == bot_nmos.drain or mid_node.drain == bot_nmos.source) or (mid_node.source == bot_nmos.drain or mid_node.source == bot_nmos.source):
+								path.append(bot_nmos)
+								entire_path.append(path)
+					else:
+						path = []
+						path.append(mos)
+						path.extend(mid_node_list)
+						mid_node = mid_node_list[0]
+						for bot_nmos in bot_level_nmos:
+							if (mid_node.drain == bot_nmos.drain or mid_node.drain == bot_nmos.source) or (mid_node.source == bot_nmos.drain or mid_node.source == bot_nmos.source):
+								path.append(bot_nmos)
+								entire_path.append(path)
 		return(entire_path)
 
 def display(func_name, mos_list):
