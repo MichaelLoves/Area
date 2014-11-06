@@ -16,7 +16,8 @@ class Block:
 		self.W = W   				   #高度
 
 class MOSFET:
-	"""用来储存 MOSFET 的番号, 四个端子, 类型和长宽的信息"""
+	'''用来储存 MOSFET 的番号, 四个端子, 类型和长宽的信息'''
+	'''searched 则在后续的 find_path 函数中记录 mos 是否被使用过'''
 	def __init__(self, number, drain, gate, source, bulk, type, L, W):
 		self.number = number
 		self.drain = drain
@@ -26,6 +27,7 @@ class MOSFET:
 		self.type = type
 		self.L = L
 		self.W = W 
+		self.searched = 0
 
 class Pipeline:
 	"""在寻找 path 的时候用来储存 top_level_mos, bot_level_mos 和 path"""
@@ -61,9 +63,34 @@ class Circuit:
 			self.mos[i].L = float(self.mos[i].L)/1000.   #把gate的L(比如180)换算为0.18 单位为 u
 			self.mos[i].W = float(self.mos[i].W)/1000.
 
+	'''用来确定所读入 mos 的端子存在并联情况时优先选择哪一方'''
+	'''读入需要分析的 mos 和与其并联的 mos 的 list'''
+	def fork(self, ori_mos, fork_mos_list):
+		path_list = []
+		fork_mos_block_list = []
+
+		print('ori mos', ori_mos.number)
+		display('fork mos', fork_mos_list)
+
+		#对于每一个分歧的 mos 创建一个与 ori_mos 串联的 path
+		for mos in fork_mos_list:       
+			temp = []
+			temp.append(ori_mos)
+			temp.append(mos)
+			path_list.append(temp)
+
+		#利用内建的 creat_block 函数获取每个 path 的长度 并添加到列表的最末端
+		for path in path_list:      
+			path.append(self.create_block(path, return_L = 1))  
+
+		#根据长度重新排列并返回最小L的path
+		path_list.sort(key = lambda path:path[-1])
+		return(path_list[0])
+
 	#对于读入的 path 生成 block 返回 block 的 list 
-	def create_block(self, path):
+	def create_block(self, path, return_L = 0):
 		entire_block = []
+		path_block_L = 0
 
 		#先判断需要计算的 path 中是否只包含一个 mos
 		if len(path) == 1:
@@ -83,7 +110,13 @@ class Circuit:
 			entire_block.append(Block('gate', 0.18, path[-1].W))		  #填加最右侧的 gate
 			entire_block.append(Block('edge_contact' ,0.48, path[-1].W))    	  #填加最右面的 edge_contact
 
-		return(entire_block)
+		if not return_L:
+			return(entire_block)
+		else:
+			for block in entire_block:
+				path_block_L += block.L
+			return(path_block_L)
+
 
 	#读入两个 path 去除其中重复的 mos 
 	#以长度 L 短的一方作为 main_path 去除相同元素后的另一方作为 isolated_path 
@@ -117,7 +150,6 @@ class Circuit:
 				return(main_path, isolated_path)
 		else:
 			return(temp1, temp2)
-
 
 	#输入两个点 找出两点间存在的 mos
 	def search_mid_mos(self, top_node, bot_node):
@@ -249,6 +281,10 @@ class Circuit:
 				#print('mos', mos.number)
 				for node in bot_search_node:
 					mid_node_list = self.search_mid_mos(mos.source, node)
+				if len(mid_node_list) != 1:  		#端子存在并联时
+					print('mos num', mos.number)
+					self.fork(mos, mid_node_list)
+
 				for mid_node in mid_node_list:
 					path = []
 					path.append(mos)
@@ -350,9 +386,9 @@ def get_netlist_data(input_file, output_file = 'output.txt', subtract = 0):
 						
 						entire_path = circuit.find_path()
 
-						#print('entire_path')
-						#for path in entire_path:
-						#	display(path)
+						print('entire_path')
+						for path in entire_path:
+							display('path', path)
 
 						#print('entire_block')
 						#for path in entire_path:
