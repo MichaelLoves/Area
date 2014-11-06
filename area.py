@@ -311,7 +311,6 @@ def find_shared_mos(list1, list2):
 				continue
 	return(shared_mos)
 
-
 #查找一个元素的所有位置
 def find_all_index(arr, search):
 	return [index+1 for index,item in enumerate(arr) if item == search]
