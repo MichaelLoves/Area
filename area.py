@@ -118,16 +118,6 @@ class Circuit:
 		else:
 			return(temp1, temp2)
 
-	#暂时不知道可以干嘛...
-	def iterate_node(self, top_node, bot_node, path):       #判断上面 mos 的 source 是否等于 bot_node 若不同 将 top_node 赋值为下面 mos 的 source
-		if top_node == bot_node:                       
-			return(list(set(path)))                         #top_node 和 bot_node 相等之后输出 path 列表 ps 下面的判断逻辑有错误 所以会有重复元素出现
-		else:
-			for mos in self.mos:
-				if mos.type == 'N' and top_node == mos.drain:
-					path.append(mos)
-					top_node = mos.source
-					self.iterate_node(top_node, bot_node, path)	
 
 	#输入两个点 找出两点间存在的 mos
 	def search_mid_mos(self, top_node, bot_node):
