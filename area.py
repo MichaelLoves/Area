@@ -69,9 +69,6 @@ class Circuit:
 		path_list = []
 		fork_mos_block_list = []
 
-		print('ori mos', ori_mos.number)
-		display('fork mos', fork_mos_list)
-
 		#对于每一个分歧的 mos 创建一个与 ori_mos 串联的 path
 		for mos in fork_mos_list:       
 			temp = []
@@ -151,11 +148,11 @@ class Circuit:
 		else:
 			return(temp1, temp2)
 
-	#输入两个点 找出两点间存在的 mos
+	#输入两个点 找出两点间(未被搜索过)的 mos
 	def search_mid_mos(self, top_node, bot_node):
 		list = []
 		for mos in self.mos:
-			if mos.drain == top_node or mos.source == top_node and (mos.drain == bot_node or mos.source == bot_node):
+			if mos.searched == 0 and mos.drain == top_node or mos.source == top_node and (mos.drain == bot_node or mos.source == bot_node):
 				list.append(mos)
 		return(list)
 
@@ -266,41 +263,38 @@ class Circuit:
 		entire_path = []
 		for mos in top_level_nmos:
 			mid_node_list = []
+
+			#分为 mos.drain 在 top_search_node列表中还是 mos.source 在列表中两种情况
 			if mos.drain in top_search_node:
 				for node in bot_search_node:
 					mid_node_list = self.search_mid_mos(mos.drain, node)
-				for mid_node in mid_node_list:
-					path = []
-					path.append(mos)
-					path.append(mid_node)
-					for bot_nmos in bot_level_nmos:
-						if (mid_node.drain == bot_nmos.drain or mid_node.drain == bot_nmos.source) \
-						   or (mid_node.source == bot_nmos.drain or mid_node.source == bot_nmos.source):
-						   path.append(bot_nmos)
+				if len(mid_node_list) == 1:  
+					entire_path.append(create_path(mos, mid_node_list[0], bot_level_nmos))
+				elif len(mid_node_list) >= 2:
+					mid_node = self.fork(mos, mid_node_list)
+					entire_path.append(create_path(mos, mid_node, bot_level_nmos))
+				else:
+					entire_path.append(mos)
+
 			else:
-				#print('mos', mos.number)
+				# 查找top_level_nmos 的下端和 bot_search_node 之间的仍未被搜索过的 mos
 				for node in bot_search_node:
 					mid_node_list = self.search_mid_mos(mos.source, node)
-					if len(mid_node_list) != 1:  		#端子存在并联时
-						print('mos num', mos.number)
-						mid_node = self.fork(mos, mid_node_list)
-						print('mid_node', mid_node.number)
-						path = []
-						path.append(mos)
-						path.append(mid_node)
-						for bot_nmos in bot_level_nmos:
-							if (mid_node.drain == bot_nmos.drain or mid_node.drain == bot_nmos.source) or (mid_node.source == bot_nmos.drain or mid_node.source == bot_nmos.source):
-								path.append(bot_nmos)
-								entire_path.append(path)
-					else:
-						path = []
-						path.append(mos)
-						path.extend(mid_node_list)
-						mid_node = mid_node_list[0]
-						for bot_nmos in bot_level_nmos:
-							if (mid_node.drain == bot_nmos.drain or mid_node.drain == bot_nmos.source) or (mid_node.source == bot_nmos.drain or mid_node.source == bot_nmos.source):
-								path.append(bot_nmos)
-								entire_path.append(path)
+
+				#根据 mid_node_list 的长度来判断连接情况
+				#长度为1是串联 长度大于等于2是并联 若不包含任何元素则直接讲 top_level_nmos 作为独立 part 填加到 entire_path
+				#mos 与下面的 mos 串联时 直接讲 mid_node 填加到 path 中
+				if len(mid_node_list) == 1:  
+					entire_path.append(create_path(mos, mid_node_list[0], bot_level_nmos))
+
+				#mos 与下面的 mos 并联时 需要从 mid_node_list 中挑选与 mos 连接部分面积较小的一方
+				elif len(mid_node_list) >= 2:
+					mid_node = self.fork(mos, mid_node_list)
+					entire_path.append(create_path(mos, mid_node, bot_level_nmos))
+
+				#若下侧的 mid_node 都被搜索过了 则这个 top_level_node 作为独立元素填加到 entire_path 中
+				else:
+					entire_path.append(mos)
 		return(entire_path)
 
 def display(func_name, mos_list):
@@ -335,6 +329,14 @@ def has_same_mos(list1, list2):
 			else:
 				continue
 
+def same_node_num(node, list):
+	'''用来寻找在一个 list 中某个 node 跟几个 node 相连 进而判断是串联还是并联'''
+	same_node_number = 0
+	for mos in list:
+		if mos.source == node or mos.source == node or mos.drain == node or mos.drain == node:
+			same_node_number += 1
+	return(same_node_number)
+
 def find_shared_mos(list1, list2):
 	shared_mos = []
 	for mos1 in list1:
@@ -344,6 +346,19 @@ def find_shared_mos(list1, list2):
 			else:
 				continue
 	return(shared_mos)
+
+def create_path(mos, mid_node, bot_level_nmos):
+	'''根据 top_level_mos 中的 mos, 中间 node, 最下层的 bot_level_nmos 创建一个 path'''
+	path = []
+	path.append(mos)
+	path.append(mid_node)
+	mid_node.searched = 1 #标记搜索过的中间 mos
+	for bot_nmos in bot_level_nmos:
+		if bot_nmos.searched == 0:
+			if (mid_node.drain == bot_nmos.drain or mid_node.drain == bot_nmos.source) or (mid_node.source == bot_nmos.drain or mid_node.source == bot_nmos.source):
+				path.append(bot_nmos)
+				bot_nmos.searched = 1 #标记被搜索过的最下层 mos
+	return(path)
 
 #查找一个元素的所有位置
 def find_all_index(arr, search):
@@ -396,7 +411,11 @@ def get_netlist_data(input_file, output_file = 'output.txt', subtract = 0):
 
 						print('entire_path')
 						for path in entire_path:
-							display('path', path)
+							if isinstance(path, list):
+								display('path', path)
+							else:
+								print(path.number)
+								print()
 
 						#print('entire_block')
 						#for path in entire_path:
