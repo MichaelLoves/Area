@@ -3,6 +3,11 @@ import re
 import sys, getopt
 from copy import deepcopy
 
+class Node:
+	"""用于储存两个 mos 之间的连接点的名称和是否为并联点 以判断 contact 的类型"""
+	def __init__(self, number):
+		self.number = number
+		self.fork = 0
 
 class Block:
 	"""用于生成path之后拼接的模块, 基本模块名称有 
@@ -285,16 +290,18 @@ class Circuit:
 				#长度为1是串联 长度大于等于2是并联 若不包含任何元素则直接讲 top_level_nmos 作为独立 part 填加到 entire_path
 				#mos 与下面的 mos 串联时 直接讲 mid_node 填加到 path 中
 				if len(mid_node_list) == 1:  
-					entire_path.append(create_path(mos, mid_node_list[0], bot_level_nmos))
+					entire_path.append(create_path(mos, mid_node_list[0], bot_level_nmos, self.mos))
 
 				#mos 与下面的 mos 并联时 需要从 mid_node_list 中挑选与 mos 连接部分面积较小的一方
 				elif len(mid_node_list) >= 2:
 					mid_node = self.fork(mos, mid_node_list)
-					entire_path.append(create_path(mos, mid_node, bot_level_nmos))
+					entire_path.append(create_path(mos, mid_node, bot_level_nmos, self.mos))
 
 				#若下侧的 mid_node 都被搜索过了 则这个 top_level_node 作为独立元素填加到 entire_path 中
 				else:
-					entire_path.append(mos)
+					path = []
+					path.append(mos)
+					entire_path.append(path)
 		return(entire_path)
 
 def display(func_name, mos_list):
@@ -347,15 +354,39 @@ def find_shared_mos(list1, list2):
 				continue
 	return(shared_mos)
 
-def create_path(mos, mid_node, bot_level_nmos):
+def find_shared_node(mos1, mos2):
+	"""寻找两个 mos 之间连接的 node"""
+	if mos1.drain == mos2.drain or mos1.drain == mos2.source:
+		return(mos1.drain)
+	elif mos1.source == mos2.drain or mos1.source == mos2.source:
+		return(mos1.source)
+
+def create_path(mos, mid_node, bot_level_nmos, circuit_mlist):
 	'''根据 top_level_mos 中的 mos, 中间 node, 最下层的 bot_level_nmos 创建一个 path'''
 	path = []
+	#填加最上方的 mos
 	path.append(mos)
+
+	#查找最上层 mos 和中间 mos 的 shared_node, 并判断此 shared_node 是否为分歧点
+	shared_node_1_name = find_shared_node(mos, mid_node)
+	same_node_number_1 = same_node_num(shared_node_1_name, circuit_mlist)
+	shared_node_1 = Node(shared_node_1_name)
+	if same_node_number_1 > 1:
+		shared_node_1.fork = 1
+	path.append(shared_node_1)
 	path.append(mid_node)
 	mid_node.searched = 1 #标记搜索过的中间 mos
+
+	#填加最下层的 mos
 	for bot_nmos in bot_level_nmos:
 		if bot_nmos.searched == 0:
 			if (mid_node.drain == bot_nmos.drain or mid_node.drain == bot_nmos.source) or (mid_node.source == bot_nmos.drain or mid_node.source == bot_nmos.source):
+				shared_node_2_name = find_shared_node(mid_node, bot_nmos)
+				same_node_number_2 = same_node_num(shared_node_2_name, circuit_mlist)
+				shared_node_2 = Node(shared_node_2_name)
+				if same_node_number_2 > 2:
+					shared_node_2.fork = 1
+				path.append(shared_node_2)
 				path.append(bot_nmos)
 				bot_nmos.searched = 1 #标记被搜索过的最下层 mos
 	return(path)
@@ -411,11 +442,12 @@ def get_netlist_data(input_file, output_file = 'output.txt', subtract = 0):
 
 						print('entire_path')
 						for path in entire_path:
-							if isinstance(path, list):
-								display('path', path)
-							else:
-								print(path.number)
-								print()
+							for part in path:
+								if isinstance(part, Node):
+									print(part.number)
+								else:
+									print(part.number)
+							
 
 						#print('entire_block')
 						#for path in entire_path:
