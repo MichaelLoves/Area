@@ -87,6 +87,84 @@ xi14 gnd net038 p_nand reset vdd inv_with_reset
 xi13 gnd net49 p_and reset vdd inv_with_reset
 ** End of subcircuit definition.
 
+** Library name: error_tolerance
+** Cell name: test_for_NMOS_tree
+** View name: schematic
+.subckt inv gnd in out vdd
+m94 net069 a_p net22 gnd N L=180e-9 W=1e-6
+m93 net069 a_p net22 gnd N L=180e-9 W=1e-6
+m92 net038 a_p net034 gnd N L=180e-9 W=1e-6
+m91 net038 a_p net034 gnd N L=180e-9 W=1e-6
+m90 net034 b_p net069 gnd N L=180e-9 W=1e-6
+m88 net038 na_p net093 gnd N L=180e-9 W=1e-6
+m87 net038 a_p net093 gnd N L=180e-9 W=1e-6
+m85 net093 nb_p net069 gnd N L=180e-9 W=1.5e-6
+m84 net093 b_p net069 gnd N L=180e-9 W=1e-6
+m83 net092 a_p net22 gnd N L=180e-9 W=1e-6
+m82 net092 a_p net22 gnd N L=180e-9 W=1e-6
+m81 net092 a_p net22 gnd N L=180e-9 W=1e-6
+m80 net030 a_p net092 gnd N L=180e-9 W=1e-6
+m79 net030 a_p net092 gnd N L=180e-9 W=1e-6
+m78 net038 a_p net030 gnd N L=180e-9 W=1e-6
+m77 net061 a_p net076 gnd N L=180e-9 W=1e-6
+m76 net076 a_p net22 gnd N L=180e-9 W=1e-6
+m75 net038 a_p net061 gnd N L=180e-9 W=1e-6
+m74 net038 a_p net061 gnd N L=180e-9 W=1e-6
+m73 net038 a_p net061 gnd N L=180e-9 W=1e-6
+m72 net038 a_p net44 gnd N L=180e-9 W=1e-6
+m71 net029 a_p net22 gnd N L=180e-9 W=1e-6
+m70 net031 a_p net029 gnd N L=180e-9 W=1e-6
+m69 net031 a_p net029 gnd N L=180e-9 W=1e-6
+m68 net038 a_p net031 gnd N L=180e-9 W=1e-6
+m67 net038 a_p net031 gnd N L=180e-9 W=1e-6
+m66 net038 a_p net031 gnd N L=180e-9 W=1e-6
+m65 net038 na_p net28 gnd N L=180e-9 W=1e-6
+m64 net28 nb_p net095 gnd N L=180e-9 W=1.5e-6
+m54 net080 b_n net019 gnd N L=180e-9 W=1e-6
+m53 net010 na_n net080 gnd N L=180e-9 W=1e-6
+m52 net019 c_n net016 gnd N L=180e-9 W=1.5e-6
+m51 net010 na_n net018 gnd N L=180e-9 W=1e-6
+m50 net018 nb_n net019 gnd N L=180e-9 W=1.5e-6
+m49 net010 a_n net018 gnd N L=180e-9 W=1e-6
+m35 net073 c_n net016 gnd N L=180e-9 W=1.5e-6
+m57 net051 nb_n net014 gnd N L=180e-9 W=1.5e-6
+m55 net014 nc_n net016 gnd N L=180e-9 W=3e-6
+m56 net051 b_n net014 gnd N L=180e-9 W=1e-6
+m27 net074 b_n net073 gnd N L=180e-9 W=1e-6
+m26 net035 a_n net074 gnd N L=180e-9 W=1e-6
+m58 net010 a_n net051 gnd N L=180e-9 W=1e-6
+m16 net038 a_p net44 gnd N L=180e-9 W=1e-6
+m17 net44 b_p net23 gnd N L=180e-9 W=1e-6
+m1 net016 cd_n gnd gnd N L=180e-9 W=2e-6
+m18 net23 c_p net22 gnd N L=180e-9 W=1.5e-6
+m14 net038 na_p net20 gnd N L=180e-9 W=1e-6
+m15 net20 nb_p net23 gnd N L=180e-9 W=1.5e-6
+m13 net038 a_p net20 gnd N L=180e-9 W=1e-6
+m10 net038 na_p net28 gnd N L=180e-9 W=1e-6
+m11 net28 nb_p net095 gnd N L=180e-9 W=1.5e-6
+m59 net010 na_n net051 gnd N L=180e-9 W=1e-6
+m12 net095 nc_p net22 gnd N L=180e-9 W=3e-6
+m8 net038 a_p net28 gnd N L=180e-9 W=1e-6
+m9 net28 b_p net095 gnd N L=180e-9 W=1e-6
+m19 net22 precharge gnd gnd N L=180e-9 W=2e-6
+m5 net49 a_p net47 gnd N L=180e-9 W=1e-6
+m6 net47 b_p net46 gnd N L=180e-9 W=1e-6
+m7 net46 c_p net22 gnd N L=180e-9 W=1.5e-6
+m37 net035 cd_n vdd vdd P L=180e-9 W=500e-9
+m36 net035 n_and vdd vdd P L=180e-9 W=220e-9
+m34 net010 cd_n vdd vdd P L=180e-9 W=2e-6
+m28 net010 n_nand vdd vdd P L=180e-9 W=220e-9
+m0 net038 p_nand vdd vdd P L=180e-9 W=220e-9
+m4 net49 p_and vdd vdd P L=180e-9 W=220e-9
+m3 net038 precharge vdd vdd P L=180e-9 W=2e-6
+m2 net49 precharge vdd vdd P L=180e-9 W=500e-9
+xi16 gnd precharge cd_n reset vdd inv_with_reset
+xi12 gnd net035 n_and reset vdd inv_with_reset
+xi15 gnd net010 n_nand reset vdd inv_with_reset
+xi14 gnd net038 p_nand reset vdd inv_with_reset
+xi13 gnd net49 p_and reset vdd inv_with_reset
+** End of subcircuit definition.
+
 ** Library name: error_tolerance *** FOR TEST
 ** Cell name: 3NAND_2_NP
 ** View name: schematic

@@ -105,8 +105,8 @@ class Circuit:
 			entire_block.append(Block('edge_contact' ,0.48, path[0].W)) 		  #填加一个边缘处的 edge_contact
 			entire_block.append(Block('gate', 0.18, path[0].W))					  #填加一个 gate
 			entire_block.append(Block('edge_contact' ,0.48, path[0].W))			  #填加一个边缘处的 edge_contact
-		
 		else:
+			"""!!!!填加 gate 时的 W 需要再根据左右连接处的 W 来判断一下!!!!"""
 			entire_block.append(Block('edge_contact' ,0.48, path[0].W)) 		  #填加一个边缘处的 edge_contact
 			for part in path[:-2]:
 				if isinstance(part, MOSFET):
@@ -127,7 +127,7 @@ class Circuit:
 					continue
 			entire_block.append(Block('gate', 0.18, path[-1].W))		  #因为上面逻辑只能填加到倒数第二个 mos 的右侧的部分 所以手动填加最右侧的 gate
 			entire_block.append(Block('edge_contact' ,0.48, path[-1].W))  #填加最右面的 edge_contact
-			entire_block.append(Block('diffs_space', 0.28, path[-1].W))
+			entire_block.append(Block('diff_space', 0.28, path[-1].W))
 
 		if not return_L:
 			return(entire_block)
@@ -149,7 +149,46 @@ class Circuit:
 					list.append(mos)
 		return(list)
 
-	def create_pipeline_path(self, search_node, mos, bot_search_node, bot_level_nmos, circuit_mlist, pipeline_path):
+	def create_path(self, mos, mid_node, bot_level_nmos):
+		'''根据 top_level_mos 中的 mos, 中间 node, 最下层的 bot_level_nmos 创建一个 path'''
+		path = []
+		#填加最上方的 mos
+		path.append(mos)	
+
+		#查找最上层 mos 和中间 mos 的 shared_node, 并判断此 shared_node 是否为分歧点
+		shared_node_1_name = find_shared_node(mos, mid_node)
+		same_node_number_1 = same_node_num(shared_node_1_name, self.mos)
+		shared_node_1 = Node(shared_node_1_name)
+		if same_node_number_1 > 2:
+			shared_node_1.fork = 1
+		path.append(shared_node_1)
+		path.append(mid_node)
+		mid_node.searched = 1 #标记搜索过的中间 mos
+
+		#填加最下层的 mos
+		# 前面有#是原来的 后面有#是新加的 
+		bot_nmos_list = [] #
+		for bot_nmos in bot_level_nmos:
+			if bot_nmos.searched == 0:
+				if (mid_node.drain == bot_nmos.drain or mid_node.drain == bot_nmos.source) or (mid_node.source == bot_nmos.drain or mid_node.source == bot_nmos.source):
+					bot_nmos_list.append(bot_nmos) #
+					#shared_node_2_name = find_shared_node(mid_node, bot_nmos) 
+					shared_node_2_name = find_shared_node(mid_node, bot_nmos_list[0]) # 
+					same_node_number_2 = same_node_num(shared_node_2_name, self.mos)
+					shared_node_2 = Node(shared_node_2_name)
+					if same_node_number_2 > 2:
+						shared_node_2.fork = 1
+					path.append(shared_node_2)
+
+					bot_nmos_appended = self.fork(mid_node, bot_nmos_list) #
+					#path.append(bot_nmos)
+					path.append(bot_nmos_appended) #
+					#bot_nmos.searched = 1 #标记被搜索过的最下层 mos
+					bot_nmos_appended.searched = 1
+
+		return(path)
+
+	def create_pipeline_path(self, search_node, mos, bot_search_node, bot_level_nmos, pipeline_path):
 		"""生成整个 pipeline 的 path 原 find_entire_path 函数中最后的部分
 		为了减少根据 mos 的 drain 和 source 不同位置的两种情况而产生的冗长性, 定义为一个函数"""
 
@@ -159,15 +198,15 @@ class Circuit:
 			mid_node_list.extend(self.search_mid_mos(search_node, node))
 
 		#根据 mid_node_list 的长度来判断连接情况
-		#长度为1是串联 长度大于等于2是并联 若不包含任何元素则直接讲 top_level_nmos 作为独立 part 填加到 pipeline_path
-		#mos 与下面的 mos 串联时 直接讲 mid_node 填加到 path 中
+		#长度为1是串联 长度大于等于2是并联 若不包含任何元素则直接将 top_level_nmos 作为独立 part 填加到 pipeline_path
+		#mos 与下面的 mos 串联时 直接将 mid_node 填加到 path 中
 		if len(mid_node_list) == 1:
-			pipeline_path.append(create_path(mos, mid_node_list[0], bot_level_nmos, circuit_mlist))
+			pipeline_path.append(self.create_path(mos, mid_node_list[0], bot_level_nmos))
 
 		#mos 与下面的 mos 并联时 需要从 mid_node_list 中挑选与 mos 连接部分面积较小的一方
 		elif len(mid_node_list) >= 2:
 			mid_node = self.fork(mos, mid_node_list)
-			pipeline_path.append(create_path(mos, mid_node, bot_level_nmos, circuit_mlist))
+			pipeline_path.append(self.create_path(mos, mid_node, bot_level_nmos))
 
 		#若下侧的 mid_node 都被搜索过了 则这个 top_level_node 作为独立元素填加到 pipeline_path 中		
 		else:
@@ -236,7 +275,7 @@ class Circuit:
 				top_level_nmos.append(mos)
 		#找出与最下面的 foot NMOS 相连的一排 NMOS
 		for mos in self.mos:
-			if mos.type == 'N' and (bot_node_1 == mos.drain or bot_node_1 == mos.source) and mos.drain != 'gnd' and mos.source != 'gnd':
+			if mos.type == 'N' and (mos.drain == bot_node_1 or mos.source == bot_node_1) and (mos.drain != 'gnd' or mos.source != 'gnd'):
 				bot_level_nmos.append(mos)
 
 		#top_level_nmos 下面的 net 编号
@@ -263,9 +302,9 @@ class Circuit:
 			#分为 mos.drain 在 top_search_node列表中还是 mos.source 在列表中两种情况
 			#因此在 creat_pipeline_path 中的第一个参数 search_node 不同
 			if mos.drain in top_search_node:
-				self.create_pipeline_path(mos.drain, mos, bot_search_node, bot_level_nmos, self.mos, pipeline_path)
+				self.create_pipeline_path(mos.drain, mos, bot_search_node, bot_level_nmos, pipeline_path)
 			else:
-				self.create_pipeline_path(mos.source, mos, bot_search_node, bot_level_nmos, self.mos, pipeline_path)
+				self.create_pipeline_path(mos.source, mos, bot_search_node, bot_level_nmos, pipeline_path)
 		
 		return(pipeline_path)
 
@@ -308,7 +347,6 @@ class Circuit:
 				pipeline2.bot_level_mos.append(mos)
 
 		print('Pipeline1')
-		print('top_level_mos')
 		for mos in pipeline1.top_level_mos:
 			print(mos.number + '  ', end = '')
 		print()
@@ -335,12 +373,14 @@ def display(func_name, mos_list):
 	print()
 
 def display_pipeline(pipeline, pipeline_name, circuit):
-	print(pipeline_name, 'path')
+	print(pipeline_name)
 	total_length = 0
 	for index, path in enumerate(pipeline):
+		print('path  : ', end = '')
 		for part in path:
 			print(part.number + '   ', end = '')
 		print()
+		'''
 		print('block : ', end = '')
 		block, block_legnth = circuit.create_block(path, return_L = 2)
 		for part in block:
@@ -349,7 +389,9 @@ def display_pipeline(pipeline, pipeline_name, circuit):
 		print('block_legnth =', round(block_legnth, 2), 'u')
 		total_length += block_legnth
 		print()
+
 	print('total_length =', total_length, 'u')
+	'''
 	print()
 
 def equal(list1, list2):
@@ -402,36 +444,6 @@ def find_shared_node(mos1, mos2):
 		return(mos1.drain)
 	elif mos1.source == mos2.drain or mos1.source == mos2.source:
 		return(mos1.source)
-
-def create_path(mos, mid_node, bot_level_nmos, circuit_mlist):
-	'''根据 top_level_mos 中的 mos, 中间 node, 最下层的 bot_level_nmos 创建一个 path'''
-	path = []
-	#填加最上方的 mos
-	path.append(mos)
-
-	#查找最上层 mos 和中间 mos 的 shared_node, 并判断此 shared_node 是否为分歧点
-	shared_node_1_name = find_shared_node(mos, mid_node)
-	same_node_number_1 = same_node_num(shared_node_1_name, circuit_mlist)
-	shared_node_1 = Node(shared_node_1_name)
-	if same_node_number_1 > 2:
-		shared_node_1.fork = 1
-	path.append(shared_node_1)
-	path.append(mid_node)
-	mid_node.searched = 1 #标记搜索过的中间 mos
-
-	#填加最下层的 mos
-	for bot_nmos in bot_level_nmos:
-		if bot_nmos.searched == 0:
-			if (mid_node.drain == bot_nmos.drain or mid_node.drain == bot_nmos.source) or (mid_node.source == bot_nmos.drain or mid_node.source == bot_nmos.source):
-				shared_node_2_name = find_shared_node(mid_node, bot_nmos)
-				same_node_number_2 = same_node_num(shared_node_2_name, circuit_mlist)
-				shared_node_2 = Node(shared_node_2_name)
-				if same_node_number_2 > 2:
-					shared_node_2.fork = 1
-				path.append(shared_node_2)
-				path.append(bot_nmos)
-				bot_nmos.searched = 1 #标记被搜索过的最下层 mos
-	return(path)
 
 #查找一个元素的所有位置
 def find_all_index(arr, search):
