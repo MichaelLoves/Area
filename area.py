@@ -102,22 +102,36 @@ class Circuit:
 		
 		else:
 			entire_block.append(Block('edge_contact' ,0.48, path[0].W)) 		  #填加一个边缘处的 edge_contact
-			for mos1 in path[:-1]:
-				entire_block.append(Block('gate', mos1.L, mos1.W)) 		  #填加最左侧的 gate			
-				if mos1.W == path[path.index(mos1)+1].W:		  #比较当前 gate 和下面一个 gate 的 W 是否相同
-					entire_block.append(Block('gate_contact_gate_sw' ,0.26, mos1.W))      #填加一个 gate_contact_gate_sw
+			for part in path[:-2]:
+				if isinstance(part, MOSFET):
+					entire_block.append(Block('gate', part.L, part.W))            #填加一个 gate
+					if part.W == path[path.index(part)+2].W:		 			  #比较当前 gate 和下面一个 gate 的 W 是否相同
+						if path[path.index(part)+1].fork == 0:
+							entire_block.append(Block('gate_gate_sw' ,0.26, part.W))      #两个 gate 宽度一致 没有 contact
+						else:
+							entire_block.append(Block('gate_contact_gate_sw', 0.54, part.W)) #两个 gate 宽度一致 有 contact
+					else:
+						if path[path.index(part)+1].fork == 0:
+							entire_block.append(Block('gate_gate_dw', 0.1, part.W))       #两个 gate 宽度不一致 没有 contact
+							entire_block.append(Block('gate_gate_dw', 0.32, path[path.index(part)+2].W)) 
+						else:	
+							entire_block.append(Block('gate_contact_gate_dw', 0.16, part.W))		  #两个 gate 宽度不一致 有 contact
+							entire_block.append(Block('gate_contact_gate_dw' ,0.38, path[path.index(part)+2].W))
 				else:
-					entire_block.append(Block('gate_contact_gate_dw', 0.1, mos1.W))		  #填加一个 gate_contact_gate_dw
-					entire_block.append(Block('gate_contact_gate_dw' ,0.32, path[path.index(mos1)+1].W))
-			entire_block.append(Block('gate', 0.18, path[-1].W))		  #填加最右侧的 gate
-			entire_block.append(Block('edge_contact' ,0.48, path[-1].W))    	  #填加最右面的 edge_contact
+					continue
+			entire_block.append(Block('gate', 0.18, path[-1].W))		  #因为上面逻辑只能填加到倒数第二个 mos 的右侧的部分 所以手动填加最右侧的 gate
+			entire_block.append(Block('edge_contact' ,0.48, path[-1].W))  #填加最右面的 edge_contact
 
 		if not return_L:
 			return(entire_block)
-		else:
+		elif return_L == 1:
 			for block in entire_block:
 				path_block_L += block.L
 			return(path_block_L)
+		elif return_L == 2:
+			for block in entire_block:
+				path_block_L += block.L
+			return(entire_block, path_block_L)
 
 
 	#读入两个 path 去除其中重复的 mos 
@@ -371,7 +385,7 @@ def create_path(mos, mid_node, bot_level_nmos, circuit_mlist):
 	shared_node_1_name = find_shared_node(mos, mid_node)
 	same_node_number_1 = same_node_num(shared_node_1_name, circuit_mlist)
 	shared_node_1 = Node(shared_node_1_name)
-	if same_node_number_1 > 1:
+	if same_node_number_1 > 2:
 		shared_node_1.fork = 1
 	path.append(shared_node_1)
 	path.append(mid_node)
@@ -441,13 +455,20 @@ def get_netlist_data(input_file, output_file = 'output.txt', subtract = 0):
 						entire_path = circuit.find_path()
 
 						print('entire_path')
-						for path in entire_path:
+						for index, path in enumerate(entire_path):
+							print('path%d : ' %(index+1) + ' ', end = '')
 							for part in path:
-								if isinstance(part, Node):
-									print(part.number)
-								else:
-									print(part.number)
-							
+								print(part.number + '   ', end = '')
+							print()
+							print('block : ', end = '')
+							block, block_legnth = circuit.create_block(path, return_L = 2)
+							for part in block:
+								print(part.block_name + '   ', end = '')
+							print()
+							print('block_legnth =', round(block_legnth, 2), 'u')
+							print()
+
+
 
 						#print('entire_block')
 						#for path in entire_path:
