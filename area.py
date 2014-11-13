@@ -68,9 +68,9 @@ class Circuit:
 			self.mos[i].L = float(self.mos[i].L)/1000.   #把gate的L(比如180)换算为0.18 单位为 u
 			self.mos[i].W = float(self.mos[i].W)/1000.
 
-	'''用来确定所读入 mos 的端子存在并联情况时优先选择哪一方'''
-	'''读入需要分析的 mos 和与其并联的 mos 的 list'''
 	def fork(self, ori_mos, fork_mos_list):
+		'''用来确定所读入 mos 的端子存在并联情况时优先选择哪一方'''
+		'''读入需要分析的 mos 和与其并联的 mos 的 list'''
 		path_list = []
 		fork_mos_block_list = []
 
@@ -91,6 +91,12 @@ class Circuit:
 
 	#对于读入的 path 生成 block 返回 block 的 list 
 	def create_block(self, path, return_L = 0):
+		"""根据读入的 path 生成 layout 模块
+			return 有三种情况: 
+			默认为0 返回 entire_block
+			若为1  返回 entire_block 的长度
+			若为2  返回 entire_block 和 entire_block 的长度
+		"""
 		entire_block = []
 		path_block_L = 0
 
@@ -121,6 +127,7 @@ class Circuit:
 					continue
 			entire_block.append(Block('gate', 0.18, path[-1].W))		  #因为上面逻辑只能填加到倒数第二个 mos 的右侧的部分 所以手动填加最右侧的 gate
 			entire_block.append(Block('edge_contact' ,0.48, path[-1].W))  #填加最右面的 edge_contact
+			entire_block.append(Block('diffs_space', 0.28, path[-1].W))
 
 		if not return_L:
 			return(entire_block)
@@ -133,6 +140,29 @@ class Circuit:
 				path_block_L += block.L
 			return(entire_block, path_block_L)
 
+	def create_pipeline_path(self, search_node, mos, bot_search_node, bot_level_nmos, circuit_mlist, pipeline_path):
+		"""生成整个 pipeline 的 path 原 find_path 函数中最后的部分
+		为了减少根据 mos 的 drain 和 source 不同位置的两种情况而产生的冗长性, 定义为一个函数"""
+		# 查找top_level_nmos 的下端和 bot_search_node 之间的仍未被搜索过的 mos
+		for node in bot_search_node:
+			mid_node_list = self.search_mid_mos(search_node, node)
+
+		#根据 mid_node_list 的长度来判断连接情况
+		#长度为1是串联 长度大于等于2是并联 若不包含任何元素则直接讲 top_level_nmos 作为独立 part 填加到 pipeline_path
+		#mos 与下面的 mos 串联时 直接讲 mid_node 填加到 path 中
+		if len(mid_node_list) == 1:
+			pipeline_path.append(create_path(mos, mid_node_list[0], bot_level_nmos, circuit_mlist))
+
+		#mos 与下面的 mos 并联时 需要从 mid_node_list 中挑选与 mos 连接部分面积较小的一方
+		elif len(mid_node_list) >= 2:
+			mid_node = self.fork(mos, mid_node_list)
+			pipeline_path.append(create_path(mos, mid_node, bot_level_nmos, circuit_mlist))
+
+		#若下侧的 mid_node 都被搜索过了 则这个 top_level_node 作为独立元素填加到 pipeline_path 中		
+		else:
+			isolated_mos = []
+			isolated_mos.append(mos)
+			pipeline_path.append(isolated_mos)
 
 	#读入两个 path 去除其中重复的 mos 
 	#以长度 L 短的一方作为 main_path 去除相同元素后的另一方作为 isolated_path 
@@ -175,7 +205,69 @@ class Circuit:
 				list.append(mos)
 		return(list)
 
+	def find_pipeline_path(self, pipeline):
+		"""对于读入的 pipeline 返回其 path"""
+
+		#top_node_1: precharge PMOS 下面 NAND 侧的编号 
+		#top_node_2: precharge PMOS 下面 AND 侧的编号
+		#bot_node: foot NMOS 上面的编号
+		#因为 netlist 中的 drain 和 source 是对称的 所以需要考虑两次
+		if pipeline.top_level_mos[0].drain == 'vdd':
+			top_node_1 = pipeline.top_level_mos[0].source
+		else:
+			top_node_1 = pipeline.top_level_mos[0].drain
+		if pipeline.top_level_mos[1].drain == 'vdd':
+			top_node_2 = pipeline.top_level_mos[1].source
+		else:
+			top_node_2 = pipeline.top_level_mos[1].drain
+		if pipeline.bot_level_mos[0].drain == 'gnd':
+			bot_node_1 = pipeline.bot_level_mos[0].source
+		else:
+			bot_node_1 = pipeline.bot_level_mos[0].drain
+		
+		top_level_nmos = []
+		bot_level_nmos = []
+		#找出与最上面的 PMOS 相连的一排 NMOS 
+		for mos in self.mos:
+			if mos.type == 'N' and (top_node_1 in (mos.drain or mos.source) or top_node_2 in (mos.drain or mos.source)):
+				top_level_nmos.append(mos)
+		#找出与最下面的 foot NMOS 相连的一排 NMOS
+		for mos in self.mos:
+			if mos.type == 'N' and (bot_node_1 in mos.drain or bot_node_1 in mos.source) and not ('gnd' in mos.drain or 'gnd' in mos.source):
+				bot_level_nmos.append(mos)
+
+		#top_level_nmos 下面的 net 编号
+		top_search_node = []
+		for mos in top_level_nmos:
+			if mos.drain == top_node_1 or mos.drain == top_node_2:
+				top_search_node.append(mos.source)
+			else:
+				top_search_node.append(mos.drain)
+			
+		#bot_level_nmos 上面的 net 编号
+		bot_search_node = []
+		for mos in bot_level_nmos:
+			if mos.drain == bot_node_1:
+				bot_search_node.append(mos.source)
+			else:
+				bot_search_node.append(mos.drain)
+
+		'''从每一个 top_level_nmos 里的 mos 出发 因为还是涉及到 drain 和 source 对称的问题 所以分为两个部分 但是做的事情是完全一致的
+		确认最上排 mos 下面的点和最下排 mos 上面的点 比如 net28 和 net16 之后找到两个点之间所有可能的路径 作为一个 list 返回
+		之后对于 list 中的每条路径 加上最上排的 mos 和最下排的 mos 组成完整的三段路径'''
+		pipeline_path = []
+		for mos in top_level_nmos:
+			#分为 mos.drain 在 top_search_node列表中还是 mos.source 在列表中两种情况
+			#因此在 creat_pipeline_path 中的第一个参数 search_node 不同
+			if mos.drain in top_search_node:
+				self.create_pipeline_path(mos.drain, mos, bot_search_node, bot_level_nmos, circuit_mlist, pipeline_path)
+			else:
+				self.create_pipeline_path(mos.source, mos, bot_search_node, bot_level_nmos, self.mos, pipeline_path)
+		
+		return(pipeline_path)
+
 	def find_path(self):
+		"""找出两个 pipeline 的 path 并一起返回"""
 		top_level_mos = []
 		bot_level_mos = []
 		top_level_mos_gate = []
@@ -212,117 +304,46 @@ class Circuit:
 			else:
 				pipeline2.bot_level_mos.append(mos)
 
-		# pipeline 1 的信息 -> 通用的事情不应该做两遍 所以可以弄一个函数出来		
-		print('pipeline1:')
+		print('Pipeline1')
 		print('top_level_mos')
 		for mos in pipeline1.top_level_mos:
-			print(mos.number)
+			print(mos.number + '  ', end = '')
+		print()
 		print('bot_level_mos')
 		print(pipeline1.bot_level_mos[0].number)
-		
-		#寻找 top_node(precharge PMOS 下面的 net 编号) 和 bot_node(foot NMOS 上面的编号) 
-		#因为 netlist 中的 drain 和 source 是对称的 所以需要考虑两次
-		if pipeline1.top_level_mos[0].drain == 'vdd':   
-			top_node_1 = pipeline1.top_level_mos[0].source
-		else:
-			top_node_1 = pipeline1.top_level_mos[0].drain     	#net038  or net018		
 
-		if pipeline1.top_level_mos[1].drain == 'vdd':
-			top_node_2 = pipeline1.top_level_mos[1].source
-		else:
-			top_node_2 = pipeline1.top_level_mos[1].drain		#net49   or net035		
-
-		if pipeline1.bot_level_mos[0].drain == 'gnd':
-			bot_node_1 = pipeline1.bot_level_mos[0].source
-		else:
-			bot_node_1 = pipeline1.bot_level_mos[0].drain       #net22 or net016
-		#print('top_node:', top_node_1, top_node_2)
-		#print('bot_node:', bot_node_1)
+		print('Pipeline2')
+		print('top_level_mos')
+		for mos in pipeline2.top_level_mos:
+			print(mos.number + '  ', end = '')
 		print()
+		print('bot_level_mos')
+		print(pipeline2.bot_level_mos[0].number)
+
+		pipeline1_path = self.find_pipeline_path(pipeline1)
+		pipeline2_path = self.find_pipeline_path(pipeline2)
+
+		return(pipeline1_path, pipeline2_path)
 		
-
-		top_level_nmos = []
-		bot_level_nmos = []
-		#找出与最上面的 PMOS 相连的一排 NMOS 
-		for mos in self.mos:
-			if mos.type == 'N' and (top_node_1 in (mos.drain or mos.source) or top_node_2 in (mos.drain or mos.source)):
-				top_level_nmos.append(mos)
-		#找出与最下面的 foot NMOS 相连的一排 NMOS
-		for mos in self.mos:
-			if mos.type == 'N' and (bot_node_1 in mos.drain or bot_node_1 in mos.source) and not ('gnd' in mos.drain or 'gnd' in mos.source):
-				bot_level_nmos.append(mos)
-
-		#print('bot_level_nmos')
-		#for i in bot_level_nmos:
-		#	print(i.number)
-
-		'''top_level_nmos 下面的 net 编号'''
-		#print('top_search_node')
-		top_search_node = []
-		for mos in top_level_nmos:
-			if mos.drain == top_node_1 or mos.drain == top_node_2:
-				top_search_node.append(mos.source)
-			else:
-				top_search_node.append(mos.drain)
-		#print(top_search_node)
-			
-		'''bot_level_nmos 上面的 net 编号'''
-		#print('bot_search_node')
-		bot_search_node = []
-		for mos in bot_level_nmos:
-			if mos.drain == bot_node_1:
-				bot_search_node.append(mos.source)
-			else:
-				bot_search_node.append(mos.drain)
-		#print(bot_search_node)
-
-		'''从每一个 top_level_nmos 里的 mos 出发 因为还是涉及到 drain 和 source 对称的问题 所以分为两个部分 但是做的事情是完全一致的
-		确认最上排 mos 下面的点和最下排 mos 上面的点 比如 net28 和 net16 之后找到两个点之间所有可能的路径 作为一个 list 返回
-		之后对于 list 中的每条路径 加上最上排的 mos 和最下排的 mos 组成完整的三段路径'''
-		entire_path = []
-		for mos in top_level_nmos:
-			mid_node_list = []
-
-			#分为 mos.drain 在 top_search_node列表中还是 mos.source 在列表中两种情况
-			if mos.drain in top_search_node:
-				for node in bot_search_node:
-					mid_node_list = self.search_mid_mos(mos.drain, node)
-				if len(mid_node_list) == 1:  
-					entire_path.append(create_path(mos, mid_node_list[0], bot_level_nmos))
-				elif len(mid_node_list) >= 2:
-					mid_node = self.fork(mos, mid_node_list)
-					entire_path.append(create_path(mos, mid_node, bot_level_nmos))
-				else:
-					entire_path.append(mos)
-
-			else:
-				# 查找top_level_nmos 的下端和 bot_search_node 之间的仍未被搜索过的 mos
-				for node in bot_search_node:
-					mid_node_list = self.search_mid_mos(mos.source, node)
-
-				#根据 mid_node_list 的长度来判断连接情况
-				#长度为1是串联 长度大于等于2是并联 若不包含任何元素则直接讲 top_level_nmos 作为独立 part 填加到 entire_path
-				#mos 与下面的 mos 串联时 直接讲 mid_node 填加到 path 中
-				if len(mid_node_list) == 1:  
-					entire_path.append(create_path(mos, mid_node_list[0], bot_level_nmos, self.mos))
-
-				#mos 与下面的 mos 并联时 需要从 mid_node_list 中挑选与 mos 连接部分面积较小的一方
-				elif len(mid_node_list) >= 2:
-					mid_node = self.fork(mos, mid_node_list)
-					entire_path.append(create_path(mos, mid_node, bot_level_nmos, self.mos))
-
-				#若下侧的 mid_node 都被搜索过了 则这个 top_level_node 作为独立元素填加到 entire_path 中
-				else:
-					path = []
-					path.append(mos)
-					entire_path.append(path)
-		return(entire_path)
-
 def display(func_name, mos_list):
 	print(func_name)
 	for mos in mos_list:
 		print(mos.number)
 	print()
+
+def display_pipeline(pipeline, circuit):
+	print('pipeline path')
+	for index, path in enumerate(pipeline):
+		for part in path:
+			print(part.number + '   ', end = '')
+		print()
+		print('block : ', end = '')
+		block, block_legnth = circuit.create_block(path, return_L = 2)
+		for part in block:
+			print(part.block_name + '   ', end = '')
+		print()
+		print('block_legnth =', round(block_legnth, 2), 'u')
+		print()
 
 def equal(list1, list2):
 	'''判断两个列表中的 mos 是否完全相同'''
@@ -452,40 +473,10 @@ def get_netlist_data(input_file, output_file = 'output.txt', subtract = 0):
 						#	print(i.number, i.drain, i.gate, i.source, i.bulk, i.type, 'L =', i.L, 'W =', i.W)
 						#print()
 						
-						entire_path = circuit.find_path()
+						pipeline1, pipelin2 = circuit.find_path()
 
-						print('entire_path')
-						for index, path in enumerate(entire_path):
-							print('path%d : ' %(index+1) + ' ', end = '')
-							for part in path:
-								print(part.number + '   ', end = '')
-							print()
-							print('block : ', end = '')
-							block, block_legnth = circuit.create_block(path, return_L = 2)
-							for part in block:
-								print(part.block_name + '   ', end = '')
-							print()
-							print('block_legnth =', round(block_legnth, 2), 'u')
-							print()
-
-
-
-						#print('entire_block')
-						#for path in entire_path:
-						#	path_block_L = 0
-						#	print('top mos', path[0].number)
-						#	print('path')
-						#	for mos in path:
-						#		print(mos.number)	#对于读入的 path 生成 block 返回 block 的 list 和长度 L
-						#	path_block = circuit.create_block(path)
-						#	for block in path_block:
-						#		path_block_L += block.L
-							#print('path_block_L')
-							#for part in path_block:
-							#	print(part.block_name, part.L)
-							#print(path_block_L)
-						
-
+						display_pipeline(pipeline1, circuit)
+						display_pipeline(pipelin2, circuit)
 
 			else:                     				   #若未指定 subcircuit 则输出整个 netlist
 				top_level_circuit = list_of_circuits[-1]
