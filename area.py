@@ -157,73 +157,149 @@ class Circuit:
 					list.append(mos)
 		return(list)
 
-	def create_path(self, top_mos, mid_mos, pipeline):
-		'''根据 top_level_mos 中的 mos, 中间 mos, 最下层的 bot_level_nmos 创建一个 path'''
-		path = []
-		#填加最上方的 mos
-		path.append(top_mos)	
+	def create_path_for_mid_bot(self, mid_mos, pipeline):
+		'''为了 mid_mos 和 bot_mos 生成 path'''
+		mid_bot_path = []
+		bot_mos_list = []
 
-		#查找最上层 mos 和中间 mos 的 shared_node, 并判断此 shared_node 是否为分歧点
-		shared_node_1_name = find_shared_node(top_mos, mid_mos)
-		same_node_number_1 = same_node_num(shared_node_1_name, self.mos)
-		shared_node_1 = Node(shared_node_1_name)
-		if same_node_number_1 > 2:
-			shared_node_1.fork = 1
-		path.append(shared_node_1)
-		path.append(mid_mos)
-		mid_mos.searched = 1 #标记搜索过的中间 mos
-		print('mid_mos', mid_mos.number)
-
-		#填加最下层的 mos
-		if mid_mos.drain == shared_node_1_name:
-			shared_node_2_name = mid_mos.source
+		if mid_mos.drain in pipeline.mid_bot_node:
+			bot_mos_list.extend(self.search_mid_mos(mid_mos.drain, pipeline.bot_node))
 		else:
-			shared_node_2_name = mid_mos.drain
-		same_node_number_2 = same_node_num(shared_node_2_name, self.mos)
-		shared_node_2 = Node(shared_node_2_name)
-		if same_node_number_2 > 2:
-			shared_node_2.fork = 1
+			bot_mos_list.extend(self.search_mid_mos(mid_mos.source, pipeline.bot_node))
 
-		bot_mos_list = [] 
-		bot_mos_list.extend(self.search_mid_mos(shared_node_2_name ,pipeline.bot_node))
 		if len(bot_mos_list) == 1:
-			path.append(shared_node_2)
-			path.extend(bot_mos_list)
-			bot_mos_list[0].searched = 1
+			bot_mos = bot_mos_list[0]
+			mid_bot_path.append(mid_mos)
+			shared_node_name = find_shared_node(mid_mos, bot_mos)
+			same_node_number = same_node_num(shared_node_name, self.mos)
+			shared_node = Node(shared_node_name)
+			if same_node_number > 2:
+				shared_node.fork = 1
+			mid_bot_path.append(shared_node)
+			mid_bot_path.append(bot_mos)
+			bot_mos.searched = 1
+			pipeline.path.append(mid_bot_path)
+
 		elif len(bot_mos_list) >= 2:
-			path.append(shared_node_2)
-			bot_nmos_appended = self.fork(mid_mos, bot_mos_list)
-			path.append(bot_nmos_appended)
-			bot_nmos_appended.searched = 1
-		print()
+			bot_mos = self.fork(mid_mos, bot_mos_list)
+			mid_bot_path.append(mid_mos)
+			shared_node_name = find_shared_node(mid_mos, bot_mos)
+			same_node_number = same_node_num(shared_node_name, self.mos)
+			shared_node = Node(shared_node_name)
+			if same_node_number > 2:
+				shared_node.fork = 1
+			mid_bot_path.append(shared_node)
+			mid_bot_path.append(bot_mos)
+			bot_mos.searched = 1
+			pipeline.path.append(mid_bot_path)
 
-		return(path)
+		else:
+			isolated_mid_mos = []
+			isolated_mid_mos.append(mid_mos)
+			pipeline.path.append(isolated_mid_mos)
 
-	def create_pipeline_path(self, search_node, mos, pipeline):
+	def create_path_for_top_mid_bot(self, search_node, top_mos, pipeline):
 		"""生成整个 pipeline 的 path 原 find_entire_path 函数中最后的部分
-		为了减少根据 mos 的 drain 和 source 不同位置的两种情况而产生的冗长性, 定义为一个函数"""
-
+		为了减少根据 mos 的 drain 和 source 不同位置的两种情况而产生的冗长性, 定义为一个函数
+		根据找到的 mid_mos_list 中 mos 的个数分为三种情况
+		1个的时候 直接添加进去; 2个以上的时候 用 fork 函数选出连接部分较小的一个; 没有的时候直接填加 top_mos 到 path 中
+		虽然代码存在一定的重复性 但是比起再定义一个单独的函数 结构上更加简洁 不易造成混乱"""
+		top_mid_bot_path = []
 		mid_mos_list = []
+
 		# 查找top_level_nmos 的下端和 pipeline.bot_node 之间的仍未被搜索过的 mos
 		for node in pipeline.mid_bot_node:
 			mid_mos_list.extend(self.search_mid_mos(search_node, node))
 
 		#根据 mid_mos_list 的长度来判断连接情况
 		#长度为1是串联 长度大于等于2是并联 若不包含任何元素则直接将 top_level_nmos 作为独立 part 填加到 pipeline_path
-		#mos 与下面的 mos 串联时 直接将 mid_node 填加到 path 中
+		#mos 与下面的 mos 串联时 直接将 mid_mos 填加到 path 中
 		if len(mid_mos_list) == 1:
-			pipeline.path.append(self.create_path(mos, mid_mos_list[0], pipeline))
+			#mid_mos 就是list 中的唯一一个元素
+			mid_mos = mid_mos_list[0]
+			top_mid_bot_path.append(top_mos)	
+
+			#查找最上层 mos 和中间 mos 的 shared_node, 并判断此 shared_node 是否为分歧点
+			shared_node_1_name = find_shared_node(top_mos, mid_mos)
+			same_node_number_1 = same_node_num(shared_node_1_name, self.mos)
+			shared_node_1 = Node(shared_node_1_name)
+			if same_node_number_1 > 2:
+				shared_node_1.fork = 1
+			top_mid_bot_path.append(shared_node_1)
+			top_mid_bot_path.append(mid_mos)
+			mid_mos.searched = 1 #标记搜索过的中间 mos
+
+			#寻找 mid_mos 和 bot_mos 的连接点
+			if mid_mos.drain == shared_node_1_name:
+				shared_node_2_name = mid_mos.source
+			else:
+				shared_node_2_name = mid_mos.drain
+			same_node_number_2 = same_node_num(shared_node_2_name, self.mos)
+			shared_node_2 = Node(shared_node_2_name)
+			if same_node_number_2 > 2:
+				shared_node_2.fork = 1
+
+			#填加最下层的 mos
+			bot_mos_list = [] 
+			bot_mos_list.extend(self.search_mid_mos(shared_node_2_name ,pipeline.bot_node))
+			if len(bot_mos_list) == 1:
+				top_mid_bot_path.append(shared_node_2)
+				top_mid_bot_path.extend(bot_mos_list)
+				bot_mos_list[0].searched = 1
+			elif len(bot_mos_list) >= 2:
+				top_mid_bot_path.append(shared_node_2)
+				bot_mos = self.fork(mid_mos, bot_mos_list)
+				top_mid_bot_path.append(bot_mos)
+				bot_mos.searched = 1
+			pipeline.path.append(top_mid_bot_path)
 
 		#mos 与下面的 mos 并联时 需要从 mid_mos_list 中挑选与 mos 连接部分面积较小的一方
 		elif len(mid_mos_list) >= 2:
-			mid_node = self.fork(mos, mid_mos_list)
-			pipeline.path.append(self.create_path(mos, mid_node, pipeline))
+			#mid_mos 为 list 中与 top_mos 连接部分较小的一个 之后的内容与上面相同
+			mid_mos = self.fork(top_mos, mid_mos_list)
+			top_mid_bot_path.append(top_mos)	
+
+			#查找最上层 mos 和中间 mos 的 shared_node, 并判断此 shared_node 是否为分歧点
+			shared_node_1_name = find_shared_node(top_mos, mid_mos)
+			same_node_number_1 = same_node_num(shared_node_1_name, self.mos)
+			shared_node_1 = Node(shared_node_1_name)
+			if same_node_number_1 > 2:
+				shared_node_1.fork = 1
+			top_mid_bot_path.append(shared_node_1)
+			top_mid_bot_path.append(mid_mos)
+			mid_mos.searched = 1 #标记搜索过的中间 mos
+
+			#寻找 mid_mos 和 bot_mos 的连接点
+			if mid_mos.drain == shared_node_1_name:
+				shared_node_2_name = mid_mos.source
+			else:
+				shared_node_2_name = mid_mos.drain
+			same_node_number_2 = same_node_num(shared_node_2_name, self.mos)
+			shared_node_2 = Node(shared_node_2_name)
+			if same_node_number_2 > 2:
+				shared_node_2.fork = 1
+
+			#填加最下层的 mos
+			bot_mos_list = [] 
+			bot_mos_list.extend(self.search_mid_mos(shared_node_2_name ,pipeline.bot_node))
+			if len(bot_mos_list) == 1:
+				top_mid_bot_path.append(shared_node_2)
+				top_mid_bot_path.extend(bot_mos_list)
+				bot_mos_list[0].searched = 1
+			elif len(bot_mos_list) >= 2:
+				top_mid_bot_path.append(shared_node_2)
+				bot_mos = self.fork(mid_mos, bot_mos_list)
+				top_mid_bot_path.append(bot_mos)
+				bot_mos.searched = 1
+			pipeline.path.append(top_mid_bot_path)
+
 
 		#若下侧的 mid_mos 都被搜索过了 则这个 top_mos 作为独立元素填加到 pipeline_path 中		
 		else:
-			isolated_mos = []
-			isolated_mos.append(mos)
-			pipeline.path.append(isolated_mos)
+			isolated_top_mos = []
+			isolated_top_mos.append(top_mos)
+			pipeline.path.append(isolated_top_mos)
+
 
 	def find_next_mos(self, ori_mos, search_node, search_list):
 		next_mos_list = []
@@ -242,9 +318,10 @@ class Circuit:
 			#return(ori_mos)
 			return(None)
 
-	#读入两个 path 去除其中重复的 mos 
-	#以长度 L 短的一方作为 main_path 去除相同元素后的另一方作为 isolated_path 
 	def merge_path(self, path_1, path_2):
+		'''读入两个 path 去除其中重复的 mos 
+		以长度 L 短的一方作为 main_path 去除相同元素后的另一方作为 isolated_path'''
+
 		path_1_L, path_2_L = 0, 0
 		temp1 = deepcopy(path_1)
 		temp2 = deepcopy(path_2)	
@@ -298,6 +375,7 @@ class Circuit:
 					bot_mos = self.find_next_mos(mid_mos, mid_mos.source, temp)
 					pipeline.path.append(bot_mos)
 
+
 	def find_pipeline_path(self, pipeline):
 		"""对于读入的 pipeline 返回其 path"""
 
@@ -327,7 +405,7 @@ class Circuit:
 
 		#找出与最下面的 foot_NMOS 相连的一排 bot_mos
 		for mos in self.mos:
-			if mos.type == 'N' and (mos.drain == pipeline.bot_node or mos.source == pipeline.bot_node) and (mos.drain != 'gnd' or mos.source != 'gnd'):
+			if mos.type == 'N' and (mos.drain == pipeline.bot_node or mos.source == pipeline.bot_node) and mos.drain != 'gnd' and mos.source != 'gnd':
 				pipeline.bot_mos.append(mos)
 
 		#top_mos 下面的 net 编号 top_mid_node
@@ -369,25 +447,21 @@ class Circuit:
 			#分为 top_mos.drain 在 top_search_node列表中还是 top_mos.source 在列表中两种情况
 			#因此在 creat_pipeline_path 中的第一个参数 search_node 不同
 			if top_mos.drain in pipeline.top_mid_node:			
-				self.create_pipeline_path(top_mos.drain, top_mos, pipeline)
+				self.create_path_for_top_mid_bot(top_mos.drain, top_mos, pipeline)
 			else:
-				self.create_pipeline_path(top_mos.source, top_mos, pipeline)
+				self.create_path_for_top_mid_bot(top_mos.source, top_mos, pipeline)
 
-		temp4 = []
+		#遍历完 top_mos 之后遍历 mid_mos 选出还未被 search 过的, 判断能不能与 bot_mos 组成一个 path
 		for mid_mos in pipeline.mid_mos:
 			if mid_mos.searched == 0:
-				print('unsearched mid_mos', mid_mos.number)
-				if mid_mos.drain in pipeline.mid_bot_node:
-					temp4 = self.search_mid_mos(mid_mos.drain, pipeline.bot_node)
-				else:
-					temp4 = self.search_mid_mos(mid_mos.source, pipeline.bot_node)
-			display('temp4', temp4)
+				self.create_path_for_mid_bot(mid_mos, pipeline)
 
-		temp5 = []
+		#最后遍历 bot_mos 选出还未被 search 的 mos
 		for bot_mos in pipeline.bot_mos:
 			if bot_mos.searched == 0:
-				temp5.append(bot_mos)
-			display('temp5', temp5)
+				isolated_bot_mos = []
+				isolated_bot_mos.append(bot_mos)
+				pipeline.path.append(isolated_bot_mos)
 
 		return(pipeline)
 
