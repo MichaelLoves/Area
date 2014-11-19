@@ -168,7 +168,6 @@ xi13 gnd net49 p_and reset vdd inv_with_reset
 ** Library name: error_tolerance *** FOR TEST
 ** Cell name: 3NAND_2_NP
 ** View name: schematic
-.subckt inv gnd in out vdd
 m54 net080 b_n net019 gnd N L=180e-9 W=1e-6
 m53 net010 na_n net080 gnd N L=180e-9 W=1e-6
 m52 net019 c_n net016 gnd N L=180e-9 W=1.5e-6

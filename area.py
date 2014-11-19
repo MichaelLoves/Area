@@ -9,6 +9,12 @@ class Node:
 		self.number = number
 		self.fork = 0
 
+class Subcircuit:
+	"""用于储存 circuit 中的 subcircuit 的信息"""
+	def __init__(self, name):
+		self.name = name
+		mos_list = []
+
 class Block:
 	"""用于生成path之后拼接的模块, 基本模块名称有 
 	gate(最基本的 gate, L为固定的0.18), edge_contact(边缘处的 contact), 
@@ -54,10 +60,10 @@ class Circuit:
 	def __init__(self, name, netlist):
 		self.name = name        			    #circuit 的 cell name
 		self.netlist = netlist   				#circuit 的 netlist 类型为 list
-		self.mos = []							#用来储存 circuit 中所有 m 的信息  
-												#m每部分均为 class mosfet 的 instance  ['m0', 'm1'...]
+		self.mos = []							#用来储存 circuit 中所有 mos 的信息  mos 每部分均为 class mosfet 的 instance  ['m0', 'm1'...]
+		self.subcircuit = []
 
-	def m_list(self):           			    #返回 netlist 中仅以 m 开头的部分
+	def create_mos_list(self):           			    #返回 netlist 中仅以 m 开头的部分
 		list = []
 		for part in self.netlist:
 			if re.findall(r'\bm\w*\b', part):   #判断这行首字母是否以 m 开头
@@ -65,10 +71,10 @@ class Circuit:
 		return(list)
 
 	def line_m_list(self):                      #返回读入 m_list 的行数, 即 m 部分的个数
-		return(len(self.m_list()))
+		return(len(self.create_mos_list()))
 
 	def mosfet(self, list_of_m):                #读取一个包含 m 信息的 list 之后封装在每个 MOSFET 类型的 instance 中 最后保存在 self.mos list 中
-		line_num = len(self.m_list())
+		line_num = len(self.create_mos_list())
 		for i in range(line_num):
 			self.mos.append('m%d' %i)  #把列表填满 m1, m2... 之后再用每一项去创建一个class MOSFET 的 instance
 			self.mos[i] = (MOSFET(list_of_m[i][0], list_of_m[i][1], list_of_m[i][2], \
@@ -114,7 +120,7 @@ class Circuit:
 			entire_block.append(Block('gate', 0.18, path[0].W))					  #填加一个 gate
 			entire_block.append(Block('edge_contact' ,0.48, path[0].W))			  #填加一个边缘处的 edge_contact
 		else:
-			"""!!!!填加 gate 时的 W 需要再根据左右连接处的 W 来判断一下!!!!"""
+			#填加 gate 时的 W 需要再根据左右连接处的 W 来判断一下
 			entire_block.append(Block('edge_contact' ,0.48, path[0].W)) 		  #填加一个边缘处的 edge_contact
 			for part in path[:-2]:
 				if isinstance(part, MOSFET):
@@ -198,7 +204,7 @@ class Circuit:
 			isolated_mid_mos.append(mid_mos)
 			pipeline.path.append(isolated_mid_mos)
 
-	def create_path_for_top_mid_bot(self, search_node, top_mos, pipeline):
+	def create_path_for_top_mid_bot(self, top_mos, pipeline):
 		"""生成整个 pipeline 的 path 原 find_entire_path 函数中最后的部分
 		为了减少根据 mos 的 drain 和 source 不同位置的两种情况而产生的冗长性, 定义为一个函数
 		根据找到的 mid_mos_list 中 mos 的个数分为三种情况
@@ -206,6 +212,13 @@ class Circuit:
 		虽然代码存在一定的重复性 但是比起再定义一个单独的函数 结构上更加简洁 不易造成混乱"""
 		top_mid_bot_path = []
 		mid_mos_list = []
+
+		#分为 top_mos.drain 在 top_search_node列表中还是 top_mos.source 在列表中两种情况
+		#因此在 creat_pipeline_path 中的第一个参数 search_node 不同					
+		if top_mos.drain in pipeline.top_mid_node:			
+			search_node = top_mos.drain
+		else:
+			search_node = top_mos.source
 
 		# 查找top_level_nmos 的下端和 pipeline.bot_node 之间的仍未被搜索过的 mos
 		for node in pipeline.mid_bot_node:
@@ -444,12 +457,7 @@ class Circuit:
 		确认最上排 mos 下面的点和最下排 mos 上面的点 比如 net28 和 net16 之后找到两个点之间所有可能的路径 作为一个 list 返回
 		之后对于 list 中的每条路径 加上最上排的 mos 和最下排的 mos 组成完整的三段路径'''
 		for top_mos in pipeline.top_mos:
-			#分为 top_mos.drain 在 top_search_node列表中还是 top_mos.source 在列表中两种情况
-			#因此在 creat_pipeline_path 中的第一个参数 search_node 不同
-			if top_mos.drain in pipeline.top_mid_node:			
-				self.create_path_for_top_mid_bot(top_mos.drain, top_mos, pipeline)
-			else:
-				self.create_path_for_top_mid_bot(top_mos.source, top_mos, pipeline)
+			self.create_path_for_top_mid_bot(top_mos, pipeline)
 
 		#遍历完 top_mos 之后遍历 mid_mos 选出还未被 search 过的, 判断能不能与 bot_mos 组成一个 path
 		for mid_mos in pipeline.mid_mos:
@@ -503,7 +511,7 @@ class Circuit:
 				pipeline1.foot_NMOS.append(mos)
 			else:
 				pipeline2.foot_NMOS.append(mos)
-
+		'''
 		print('Pipeline1')
 		print('precharge_PMOS : ', end = '')
 		for mos in pipeline1.precharge_PMOS:
@@ -519,7 +527,7 @@ class Circuit:
 		print()
 		print('foot_NMOS      : ', end = '')
 		print(pipeline2.foot_NMOS[0].number)
-
+		'''
 		self.find_pipeline_path(pipeline1)
 		self.find_pipeline_path(pipeline2)
 
@@ -537,8 +545,15 @@ def display_pipeline(pipeline, pipeline_name, circuit):
 	for index, path in enumerate(pipeline):
 		print('path  : ', end = '')
 		for part in path:
-			print(part.number + '   ', end = '')
+			if isinstance(part, Node):
+				if part.fork == 1:
+					print(part.number + '(fork)' + '   ', end = '')
+				else:
+					print(part.number + '   ', end = '')
+			else:
+				print(part.number + '   ', end = '')
 		print()
+		
 		'''
 		print('block : ', end = '')
 		block, block_legnth = circuit.create_block(path, return_L = 2)
@@ -548,7 +563,7 @@ def display_pipeline(pipeline, pipeline_name, circuit):
 		print('block_legnth =', round(block_legnth, 2), 'u')
 		total_length += block_legnth
 		print()
-
+		
 	print('total_length =', total_length, 'u')
 	'''
 	print()
@@ -628,24 +643,24 @@ def break_into_part(filename, break_point):
 	splitter_list = iterate(splitter)					#找到各个部分的起始点和结束点 如 [[1, 10], [11, 100]]
 	for i in range(len(splitter)):
 		list_of_circuits.append('circuit%d' %i)   	#把列表填满 circuit1, circuit2... 之后用每一项去创建 class Circuit 的 instance
-		list_of_circuits[i] = Circuit(file_list[splitter_list[i][0]+1].replace('** Cell name: ', ''), file_list[splitter_list[i][0]+4:splitter_list[i][1]]) #填加各 subcircuit 的 name 和 netlist
-	list_of_circuits.append(Circuit(file_list[splitter_list[i][1]+2].replace('** Cell name: ', ''), file_list[splitter_list[i][1]+1:]))
+		list_of_circuits[i] = Circuit(file_list[splitter_list[i][0]+1].replace('** Cell name: ', '').strip('\n'), file_list[splitter_list[i][0]+4:splitter_list[i][1]]) #填加各 subcircuit 的 name 和 netlist
+	list_of_circuits.append(Circuit(file_list[splitter_list[i][1]+2].replace('** Cell name: ', '').strip('\n'), file_list[splitter_list[i][1]+1:]))
 	return(list_of_circuits)
 
 def get_netlist_data(input_file, output_file = 'output.txt', subtract = 0):
 	try:
 		output = open(output_file, 'w')     		   #创建一个文件用来保存结果
 		with open(input_file) as netlist_file:
-			list_of_m = []                                 #创建一个 list 用来储存以 m 开头的数据
+			mos_list = []                                 #创建一个 list 用来储存以 m 开头的数据
 			list_of_circuits = break_into_part(netlist_file, '** End of subcircuit definition.\n') #读入每一行: 用于读取真的 netlist 文件
-			
+			"""
 			#subtract部分是否要处理 以后再讨论 现在 NMOS tree 的处理已经完成 2014.11.13
 			if subtract:                               #如果指定抽取某一 subcircuit
 				print('Cell name :', subtract)
 				for circuit in list_of_circuits:
 					if re.findall(r'\b%s\b'%subtract, circuit.name):  #找到想要抽取的 subcircuit 的 instance
-						list_of_m = circuit.m_list()    #把 subcircuit 以 m 开头的部分填加到 list_of_m list 中
-						circuit.mosfet([m_part.split() for m_part in list_of_m]) #[]:对于 list_of_m 中的每个部分以空格分隔开来 ['m1 out in'] -> ['m1', 'out', 'in']
+						mos_list = circuit.create_mos_list()    #把 subcircuit 以 m 开头的部分填加到 mos_list list 中
+						circuit.mosfet([m_part.split() for m_part in mos_list]) #[]:对于 list_of_m 中的每个部分以空格分隔开来 ['m1 out in'] -> ['m1', 'out', 'in']
 																				   #之后调用 circuit 类型的 mosfet 函数把每个 m 的信息保存成一个 mosfet
 						#print('Netlist')
 						#for i in circuit.mos:
@@ -658,10 +673,39 @@ def get_netlist_data(input_file, output_file = 'output.txt', subtract = 0):
 			else:                     				   #若未指定 subcircuit 则输出整个 netlist
 				top_level_circuit = list_of_circuits[-1]
 				print('Cell name :', top_level_circuit.name)
-				top_level_circuit.mosfet([m_part.split() for m_part in top_level_circuit.m_list()])
+				top_level_circuit.mosfet([m_part.split() for m_part in top_level_circuit.create_mos_list()])
 				pipeline1, pipeline2 = top_level_circuit.find_entire_path()
-				display_pipeline(pipeline1.path, 'pipeline1', top_level_circuit)
-				display_pipeline(pipeline2.path, 'pipeline2', top_level_circuit)
+				#display_pipeline(pipeline1.path, 'pipeline1', top_level_circuit)
+				#display_pipeline(pipeline2.path, 'pipeline2', top_level_circuit)
+			"""
+			print('test for subcircuit')
+			#主要部分的 circuit 为列表最后一个部分
+			main_circuit = list_of_circuits[-1]
+
+			#把 subcircuit 以 m 开头的部分填加到 mos_list list 中
+			#[]:对于 circuit_mos_list 中的每个部分以空格分隔开来 ['m1 out in'] -> ['m1', 'out', 'in']
+			#之后调用 circuit 类型的 mosfet 函数把每个 m 的信息保存成一个 mosfet
+			main_circuit.mosfet([m_part.split() for m_part in main_circuit.create_mos_list()])
+
+			#输出 circuit 中 netlist 部分的信息
+			#print('Netlist')
+			#for i in main_circuit.mos:
+			#	print(i.number, i.drain, i.gate, i.source, i.bulk, i.type)
+
+			#填加 netlist 中 subcircuit 的信息
+			for part in list_of_circuits[:-1]:
+				main_circuit.subcircuit.append(part)
+
+			print('Main circuit :', main_circuit.name)
+			print('Subcircuit   : ', end = '')
+			for part in main_circuit.subcircuit:
+				print(part.name + ' ', end = '')
+			print()
+
+			pipeline1, pipeline2 = main_circuit.find_entire_path()
+			display_pipeline(pipeline1.path, 'pipeline1', main_circuit)
+			display_pipeline(pipeline2.path, 'pipeline2', main_circuit)
+
 
 			#output.write("width =" + str(total_width) + "u")
 			output.close()
