@@ -9,12 +9,6 @@ class Node:
 		self.number = number
 		self.fork = 0
 
-class Subcircuit:
-	"""用于储存 circuit 中的 subcircuit 的信息"""
-	def __init__(self, name):
-		self.name = name
-		mos_list = []
-
 class Block:
 	"""用于生成path之后拼接的模块, 基本模块名称有 
 	gate(最基本的 gate, L为固定的0.18), edge_contact(边缘处的 contact), 
@@ -60,8 +54,11 @@ class Circuit:
 	def __init__(self, name, netlist):
 		self.name = name        			    #circuit 的 cell name
 		self.netlist = netlist   				#circuit 的 netlist 类型为 list
-		self.mos = []							#用来储存 circuit 中所有 mos 的信息  mos 每部分均为 class mosfet 的 instance  ['m0', 'm1'...]
+		self.mos_list = []							#用来储存 circuit 中所有 mos 的信息  mos 每部分均为 class mosfet 的 instance  ['m0', 'm1'...]
+		self.path = []
 		self.subcircuit = []
+		self.block = []
+		self.block_length = 0
 
 	def create_mos_list(self):           			    #返回 netlist 中仅以 m 开头的部分
 		list = []
@@ -73,14 +70,14 @@ class Circuit:
 	def line_m_list(self):                      #返回读入 m_list 的行数, 即 m 部分的个数
 		return(len(self.create_mos_list()))
 
-	def mosfet(self, list_of_m):                #读取一个包含 m 信息的 list 之后封装在每个 MOSFET 类型的 instance 中 最后保存在 self.mos list 中
+	def mosfet(self, list_of_m):                #读取一个包含 m 信息的 list 之后封装在每个 MOSFET 类型的 instance 中 最后保存在 self.mos_list list 中
 		line_num = len(self.create_mos_list())
 		for i in range(line_num):
-			self.mos.append('m%d' %i)  #把列表填满 m1, m2... 之后再用每一项去创建一个class MOSFET 的 instance
-			self.mos[i] = (MOSFET(list_of_m[i][0], list_of_m[i][1], list_of_m[i][2], \
+			self.mos_list.append('m%d' %i)  #把列表填满 m1, m2... 之后再用每一项去创建一个class MOSFET 的 instance
+			self.mos_list[i] = (MOSFET(list_of_m[i][0], list_of_m[i][1], list_of_m[i][2], \
 							 list_of_m[i][3], list_of_m[i][4], list_of_m[i][5], list_of_m[i][6].strip("L=").strip("e-9"), list_of_m[i][7].strip('W=').strip('e-9')))
-			self.mos[i].L = float(self.mos[i].L)/1000.   #把gate的L(比如180)换算为0.18 单位为 u
-			self.mos[i].W = float(self.mos[i].W)/1000.
+			self.mos_list[i].L = float(self.mos_list[i].L)/1000.   #把gate的L(比如180)换算为0.18 单位为 u
+			self.mos_list[i].W = float(self.mos_list[i].W)/1000.
 
 	def fork(self, ori_mos, fork_mos_list):
 		'''用来确定所读入 mos 的端子存在并联情况时优先选择哪一方'''
@@ -112,7 +109,7 @@ class Circuit:
 			若为2  返回 entire_block 和 entire_block 的长度
 		"""
 		entire_block = []
-		path_block_L = 0
+		block_length = 0
 
 		#先判断需要计算的 path 中是否只包含一个 mos
 		if len(path) == 1:
@@ -147,21 +144,101 @@ class Circuit:
 			return(entire_block)
 		elif return_L == 1:
 			for block in entire_block:
-				path_block_L += block.L
-			return(path_block_L)
+				block_length += block.L
+			return(block_length)
 		elif return_L == 2:
 			for block in entire_block:
-				path_block_L += block.L
-			return(entire_block, path_block_L)
+				block_length += block.L
+			return(entire_block, block_length)
 
 	#输入两个点 找出两点间(未被搜索过)的 mos
 	def search_mid_mos(self, top_node, bot_node):
 		list = []
-		for mos in self.mos:
+		for mos in self.mos_list:
 			if mos.searched == 0:
 				if (mos.drain == top_node or mos.source == top_node) and (mos.drain == bot_node or mos.source == bot_node):
 					list.append(mos)
 		return(list)
+
+	def create_path_for_subcircuit(self, subcircuit):
+		subcircuit_path = []
+		main_path = []
+		top_mos_list = []
+		mid_mos_list = []
+		bot_mos_list = []
+
+		if subcircuit.name == 'inv' or subcircuit.name == 'inv2':
+			for mos in subcircuit.mos_list:
+				if mos.drain == 'vdd' or mos.source == 'vdd':
+					top_mos = mos
+				else:
+					bot_mos = mos
+			subcircuit_path.append(top_mos)
+			shared_node_name = find_shared_node(top_mos, bot_mos)
+			shared_node = Node(shared_node_name)
+			subcircuit_path.append(shared_node)
+			subcircuit_path.append(bot_mos)
+			return(subcircuit_path)
+
+		if subcircuit.name == 'inv_with_reset':
+			for mos in subcircuit.mos_list:
+				if mos.drain == 'vdd' or mos.source == 'vdd':
+					top_mos = mos
+				elif mos.drain == 'gnd' or mos.source == 'gnd':
+					bot_mos_list.append(mos)
+				else:
+					mid_mos = mos
+			main_path.append(top_mos)
+			shared_node_1_name = find_shared_node(top_mos, mid_mos)
+			shared_node_1 = Node(shared_node_1_name)
+			main_path.append(shared_node_1)
+			main_path.append(mid_mos)
+			bot_mos = self.fork(mid_mos, bot_mos_list)
+			bot_mos.searched = 1
+			shared_node_2_name = find_shared_node(mid_mos, bot_mos)
+			shared_node_2 = Node(shared_node_2_name)
+			main_path.append(shared_node_2)
+			main_path.append(bot_mos)
+			isolated_bot_mos = []
+			for bot_mos in bot_mos_list:
+				if bot_mos.searched == 0:
+					isolated_bot_mos.append(bot_mos)
+			subcircuit_path.append(main_path)
+			subcircuit_path.append(isolated_bot_mos)
+			return(subcircuit_path)
+
+		if subcircuit.name == 'or':
+			for mos in subcircuit.mos_list:
+				if mos.drain == 'vdd' or mos.source == 'vdd':
+					top_mos_list.append(mos)
+				elif mos.drain == 'gnd' or mos.source == 'gnd':
+					bot_mos = mos
+				else:
+					mid_mos = mos
+			top_mos = self.fork(mid_mos, top_mos_list)
+			main_path.append(top_mos)
+			top_mos.searched = 1
+			shared_node_1_name = find_shared_node(top_mos, mid_mos)
+			shared_node_1 = Node(shared_node_1_name)
+			shared_node_1.fork = 1
+			main_path.append(shared_node_1)
+			main_path.append(mid_mos)
+			shared_node_2_name = find_shared_node(mid_mos, bot_mos)
+			shared_node_2 = Node(shared_node_2_name)
+			main_path.append(shared_node_2)
+			main_path.append(bot_mos)
+			isolated_top_mos = []
+			for top_mos in top_mos_list:
+				if top_mos.searched == 0:
+					isolated_top_mos.append(top_mos)
+			subcircuit_path.append(main_path)
+			subcircuit_path.append(isolated_top_mos)
+			return(subcircuit_path)
+
+
+		else:
+			pass
+		#if subcircuit.name == 'cd circuit'
 
 	def create_path_for_mid_bot(self, mid_mos, pipeline):
 		'''为了 mid_mos 和 bot_mos 生成 path'''
@@ -177,7 +254,7 @@ class Circuit:
 			bot_mos = bot_mos_list[0]
 			mid_bot_path.append(mid_mos)
 			shared_node_name = find_shared_node(mid_mos, bot_mos)
-			same_node_number = same_node_num(shared_node_name, self.mos)
+			same_node_number = same_node_num(shared_node_name, self.mos_list)
 			shared_node = Node(shared_node_name)
 			if same_node_number > 2:
 				shared_node.fork = 1
@@ -190,7 +267,7 @@ class Circuit:
 			bot_mos = self.fork(mid_mos, bot_mos_list)
 			mid_bot_path.append(mid_mos)
 			shared_node_name = find_shared_node(mid_mos, bot_mos)
-			same_node_number = same_node_num(shared_node_name, self.mos)
+			same_node_number = same_node_num(shared_node_name, self.mos_list)
 			shared_node = Node(shared_node_name)
 			if same_node_number > 2:
 				shared_node.fork = 1
@@ -234,7 +311,7 @@ class Circuit:
 
 			#查找最上层 mos 和中间 mos 的 shared_node, 并判断此 shared_node 是否为分歧点
 			shared_node_1_name = find_shared_node(top_mos, mid_mos)
-			same_node_number_1 = same_node_num(shared_node_1_name, self.mos)
+			same_node_number_1 = same_node_num(shared_node_1_name, self.mos_list)
 			shared_node_1 = Node(shared_node_1_name)
 			if same_node_number_1 > 2:
 				shared_node_1.fork = 1
@@ -247,7 +324,7 @@ class Circuit:
 				shared_node_2_name = mid_mos.source
 			else:
 				shared_node_2_name = mid_mos.drain
-			same_node_number_2 = same_node_num(shared_node_2_name, self.mos)
+			same_node_number_2 = same_node_num(shared_node_2_name, self.mos_list)
 			shared_node_2 = Node(shared_node_2_name)
 			if same_node_number_2 > 2:
 				shared_node_2.fork = 1
@@ -274,7 +351,7 @@ class Circuit:
 
 			#查找最上层 mos 和中间 mos 的 shared_node, 并判断此 shared_node 是否为分歧点
 			shared_node_1_name = find_shared_node(top_mos, mid_mos)
-			same_node_number_1 = same_node_num(shared_node_1_name, self.mos)
+			same_node_number_1 = same_node_num(shared_node_1_name, self.mos_list)
 			shared_node_1 = Node(shared_node_1_name)
 			if same_node_number_1 > 2:
 				shared_node_1.fork = 1
@@ -287,7 +364,7 @@ class Circuit:
 				shared_node_2_name = mid_mos.source
 			else:
 				shared_node_2_name = mid_mos.drain
-			same_node_number_2 = same_node_num(shared_node_2_name, self.mos)
+			same_node_number_2 = same_node_num(shared_node_2_name, self.mos_list)
 			shared_node_2 = Node(shared_node_2_name)
 			if same_node_number_2 > 2:
 				shared_node_2.fork = 1
@@ -412,12 +489,12 @@ class Circuit:
 			pipeline.bot_node = pipeline.foot_NMOS[0].drain
 		
 		#找出与最上面的 precharge_PMOS 相连的一排 top_mos
-		for mos in self.mos:
+		for mos in self.mos_list:
 			if mos.type == 'N' and (pipeline.top_node_1 == mos.drain or pipeline.top_node_1 == mos.source or pipeline.top_node_2 == mos.drain or pipeline.top_node_2 == mos.source):
 				pipeline.top_mos.append(mos)
 
 		#找出与最下面的 foot_NMOS 相连的一排 bot_mos
-		for mos in self.mos:
+		for mos in self.mos_list:
 			if mos.type == 'N' and (mos.drain == pipeline.bot_node or mos.source == pipeline.bot_node) and mos.drain != 'gnd' and mos.source != 'gnd':
 				pipeline.bot_mos.append(mos)
 
@@ -484,8 +561,8 @@ class Circuit:
 		temp1 = []
 		temp2 = []
 		temp3 = []
-		for part in self.mos:		
-			for part2 in self.mos:
+		for part in self.mos_list:		
+			for part2 in self.mos_list:
 				if part.type == 'P' and part.gate == part2.gate and part.number != part2.number:
 					temp1.append(part)
 		precharge_PMOS = sorted(set(temp1), key=temp1.index)  #去处相同元素而不打乱顺序
@@ -494,7 +571,7 @@ class Circuit:
 			temp2.append(mos.gate)
 		precharge_PMOS_gate = list(set(temp2)) #[cd_n, precharge]
 		
-		for part in self.mos:
+		for part in self.mos_list:
 			if part.type == 'N' and part.gate in precharge_PMOS_gate:
 				foot_NMOS.append(part)
 
@@ -683,9 +760,9 @@ def get_netlist_data(input_file, output_file = 'output.txt', subtract = 0):
 			main_circuit = list_of_circuits[-1]
 
 			#把 subcircuit 以 m 开头的部分填加到 mos_list list 中
-			#[]:对于 circuit_mos_list 中的每个部分以空格分隔开来 ['m1 out in'] -> ['m1', 'out', 'in']
+			#[]部分:对于 circuit_mos_list 中的每个部分以空格分隔开来 ['m1 out in'] -> ['m1', 'out', 'in']
 			#之后调用 circuit 类型的 mosfet 函数把每个 m 的信息保存成一个 mosfet
-			main_circuit.mosfet([m_part.split() for m_part in main_circuit.create_mos_list()])
+			main_circuit.mosfet([mos.split() for mos in main_circuit.create_mos_list()])
 
 			#输出 circuit 中 netlist 部分的信息
 			#print('Netlist')
@@ -693,19 +770,59 @@ def get_netlist_data(input_file, output_file = 'output.txt', subtract = 0):
 			#	print(i.number, i.drain, i.gate, i.source, i.bulk, i.type)
 
 			#填加 netlist 中 subcircuit 的信息
-			for part in list_of_circuits[:-1]:
-				main_circuit.subcircuit.append(part)
-
-			print('Main circuit :', main_circuit.name)
-			print('Subcircuit   : ', end = '')
-			for part in main_circuit.subcircuit:
-				print(part.name + ' ', end = '')
-			print()
+			for subcircuit in list_of_circuits[:-1]:
+				subcircuit.mosfet([mos.split() for mos in subcircuit.create_mos_list()])
+				main_circuit.subcircuit.append(subcircuit)
 
 			pipeline1, pipeline2 = main_circuit.find_entire_path()
 			display_pipeline(pipeline1.path, 'pipeline1', main_circuit)
 			display_pipeline(pipeline2.path, 'pipeline2', main_circuit)
 
+			for part in pipeline1.path:
+				main_circuit.block.extend(main_circuit.create_block(part))
+				main_circuit.block_length += main_circuit.create_block(part, return_L = 1)
+			for part in pipeline2.path:
+				main_circuit.block.extend(main_circuit.create_block(part))
+
+			print('main_circuit.block')
+			print(main_circuit.block)
+			print(main_circuit.block_length)
+
+			
+			#调试用
+			print('Main circuit :', main_circuit.name)
+			print('Subcircuit   : ', end = '')
+			for part in main_circuit.subcircuit:
+				print(part.name + ' ', end = '')
+				if part.name == 'or':
+					subcircuit = part
+			print()
+
+			print('test')
+			block_length = 0
+			print(subcircuit.name)
+			for part in subcircuit.mos_list:
+				print(part.number)
+			print('path')
+			subcircuit.path = subcircuit.create_path_for_subcircuit(subcircuit)
+			for part in subcircuit.path:
+				subcircuit.block.extend(subcircuit.create_block(part))
+				block_length += subcircuit.create_block(part, return_L = 1)
+
+			print('path : ', end = '')
+			print(subcircuit.path)
+			for path in subcircuit.path:
+				for part in path:
+					print(part.number + '   ' , end = '')
+			print()
+
+			print('block : ', end = '')
+			for part in subcircuit.block:
+				print(part.block_name + '   ', end = '')
+			print()
+			print('block_length =', round(block_length, 2), 'u')
+			print()
+						
 
 			#output.write("width =" + str(total_width) + "u")
 			output.close()
