@@ -79,6 +79,25 @@ class Circuit:
 			self.mos_list[i].L = float(self.mos_list[i].L)/1000.   #把gate的L(比如180)换算为0.18 单位为 u
 			self.mos_list[i].W = float(self.mos_list[i].W)/1000.
 
+	#貌似没什么用了呀...
+	def select_top_mos(self, top_mos, pipeline):
+		top_mos_list = []
+
+		for mid_mos in pipeline.mid_mos:
+			if find_shared_node(mid_mos, top_mos):
+				middle_mos = mid_mos
+
+		for top_mos in pipeline.top_mos:
+			if find_shared_node(top_mos, middle_mos):
+				top_mos_list.append(top_mos)
+
+		if len(top_mos_list) == 1:
+			return(top_mos_list[0])
+		else:
+			top_mos = self.fork(mid_mos, top_mos_list)
+			return(top_mos)
+
+
 	def fork(self, ori_mos, fork_mos_list):
 		'''用来确定所读入 mos 的端子存在并联情况时优先选择哪一方'''
 		'''读入需要分析的 mos 和与其并联的 mos 的 list'''
@@ -89,6 +108,8 @@ class Circuit:
 		for mos in fork_mos_list:       
 			temp = []
 			temp.append(ori_mos)
+			shared_node = Node(find_shared_node(ori_mos, mos))
+			temp.append(shared_node)
 			temp.append(mos)
 			path_list.append(temp)
 
@@ -96,13 +117,22 @@ class Circuit:
 		for path in path_list:      
 			path.append(self.create_block(path, return_L = 1))  
 
-		#根据长度重新排列并返回最小L的path
+		#print('test for fork')
+		#for part in path:
+		#	if isinstance(part, MOSFET) or isinstance(part, Node):
+		#		print(part.number)
+		#	else:
+		#		print(part)
+		#print()
+
+		#根据长度重新排列并返回最小L的path中的 mos
 		path_list.sort(key = lambda path:path[-1])
-		return(path_list[0][1])
+
+		return(path_list[0][2])
 
 	#对于读入的 path 生成 block 返回 block 的 list 
 	def create_block(self, path, return_L = 0):
-		"""根据读入的 path 生成 layout 模块
+		"""根据读入的 path 生成 layout 模块, path的内容为 MOSFET 和 Node 类型的混合 list
 			return 有三种情况: 
 			默认为0 返回 entire_block
 			若为1  返回 entire_block 的长度
@@ -235,9 +265,6 @@ class Circuit:
 			subcircuit_path.append(isolated_top_mos)
 			return(subcircuit_path)
 
-
-		else:
-			pass
 		#if subcircuit.name == 'cd circuit'
 
 	def create_path_for_mid_bot(self, mid_mos, pipeline):
@@ -306,8 +333,11 @@ class Circuit:
 		#mos 与下面的 mos 串联时 直接将 mid_mos 填加到 path 中
 		if len(mid_mos_list) == 1:
 			#mid_mos 就是list 中的唯一一个元素
-			mid_mos = mid_mos_list[0]
-			top_mid_bot_path.append(top_mos)	
+			mid_mos = mid_mos_list[0]	
+			
+			#首先先在 top_mid_bot_path 中添加 top_mos 并标记 searched = 1
+			top_mid_bot_path.append(top_mos)
+			top_mos.searched = 1
 
 			#查找最上层 mos 和中间 mos 的 shared_node, 并判断此 shared_node 是否为分歧点
 			shared_node_1_name = find_shared_node(top_mos, mid_mos)
@@ -341,13 +371,18 @@ class Circuit:
 				bot_mos = self.fork(mid_mos, bot_mos_list)
 				top_mid_bot_path.append(bot_mos)
 				bot_mos.searched = 1
+			elif len(bot_mos_list) == 0:
+				pass
 			pipeline.path.append(top_mid_bot_path)
 
 		#mos 与下面的 mos 并联时 需要从 mid_mos_list 中挑选与 mos 连接部分面积较小的一方
 		elif len(mid_mos_list) >= 2:
 			#mid_mos 为 list 中与 top_mos 连接部分较小的一个 之后的内容与上面相同
-			mid_mos = self.fork(top_mos, mid_mos_list)
-			top_mid_bot_path.append(top_mos)	
+			mid_mos = self.fork(top_mos, mid_mos_list)	
+
+			#首先先在 top_mid_bot_path 中添加 top_mos 并标记 searched = 1
+			top_mid_bot_path.append(top_mos)
+			top_mos.searched = 1
 
 			#查找最上层 mos 和中间 mos 的 shared_node, 并判断此 shared_node 是否为分歧点
 			shared_node_1_name = find_shared_node(top_mos, mid_mos)
@@ -383,14 +418,14 @@ class Circuit:
 				bot_mos.searched = 1
 			pipeline.path.append(top_mid_bot_path)
 
-
 		#若下侧的 mid_mos 都被搜索过了 则这个 top_mos 作为独立元素填加到 pipeline_path 中		
 		else:
 			isolated_top_mos = []
 			isolated_top_mos.append(top_mos)
+			top_mos.searched = 1
 			pipeline.path.append(isolated_top_mos)
 
-
+	#下面三个函数可以留作以后写其他版本的时候使用
 	def find_next_mos(self, ori_mos, search_node, search_list):
 		next_mos_list = []
 
@@ -533,8 +568,47 @@ class Circuit:
 		'''从每一个 top_level_nmos 里的 mos 出发 因为还是涉及到 drain 和 source 对称的问题 所以分为两个部分 但是做的事情是完全一致的
 		确认最上排 mos 下面的点和最下排 mos 上面的点 比如 net28 和 net16 之后找到两个点之间所有可能的路径 作为一个 list 返回
 		之后对于 list 中的每条路径 加上最上排的 mos 和最下排的 mos 组成完整的三段路径'''
-		for top_mos in pipeline.top_mos:
-			self.create_path_for_top_mid_bot(top_mos, pipeline)
+		num_of_top_mos = len(pipeline.top_mos)
+		num_of_searched_top_mos = 0
+
+		while num_of_searched_top_mos < num_of_top_mos:
+			for top_mos in pipeline.top_mos:
+				if top_mos.searched == 0:
+					#寻找 top_mos 和下方 mid_mos 的连接点
+					shared_node_list = []
+					for mid_mos in pipeline.mid_mos:
+						shared_node = find_shared_node(top_mos, mid_mos)
+						if shared_node:
+							shared_node_list.append(shared_node)
+					shared_node = shared_node_list[0]
+
+					#查找与下方 mid_mos 连接的 top_mos 并判断是否存在两个以上
+					top_mos_list = []
+					for top_mos in pipeline.top_mos:
+						if (top_mos.drain == shared_node or top_mos.source == shared_node) and top_mos.searched == 0:
+							top_mos_list.append(top_mos)
+					for mos in pipeline.mid_mos:
+						if mos.drain == shared_node or mos.source == shared_node:
+							mid_mos = mos
+
+					#有多个 top_mos 与 mid_mos 连接 需要选择一个连接部分最小的
+					if len(top_mos_list) >= 2:
+						top_mos = self.fork(mid_mos, top_mos_list)
+
+						print('shared_node', shared_node)
+						print('mid_mos', mid_mos.number)
+						display('top_mos_list', top_mos_list)
+						print('selected top mos', top_mos.number)
+						print()
+						
+						self.create_path_for_top_mid_bot(top_mos, pipeline)
+						num_of_searched_top_mos += 1
+						
+					#只有一个或者0个 top_mos 与此 mid_mos 连接时
+					elif len(top_mos_list) == 1:
+						self.create_path_for_top_mid_bot(top_mos_list[0], pipeline)
+						num_of_searched_top_mos += 1
+
 
 		#遍历完 top_mos 之后遍历 mid_mos 选出还未被 search 过的, 判断能不能与 bot_mos 组成一个 path
 		for mid_mos in pipeline.mid_mos:
@@ -622,13 +696,14 @@ def display_pipeline(pipeline, pipeline_name, circuit):
 	for index, path in enumerate(pipeline):
 		print('path  : ', end = '')
 		for part in path:
-			if isinstance(part, Node):
-				if part.fork == 1:
-					print(part.number + '(fork)' + '   ', end = '')
-				else:
-					print(part.number + '   ', end = '')
-			else:
-				print(part.number + '   ', end = '')
+			#if isinstance(part, Node):
+			#	if part.fork == 1:
+			#		print(part.number + '(fork)' + '   ', end = '')
+			#	else:
+			#		print(part.number + '   ', end = '')
+			#else:
+			#	print(part.number + '   ', end = '')
+			print(part.number + '   ', end = '')
 		print()
 		
 		'''
@@ -730,34 +805,13 @@ def get_netlist_data(input_file, output_file = 'output.txt', subtract = 0):
 		with open(input_file) as netlist_file:
 			mos_list = []                                 #创建一个 list 用来储存以 m 开头的数据
 			list_of_circuits = break_into_part(netlist_file, '** End of subcircuit definition.\n') #读入每一行: 用于读取真的 netlist 文件
-			"""
-			#subtract部分是否要处理 以后再讨论 现在 NMOS tree 的处理已经完成 2014.11.13
-			if subtract:                               #如果指定抽取某一 subcircuit
-				print('Cell name :', subtract)
-				for circuit in list_of_circuits:
-					if re.findall(r'\b%s\b'%subtract, circuit.name):  #找到想要抽取的 subcircuit 的 instance
-						mos_list = circuit.create_mos_list()    #把 subcircuit 以 m 开头的部分填加到 mos_list list 中
-						circuit.mosfet([m_part.split() for m_part in mos_list]) #[]:对于 list_of_m 中的每个部分以空格分隔开来 ['m1 out in'] -> ['m1', 'out', 'in']
-																				   #之后调用 circuit 类型的 mosfet 函数把每个 m 的信息保存成一个 mosfet
-						#print('Netlist')
-						#for i in circuit.mos:
-						#	print(i.number, i.drain, i.gate, i.source, i.bulk, i.type)
-						pipeline1, pipeline2 = circuit.find_entire_path()
-						display_pipeline(pipeline1.path, 'pipeline1', circuit)
-						display_pipeline(pipeline2.path, 'pipeline2', circuit)
-
-
-			else:                     				   #若未指定 subcircuit 则输出整个 netlist
-				top_level_circuit = list_of_circuits[-1]
-				print('Cell name :', top_level_circuit.name)
-				top_level_circuit.mosfet([m_part.split() for m_part in top_level_circuit.create_mos_list()])
-				pipeline1, pipeline2 = top_level_circuit.find_entire_path()
-				#display_pipeline(pipeline1.path, 'pipeline1', top_level_circuit)
-				#display_pipeline(pipeline2.path, 'pipeline2', top_level_circuit)
-			"""
-			print('test for subcircuit')
+	
+			print('test for NMOS tree')
 			#主要部分的 circuit 为列表最后一个部分
-			main_circuit = list_of_circuits[-1]
+			for circuit in list_of_circuits:
+				if circuit.name == 'test_for_NMOS_tree':
+					main_circuit = circuit
+			#main_circuit = list_of_circuits[-1]
 
 			#把 subcircuit 以 m 开头的部分填加到 mos_list list 中
 			#[]部分:对于 circuit_mos_list 中的每个部分以空格分隔开来 ['m1 out in'] -> ['m1', 'out', 'in']
@@ -770,14 +824,18 @@ def get_netlist_data(input_file, output_file = 'output.txt', subtract = 0):
 			#	print(i.number, i.drain, i.gate, i.source, i.bulk, i.type)
 
 			#填加 netlist 中 subcircuit 的信息
-			for subcircuit in list_of_circuits[:-1]:
-				subcircuit.mosfet([mos.split() for mos in subcircuit.create_mos_list()])
-				main_circuit.subcircuit.append(subcircuit)
+			#for subcircuit in list_of_circuits[:-1]:
+			#	subcircuit.mosfet([mos.split() for mos in subcircuit.create_mos_list()])
+			#	main_circuit.subcircuit.append(subcircuit)
 
 			pipeline1, pipeline2 = main_circuit.find_entire_path()
 			display_pipeline(pipeline1.path, 'pipeline1', main_circuit)
 			display_pipeline(pipeline2.path, 'pipeline2', main_circuit)
 
+		
+
+
+			'''
 			for part in pipeline1.path:
 				main_circuit.block.extend(main_circuit.create_block(part))
 				main_circuit.block_length += main_circuit.create_block(part, return_L = 1)
@@ -822,7 +880,7 @@ def get_netlist_data(input_file, output_file = 'output.txt', subtract = 0):
 			print()
 			print('block_length =', round(block_length, 2), 'u')
 			print()
-						
+			'''		
 
 			#output.write("width =" + str(total_width) + "u")
 			output.close()
