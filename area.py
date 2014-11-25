@@ -121,14 +121,6 @@ class Circuit:
 		for path in path_list:      
 			path.append(self.create_block(path).L)  
 
-		#print('test for fork')
-		#for part in path:
-		#	if isinstance(part, MOSFET) or isinstance(part, Node):
-		#		print(part.number)
-		#	else:
-		#		print(part)
-		#print()
-
 		#根据长度重新排列并返回最小L的path中的 mos
 		path_list.sort(key = lambda path:path[-1])
 
@@ -581,7 +573,9 @@ class Circuit:
 		'''从每一个 top_level_nmos 里的 mos 出发 因为还是涉及到 drain 和 source 对称的问题 所以分为两个部分 但是做的事情是完全一致的
 		确认最上排 mos 下面的点和最下排 mos 上面的点 比如 net28 和 net16 之后找到两个点之间所有可能的路径 作为一个 list 返回
 		之后对于 list 中的每条路径 加上最上排的 mos 和最下排的 mos 组成完整的三段路径'''
+		#top_mos 的总数, 用来控制循环的总次数
 		num_of_top_mos = len(pipeline.top_mos)
+		#记录 top_mos 里面被 search 过了的个数, 一旦与 top_mos 总数相等, 进入 mid_mos 的遍历
 		num_of_searched_top_mos = 0
 
 		while num_of_searched_top_mos < num_of_top_mos:
@@ -601,22 +595,16 @@ class Circuit:
 						if (top_mos.drain == shared_node or top_mos.source == shared_node) and top_mos.searched == 0:
 							top_mos_list.append(top_mos)
 					for mos in pipeline.mid_mos:
-						if mos.drain == shared_node or mos.source == shared_node:
-							mid_mos = mos
+						if mos.searched == 0:
+							if mos.drain == shared_node or mos.source == shared_node:
+								mid_mos = mos
 
-					#有多个 top_mos 与 mid_mos 连接 需要选择一个连接部分最小的
+					#有多个 top_mos 与 mid_mos 连接 需要选择一个连接部分最小的一方来创建 path
 					if len(top_mos_list) >= 2:
 						top_mos = self.fork(mid_mos, top_mos_list)
-
-						print('shared_node', shared_node)
-						print('mid_mos', mid_mos.number)
-						display('top_mos_list', top_mos_list)
-						print('selected top mos', top_mos.number)
-						print()
-						
 						self.create_path_for_top_mid_bot(top_mos, pipeline)
 						num_of_searched_top_mos += 1
-						
+
 					#只有一个或者0个 top_mos 与此 mid_mos 连接时
 					elif len(top_mos_list) == 1:
 						self.create_path_for_top_mid_bot(top_mos_list[0], pipeline)
@@ -821,7 +809,7 @@ def get_netlist_data(input_file, output_file = 'output.txt', subtract = 0):
 	
 			#主要部分的 circuit 为列表最后一个部分
 			for circuit in list_of_circuits:
-				if circuit.name == 'standard_cell':
+				if circuit.name == 'test_for_NMOS_tree':
 					main_circuit = circuit
 			#main_circuit = list_of_circuits[-1]
 
