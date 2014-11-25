@@ -19,6 +19,7 @@ class Block:
 		self.block_name = block_name   #block 名称
 		self.L = L     				   #宽度 单位:μ
 		self.W = W   				   #高度
+		self.list_of_blocks = []	   #用处储存根据 path 生成的 block 的排列
 
 class MOSFET:
 	'''用来储存 MOSFET 的番号, 四个端子, 类型和长宽的信息'''
@@ -75,9 +76,12 @@ class Circuit:
 		for i in range(line_num):
 			self.mos_list.append('m%d' %i)  #把列表填满 m1, m2... 之后再用每一项去创建一个class MOSFET 的 instance
 			self.mos_list[i] = (MOSFET(list_of_m[i][0], list_of_m[i][1], list_of_m[i][2], \
-							 list_of_m[i][3], list_of_m[i][4], list_of_m[i][5], list_of_m[i][6].strip("L=").strip("e-9"), list_of_m[i][7].strip('W=').strip('e-9')))
+							 list_of_m[i][3], list_of_m[i][4], list_of_m[i][5], list_of_m[i][6].strip("L=").strip("e-9"), list_of_m[i][7].strip('W=')))
 			self.mos_list[i].L = float(self.mos_list[i].L)/1000.   #把gate的L(比如180)换算为0.18 单位为 u
-			self.mos_list[i].W = float(self.mos_list[i].W)/1000.
+			if 'e-6' in self.mos_list[i].W:
+				self.mos_list[i].W = float(self.mos_list[i].W.strip('e-6'))
+			else:
+				self.mos_list[i].W = float(self.mos_list[i].W.strip('e-9'))/1000.
 
 	#貌似没什么用了呀...
 	def select_top_mos(self, top_mos, pipeline):
@@ -115,7 +119,7 @@ class Circuit:
 
 		#利用内建的 creat_block 函数获取每个 path 的长度 并添加到列表的最末端
 		for path in path_list:      
-			path.append(self.create_block(path, return_L = 1))  
+			path.append(self.create_block(path).L)  
 
 		#print('test for fork')
 		#for part in path:
@@ -131,27 +135,27 @@ class Circuit:
 		return(path_list[0][2])
 
 	#对于读入的 path 生成 block 返回 block 的 list 
-	def create_block(self, path, return_L = 0):
+	def create_block(self, path):
 		"""根据读入的 path 生成 layout 模块, path的内容为 MOSFET 和 Node 类型的混合 list
-			return 有三种情况: 
-			默认为0 返回 entire_block
-			若为1  返回 entire_block 的长度
-			若为2  返回 entire_block 和 entire_block 的长度
+		   返回一个 block, 其中包含的内容为: 作为 block_name 的 path_name, L, W, block 列表
 		"""
-		entire_block = []
-		block_length = 0
+		entire_block = []     #用于储存每个小 block
+		path_name = []		  #读入 path 的名称, 用来当做 block_name
+		entire_block_L = 0    #整个 block 的宽度
+		entire_block_W = 0	  #整个 block 的高度
+		list_of_block_W = []  #储存每个 block 的高度, 以便找出最高的部分
 
 		#先判断需要计算的 path 中是否只包含一个 mos
 		if len(path) == 1:
 			entire_block.append(Block('edge_contact' ,0.48, path[0].W)) 		  #填加一个边缘处的 edge_contact
-			entire_block.append(Block('gate', 0.18, path[0].W))					  #填加一个 gate
+			entire_block.append(Block('gate', 0.18, path[0].W+0.22*2))			  #填加一个 gate
 			entire_block.append(Block('edge_contact' ,0.48, path[0].W))			  #填加一个边缘处的 edge_contact
 		else:
 			#填加 gate 时的 W 需要再根据左右连接处的 W 来判断一下
 			entire_block.append(Block('edge_contact' ,0.48, path[0].W)) 		  #填加一个边缘处的 edge_contact
 			for part in path[:-2]:
 				if isinstance(part, MOSFET):
-					entire_block.append(Block('gate', part.L, part.W))            #填加一个 gate
+					entire_block.append(Block('gate', part.L, part.W+0.22*2))       #填加一个 gate
 					if part.W == path[path.index(part)+2].W:		 			  #比较当前 gate 和下面一个 gate 的 W 是否相同
 						if path[path.index(part)+1].fork == 0:
 							entire_block.append(Block('gate_gate_sw' ,0.26, part.W))      #两个 gate 宽度一致 没有 contact
@@ -166,20 +170,29 @@ class Circuit:
 							entire_block.append(Block('gate_contact_gate_dw' ,0.38, path[path.index(part)+2].W))
 				else:
 					continue
-			entire_block.append(Block('gate', 0.18, path[-1].W))		  #因为上面逻辑只能填加到倒数第二个 mos 的右侧的部分 所以手动填加最右侧的 gate
-			entire_block.append(Block('edge_contact' ,0.48, path[-1].W))  #填加最右面的 edge_contact
+			entire_block.append(Block('gate', 0.18, path[-1].W+0.22*2))		  #因为上面逻辑只能填加到倒数第二个 mos 的右侧的部分 所以手动填加最右侧的 gate
+			entire_block.append(Block('edge_contact' ,0.48, path[-1].W))      #填加最右面的 edge_contact
 			entire_block.append(Block('diff_space', 0.28, path[-1].W))
 
-		if not return_L:
-			return(entire_block)
-		elif return_L == 1:
-			for block in entire_block:
-				block_length += block.L
-			return(block_length)
-		elif return_L == 2:
-			for block in entire_block:
-				block_length += block.L
-			return(entire_block, block_length)
+		#用 path 的名称来命名此 block
+		for part in path:
+			path_name.append(part.number)
+
+		#决定 block 中最大的高度 W
+		for part in entire_block:
+			if part.block_name == 'gate':
+				list_of_block_W.append(round(part.W, 2))
+		entire_block_W = max(list_of_block_W)
+
+		#决定 block 的长度 L
+		for block in entire_block:
+			entire_block_L += block.L
+		entire_block_L = round(entire_block_L, 2)
+
+		path_block = Block(path_name, entire_block_L, entire_block_W)
+		path_block.list_of_blocks = entire_block
+
+		return(path_block)
 
 	#输入两个点 找出两点间(未被搜索过)的 mos
 	def search_mid_mos(self, top_node, bot_node):
@@ -806,10 +819,9 @@ def get_netlist_data(input_file, output_file = 'output.txt', subtract = 0):
 			mos_list = []                                 #创建一个 list 用来储存以 m 开头的数据
 			list_of_circuits = break_into_part(netlist_file, '** End of subcircuit definition.\n') #读入每一行: 用于读取真的 netlist 文件
 	
-			print('test for NMOS tree')
 			#主要部分的 circuit 为列表最后一个部分
 			for circuit in list_of_circuits:
-				if circuit.name == 'test_for_NMOS_tree':
+				if circuit.name == 'standard_cell':
 					main_circuit = circuit
 			#main_circuit = list_of_circuits[-1]
 
@@ -820,14 +832,15 @@ def get_netlist_data(input_file, output_file = 'output.txt', subtract = 0):
 
 			#输出 circuit 中 netlist 部分的信息
 			#print('Netlist')
-			#for i in main_circuit.mos:
-			#	print(i.number, i.drain, i.gate, i.source, i.bulk, i.type)
+			#for i in main_circuit.mos_list:
+			#	print(i.number, i.drain, i.gate, i.source, i.bulk, i.type, i.L, i.W)
 
 			#填加 netlist 中 subcircuit 的信息
 			#for subcircuit in list_of_circuits[:-1]:
 			#	subcircuit.mosfet([mos.split() for mos in subcircuit.create_mos_list()])
 			#	main_circuit.subcircuit.append(subcircuit)
 
+			print('main_circuit', main_circuit.name)
 			pipeline1, pipeline2 = main_circuit.find_entire_path()
 			display_pipeline(pipeline1.path, 'pipeline1', main_circuit)
 			display_pipeline(pipeline2.path, 'pipeline2', main_circuit)
