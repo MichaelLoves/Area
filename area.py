@@ -55,23 +55,24 @@ class Circuit:
 	def __init__(self, name, netlist):
 		self.name = name        			    #circuit 的 cell name
 		self.netlist = netlist   				#circuit 的 netlist 类型为 list
-		self.mos_list = []							#用来储存 circuit 中所有 mos 的信息  mos 每部分均为 class mosfet 的 instance  ['m0', 'm1'...]
+		self.mos_list = []						#用来储存 circuit 中所有 mos 的信息  mos 每部分均为 class mosfet 的 instance  ['m0', 'm1'...]
 		self.path = []
-		self.subcircuit = []
+		self.subcircuit_netlist = []			#储存 subcircuit 的类型
+		self.subcircuit_list = {}				#储存 subcircuit 对应的数量
 		self.block = []
 		self.block_length = 0
 
-	def create_mos_list(self):           			    #返回 netlist 中仅以 m 开头的部分
+	def create_mos_list(self):           	    #返回 netlist 中仅以 m 开头的部分
 		list = []
 		for part in self.netlist:
 			if re.findall(r'\bm\w*\b', part):   #判断这行首字母是否以 m 开头
 				list.append(part)				#若首字母以"m"开头 填加到 list 里面
 		return(list)
 
-	def line_m_list(self):                      #返回读入 m_list 的行数, 即 m 部分的个数
+	def line_m_list(self):                      #返回读入 mos_list 的行数, 即 m 部分的个数
 		return(len(self.create_mos_list()))
 
-	def mosfet(self, list_of_m):                #读取一个包含 m 信息的 list 之后封装在每个 MOSFET 类型的 instance 中 最后保存在 self.mos_list list 中
+	def create_mosfet(self, list_of_m):                #读取一个包含 m 信息的 list 之后封装在每个 MOSFET 类型的 instance 中 最后保存在 self.mos_list list 中
 		line_num = len(self.create_mos_list())
 		for i in range(line_num):
 			self.mos_list.append('m%d' %i)  #把列表填满 m1, m2... 之后再用每一项去创建一个class MOSFET 的 instance
@@ -82,6 +83,38 @@ class Circuit:
 				self.mos_list[i].W = float(self.mos_list[i].W.strip('e-6'))
 			else:
 				self.mos_list[i].W = float(self.mos_list[i].W.strip('e-9'))/1000.
+
+	def create_subcircuit(self):
+		for line in self.netlist:
+			if re.findall(r'\bxi\w*\b', line):
+				self.subcircuit_netlist.append(line.split()[-1])
+
+	def calculate_subcircuit(self):
+		"""用来计算一个电路中的 subcircuit 的个数"""
+
+		#储存从电路的 netlist 中获取的 subcircuit 的信息, 即以 xi 开头的部分
+		subcircuit_list = []
+		for line in self.netlist:
+			if re.findall(r'\bxi\w*\b', line):
+				subcircuit_list.append(line.split()[-1])
+
+		#储存 subcircuit 的名称
+		subcircuit_names = []
+		for part in self.subcircuit_netlist:
+			if isinstance(part, Circuit):
+				subcircuit_names.append(part.name)
+			else:
+				subcircuit_names.append(part)
+
+		#统计各个 subcircuit 的数量
+		for part in subcircuit_list:
+			self.subcircuit_list[part] = 0
+		for part in subcircuit_list:
+			if part in subcircuit_names:
+				self.subcircuit_list[part] += 1
+
+		#print('self.subcircuit_list')
+		print(self.subcircuit_list)
 
 	#貌似没什么用了呀...
 	def select_top_mos(self, top_mos, pipeline):
@@ -706,20 +739,6 @@ def display_pipeline(pipeline, pipeline_name, circuit):
 			#	print(part.number + '   ', end = '')
 			print(part.number + '   ', end = '')
 		print()
-		
-		'''
-		print('block : ', end = '')
-		block, block_legnth = circuit.create_block(path, return_L = 2)
-		for part in block:
-			print(part.block_name + '   ', end = '')
-		print()
-		print('block_legnth =', round(block_legnth, 2), 'u')
-		total_length += block_legnth
-		print()
-		
-	print('total_length =', total_length, 'u')
-	'''
-	print()
 
 def equal(list1, list2):
 	'''判断两个列表中的 mos 是否完全相同'''
@@ -772,6 +791,13 @@ def find_shared_node(mos1, mos2):
 	elif mos1.source == mos2.drain or mos1.source == mos2.source:
 		return(mos1.source)
 
+def has_subcircuit(netlist):
+	for line in netlist:
+		if re.findall(r'\bxi\w*\b', line):
+			return(True)
+		else:
+			return(False)
+
 #查找一个元素的所有位置
 def find_all_index(arr, search):
 	return [index+1 for index,item in enumerate(arr) if item == search]
@@ -804,19 +830,24 @@ def get_netlist_data(input_file, output_file = 'output.txt', subtract = 0):
 	try:
 		output = open(output_file, 'w')     		   #创建一个文件用来保存结果
 		with open(input_file) as netlist_file:
-			mos_list = []                                 #创建一个 list 用来储存以 m 开头的数据
+			#做一个 standard cell, 其中包含一个 main_circuit(有N和P Pipeline)以及若干 subcircuit(inv, cd_circuit etc.)
+			main_circuit = ''
+			subcircuit_list = []
+
 			list_of_circuits = break_into_part(netlist_file, '** End of subcircuit definition.\n') #读入每一行: 用于读取真的 netlist 文件
 	
-			#主要部分的 circuit 为列表最后一个部分
-			for circuit in list_of_circuits:
-				if circuit.name == 'test_for_NMOS_tree':
-					main_circuit = circuit
-			#main_circuit = list_of_circuits[-1]
+			#主要部分的 circuit 为列表最后一个部分, 上面的部分均为 subcircuit
+			main_circuit = list_of_circuits[-1]
+			#调试个别电路时使用
+			#for circuit in list_of_circuits:
+			#	if circuit.name == 'test_for_NMOS_tree':
+			#		main_circuit = circuit
 
-			#把 subcircuit 以 m 开头的部分填加到 mos_list list 中
+
+			#把 circuit 以 m 开头的部分填加到 mos_list list 中
 			#[]部分:对于 circuit_mos_list 中的每个部分以空格分隔开来 ['m1 out in'] -> ['m1', 'out', 'in']
 			#之后调用 circuit 类型的 mosfet 函数把每个 m 的信息保存成一个 mosfet
-			main_circuit.mosfet([mos.split() for mos in main_circuit.create_mos_list()])
+			main_circuit.create_mosfet([mos.split() for mos in main_circuit.create_mos_list()])
 
 			#输出 circuit 中 netlist 部分的信息
 			#print('Netlist')
@@ -824,16 +855,30 @@ def get_netlist_data(input_file, output_file = 'output.txt', subtract = 0):
 			#	print(i.number, i.drain, i.gate, i.source, i.bulk, i.type, i.L, i.W)
 
 			#填加 netlist 中 subcircuit 的信息
-			#for subcircuit in list_of_circuits[:-1]:
-			#	subcircuit.mosfet([mos.split() for mos in subcircuit.create_mos_list()])
-			#	main_circuit.subcircuit.append(subcircuit)
+			for subcircuit in list_of_circuits[:-1]:
+				subcircuit.create_mosfet([mos.split() for mos in subcircuit.create_mos_list()])
+				subcircuit.create_subcircuit()
+				main_circuit.subcircuit_netlist.append(subcircuit)
 
 			print('main_circuit', main_circuit.name)
 			pipeline1, pipeline2 = main_circuit.find_entire_path()
-			display_pipeline(pipeline1.path, 'pipeline1', main_circuit)
-			display_pipeline(pipeline2.path, 'pipeline2', main_circuit)
-
+			#display_pipeline(pipeline1.path, 'pipeline1', main_circuit)
+			#display_pipeline(pipeline2.path, 'pipeline2', main_circuit)
+			#print('subcircuit_list')
+			#for part in main_circuit.subcircuit_netlist:
+			#	print(part.name)
 		
+			#print('subcircuit')
+			#for subcircuit in main_circuit.subcircuit_netlist:
+			#	if subcircuit.name == 'cd_circuit':
+			#		print('cd_circuit subcircuit.netlist')
+			#		print(subcircuit.netlist) 
+			#		print(subcircuit.subcircuit_netlist)
+
+			main_circuit.calculate_subcircuit()
+			for subcircuit in main_circuit.subcircuit_netlist:
+				print(subcircuit.name)
+				subcircuit.calculate_subcircuit()
 
 
 			'''
