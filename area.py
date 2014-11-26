@@ -58,7 +58,7 @@ class Circuit:
 		self.mos_list = []						#用来储存 circuit 中所有 mos 的信息  mos 每部分均为 class mosfet 的 instance  ['m0', 'm1'...]
 		self.path = []
 		self.subcircuit_netlist = []			#储存 subcircuit 的类型
-		self.subcircuit_list = {}				#储存 subcircuit 对应的数量
+		self.subcircuit_num = {}				#储存 subcircuit 对应的数量
 		self.block = []
 		self.block_length = 0
 
@@ -84,10 +84,20 @@ class Circuit:
 			else:
 				self.mos_list[i].W = float(self.mos_list[i].W.strip('e-9'))/1000.
 
-	def create_subcircuit(self):
+	def create_subcircuit(self, circuit_list):
+		"""用来给 CD circuit 等包含进一层 subcircuit 的 subcircuit 填加 subcircuit """
+		#找出都有哪些 subcircuit
+		subcircuit_list = []
+		temp = []
 		for line in self.netlist:
 			if re.findall(r'\bxi\w*\b', line):
-				self.subcircuit_netlist.append(line.split()[-1])
+				temp.append(line.split()[-1])
+		subcircuit_list = sorted(set(temp), key = temp.index)
+
+		#在整个 netlist 中寻找那些 subcircuit 并填加到 subcircuit_netlist 中
+		for circuit in circuit_list:
+			if circuit.name in subcircuit_list:
+				self.subcircuit_netlist.append(circuit)
 
 	def calculate_subcircuit(self):
 		"""用来计算一个电路中的 subcircuit 的个数"""
@@ -101,20 +111,14 @@ class Circuit:
 		#储存 subcircuit 的名称
 		subcircuit_names = []
 		for part in self.subcircuit_netlist:
-			if isinstance(part, Circuit):
-				subcircuit_names.append(part.name)
-			else:
-				subcircuit_names.append(part)
+			subcircuit_names.append(part.name)
 
 		#统计各个 subcircuit 的数量
 		for part in subcircuit_list:
-			self.subcircuit_list[part] = 0
+			self.subcircuit_num[part] = 0
 		for part in subcircuit_list:
 			if part in subcircuit_names:
-				self.subcircuit_list[part] += 1
-
-		#print('self.subcircuit_list')
-		print(self.subcircuit_list)
+				self.subcircuit_num[part] += 1
 
 	#貌似没什么用了呀...
 	def select_top_mos(self, top_mos, pipeline):
@@ -834,6 +838,7 @@ def get_netlist_data(input_file, output_file = 'output.txt', subtract = 0):
 			main_circuit = ''
 			subcircuit_list = []
 
+
 			list_of_circuits = break_into_part(netlist_file, '** End of subcircuit definition.\n') #读入每一行: 用于读取真的 netlist 文件
 	
 			#主要部分的 circuit 为列表最后一个部分, 上面的部分均为 subcircuit
@@ -854,31 +859,62 @@ def get_netlist_data(input_file, output_file = 'output.txt', subtract = 0):
 			#for i in main_circuit.mos_list:
 			#	print(i.number, i.drain, i.gate, i.source, i.bulk, i.type, i.L, i.W)
 
-			#填加 netlist 中 subcircuit 的信息
+			#抽取 netlist 中 subcircuit 的信息 并对有进一层 subcircuit 的 subcircuit 进行填加
+			#并填加到 main_circuit 的 subcircuit_netlist 中
 			for subcircuit in list_of_circuits[:-1]:
-				subcircuit.create_mosfet([mos.split() for mos in subcircuit.create_mos_list()])
-				subcircuit.create_subcircuit()
-				main_circuit.subcircuit_netlist.append(subcircuit)
+				"""!!!填加这一行是为了去除测试用的 test_for_NMOS_tree !!! 按理说是没有这一行的!!!"""
+				if subcircuit.name != 'test_for_NMOS_tree':
+					#抽取subcircuit 中的 mos 信息
+					subcircuit.create_mosfet([mos.split() for mos in subcircuit.create_mos_list()])
 
-			print('main_circuit', main_circuit.name)
+					#若 subcircuit 中存在另一层的 subcircuit 则进行填加
+					subcircuit.create_subcircuit(list_of_circuits)
+
+					#把所有的 subcircuit 都填加到 main_circuit 中
+					main_circuit.subcircuit_netlist.append(subcircuit)
+
+			print('main_circuit : ', main_circuit.name)
 			pipeline1, pipeline2 = main_circuit.find_entire_path()
 			#display_pipeline(pipeline1.path, 'pipeline1', main_circuit)
 			#display_pipeline(pipeline2.path, 'pipeline2', main_circuit)
-			#print('subcircuit_list')
-			#for part in main_circuit.subcircuit_netlist:
-			#	print(part.name)
-		
-			#print('subcircuit')
-			#for subcircuit in main_circuit.subcircuit_netlist:
-			#	if subcircuit.name == 'cd_circuit':
-			#		print('cd_circuit subcircuit.netlist')
-			#		print(subcircuit.netlist) 
-			#		print(subcircuit.subcircuit_netlist)
-
+			
 			main_circuit.calculate_subcircuit()
+			print('main_circuit subcircuit_netlist')
+			for part in main_circuit.subcircuit_netlist:
+				print(part.name + '  ', end = '')
+			print('main_circuit.subcircuit_num')
+			print(main_circuit.subcircuit_num)
+			print()
+
 			for subcircuit in main_circuit.subcircuit_netlist:
-				print(subcircuit.name)
 				subcircuit.calculate_subcircuit()
+				print(subcircuit.name)
+				print('subcircuit_netlist', end = ' ')
+				for part in subcircuit.subcircuit_netlist:
+					print(part.name + ' ', end = '')
+				print()
+				print('subcircuit.subcircuit_num')
+				print(subcircuit.subcircuit_num)
+				print()
+
+			#subcircuit 总数量的统计
+			total_subcircuit_num = {}
+
+			#初始化字典
+			for part in main_circuit.subcircuit_netlist:
+				total_subcircuit_num[part.name] = 0
+
+			for subcircuit in main_circuit.subcircuit_num:
+				total_subcircuit_num[subcircuit] += main_circuit.subcircuit_num[subcircuit]
+
+
+			print('total_subcircuit_num')
+			print(total_subcircuit_num)
+
+			for subcircuit in main_circuit.subcircuit_netlist:
+				if subcircuit.subcircuit_num:
+					print(subcircuit.name)
+
 
 
 			'''
