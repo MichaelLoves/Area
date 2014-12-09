@@ -41,8 +41,57 @@ class Group:
 		self.top_mos = []
 		self.mid_mos = []
 		self.bot_mos = []
+		self.mos_list = []
 		self.main_path_list = []
 		self.path_list = []
+		self.top_node_list = []
+
+	#遍历寻找 group 中的 main_path 并添加到 main_path_list 之中
+	def find_main_path(self):
+		main_path_list = []
+		for top_mos in self.top_mos:
+			path = []
+
+			mid_mos_list = []
+			for mid_mos in self.mid_mos:
+				if find_shared_node(top_mos, mid_mos):
+					mid_mos_list.append(mid_mos)
+
+			for mid_mos in mid_mos_list:
+				bot_mos_list = []
+				for bot_mos in self.bot_mos:
+					if find_shared_node(mid_mos, bot_mos):
+						bot_mos_list.append(bot_mos)
+
+			for mid_mos in mid_mos_list:
+				for bot_mos in bot_mos_list:
+					path.append([top_mos, mid_mos, bot_mos])
+
+			self.main_path_list.extend(path)
+
+	#查找并返回除了 main_path 之外的 mos
+	def find_unsearched_mos(self, main_path):
+		mos_list = deepcopy(self.mos_list)
+		main_path = deepcopy(main_path)
+		unsearched_mos_list = []
+
+		#初始化所有 mos 的 searched 状态
+		for mos in mos_list:
+			mos.searched = 0
+		
+		#标记 main_path 中的 mos 的 searched 为1
+		for mos1 in mos_list:
+			for mos2 in main_path:
+				if mos1.number == mos2.number:
+					mos1.searched = 1
+
+		#抽取其他 searched == 0 的 mos
+		for mos in mos_list:
+			if mos.searched == 0:
+				unsearched_mos_list.append(mos)
+
+		return(unsearched_mos_list)
+
 
 class Pipeline:
 	"""在寻找 path 的时候用来储存 top_level_mos, bot_level_mos 和 path"""
@@ -554,9 +603,10 @@ class Circuit:
 
 
 	def find_all_path(self):
-		print('test for find all path')
+		print('test for find all path' + '*'*40)
 
-		#因为还在调试阶段 使用前先初始化所有 mos.searched 的状态为0		
+		#因为还在调试阶段 使用前先初始化所有 mos.searched 的状态为0
+		#*** 此部分需要后续更改 ***#	
 		pipeline = deepcopy(self.pipeline[0])
 		for mos in pipeline.top_mos:
 			mos.searched = 0
@@ -565,35 +615,12 @@ class Circuit:
 		for mos in pipeline.bot_mos:
 			mos.searched = 0
 
-		#寻找所有可以作为 main_path 的组合
-		main_path = []
-
-		for top_mos in pipeline.top_mos:
-			path = []
-			mid_mos_list = []
-
-			for mid_mos in pipeline.mid_mos:
-				if find_shared_node(top_mos, mid_mos):
-					mid_mos_list.append(mid_mos)
-
-			for mid_mos in mid_mos_list:
-				bot_mos_list = []			
-				for bot_mos in pipeline.bot_mos:
-					if find_shared_node(mid_mos, bot_mos):
-						bot_mos_list.append(bot_mos)
-
-			for mid_mos in mid_mos_list:
-				for bot_mos in bot_mos_list:
-					path.append([top_mos, mid_mos, bot_mos])
-
-			main_path.extend(path)
-
-
 		#寻找 NMOS tree 中的每一小部分 作为一个 group 保存起来
 		group_list = []
 		top_node_list = [pipeline.top_node_1, pipeline.top_node_2]
 
 		#以top_mid_node 和 mid_bot_node 中个数较少的一方来决定 group 的个数
+		#以 top_mid_node 为基准时 从上往下找; 以 mid_bot_node 为基准时 从下往上找
 		if len(pipeline.top_mid_node) < len(pipeline.mid_bot_node):
 			for top_mid_node in pipeline.top_mid_node:
 				#以每个 node 为基点创建一个 group
@@ -627,6 +654,7 @@ class Circuit:
 				group.top_mos = sorted(set(group.top_mos), key = group.top_mos.index)
 				group.mid_mos = sorted(set(group.mid_mos), key = group.mid_mos.index)
 				group.bot_mos = sorted(set(group.bot_mos), key = group.bot_mos.index)
+				group.top_node_list = top_node_list
 				group_list.append(group)
 
 		else:
@@ -655,10 +683,15 @@ class Circuit:
 				group.top_mos = sorted(set(group.top_mos), key = group.top_mos.index)
 				group.mid_mos = sorted(set(group.mid_mos), key = group.mid_mos.index)
 				group.bot_mos = sorted(set(group.bot_mos), key = group.bot_mos.index)
+				group.mos_list.extend(group.top_mos)
+				group.mos_list.extend(group.mid_mos)
+				group.mos_list.extend(group.bot_mos)
+				group.top_node_list = top_node_list
 				group_list.append(group)
 
 		
-
+		#输出各个 group 的信息	
+		'''
 		print('group_list')
 		for group in group_list:
 			print('top_mos')
@@ -671,36 +704,44 @@ class Circuit:
 			for mos in group.bot_mos:
 				print(mos.number)
 			print()
-		
+		'''
 
 
+		#寻找每个 group 中的 main_path 并添加到自己的 main_path_list 中
+		for group in group_list:
+			group.find_main_path()
+
+		'''
+		#输出每个 group 的 main_path 的信息
+		for group in group_list:
+			print('main_path_list')
+			for path in group.main_path_list:
+				display('path', path)
+			print()	
+		#'''
 
 		for group in group_list:
-			for top_mos in group.top_mos:
-				path = []
-
-				mid_mos_list = []
-				for mid_mos in group.mid_mos:
-					if find_shared_node(top_mos, mid_mos):
-						mid_mos_list.append(mid_mos)
-				
-				for mid_mos in mid_mos_list:
-					bot_mos_list = []
-					for bot_mos in group.bot_mos:
-						if find_shared_node(mid_mos, bot_mos):
-							bot_mos_list.append(bot_mos)
-				
-				for mid_mos in mid_mos_list:
-					for bot_mos in bot_mos_list:
-						path.append([top_mos, mid_mos, bot_mos])
-				group.main_path_list.extend(path)
-
-		#for group in group_list:
-		#	print('main_path_list')
-		#	for path in group.main_path_list:
-		#		display('path', path)
-		#	print()	
-
+			sub_path_list = find_combination(group)
+			#print('sub_path_list')
+			#print(sub_path_list)
+			
+		
+		'''
+		#print('group.path_list')
+		#print(group.path_list)
+		for part in group.path_list:
+			print('***'*10)
+			display('main path', part[0], newline = 0)	
+			print('left part')
+			for item in part[1]:
+				if isinstance(item, MOSFET):
+					print(item.number + ' ', end = '')
+				else:
+					display('', item, newline = 0)
+			print()
+			print('***'*10)
+		print()
+		'''
 
 
 	def find_pipeline_path(self, pipeline):
@@ -979,6 +1020,100 @@ def find_shared_node(mos1, mos2):
 	elif mos1.source == mos2.drain or mos1.source == mos2.source:
 		return(mos1.source)
 
+def has_path(path_list, path):
+	for every_path in path_list:
+		for mos1 in every_path:
+			for mos2 in path:
+				if mos1.number == mos2.number:
+					return(True)
+
+def has_mos(path_list, mos):
+	for mos1 in path_list:
+		if mos1.number == mos.number:
+			return(True)
+
+def find_path(mos_list, top_node_list):
+	path_list = []
+	if mos_list:
+		for mos1 in mos_list:
+			start_mos = mos1
+			for mos2 in mos_list:
+				if find_shared_node(start_mos, mos2) and (find_shared_node(start_mos, mos2) not in top_node_list) and (mos2.number!= start_mos.number):
+					path = []
+					path.append(start_mos)
+					start_mos.searched = 1
+					path.append(mos2)
+					mos2.searched = 1
+				else:
+					continue
+			for mos in mos_list:
+				if mos.searched == 0:
+					path.append([mos])
+			if not has_path(path_list, path):
+				path_list.append(path)
+	print('test for find_path')
+	display('mos_list', mos_list)
+	for part in path_list:
+		display('path_list', part)
+	return(path_list)
+
+
+def find_combination(group):
+	path_list = []
+	temp_group = deepcopy(group)
+	for main_path in temp_group.main_path_list:
+		print('main path')
+		for mos in main_path:
+			mos.searched = 1
+			print(mos.number + ' ', end = '')
+		print()
+
+		for top_mos in temp_group.top_mos:
+			if top_mos.searched == 0:
+				path = []
+
+				mid_mos_list = []
+				for mid_mos in temp_group.mid_mos:
+					if find_shared_node(top_mos, mid_mos) and mid_mos.searched == 0:
+						mid_mos_list.append(mid_mos)
+
+				for mid_mos in mid_mos_list:
+					bot_mos_list = []
+					for bot_mos in temp_group.bot_mos:
+						if find_shared_node(mid_mos, bot_mos) and bot_mos.searched == 0:
+							bot_mos_list.append(bot_mos)
+
+				for top_mos in temp_group.top_mos:
+					if top_mos.searched == 0:
+						for mid_mos in mid_mos_list:
+							if find_shared_node(top_mos, mid_mos):
+								path.append([top_mos, mid_mos])
+								top_mos.searched = 1
+								mid_mos.searched = 1
+								for mos in temp_group.mos_list:
+									if mos.searched == 0:
+										path.append(mos)
+								top_mos.searched = 0
+								mid_mos.searched = 0
+							
+
+				path_list.extend(path)
+
+		for mos in temp_group.mos_list:
+			mos.searched = 0
+		print('path_list')
+		for item in path_list:
+			if isinstance(item, list):
+				display('path', item, newline = 0)
+			else:
+				print(item.number)
+		print()
+
+	return(list)
+
+
+
+
 def has_subcircuit(netlist):
 	for line in netlist:
 		if re.findall(r'\bxi\w*\b', line):
@@ -990,8 +1125,6 @@ def has_next_level_mos(mos, next_level_mos_list):
 	for next_mos in next_level_mos_list:
 		if mos.drain == next_mos.drain or mos.drain == next_mos.source or mos.source == next_mos.drain or mos.source == next_mos.source:
 			return(True)
-
-
 
 #查找一个元素的所有位置
 def find_all_index(arr, search):
@@ -1064,10 +1197,10 @@ def get_netlist_data(input_file, output_file = 'output.txt', subtract = 0):
 					#把所有的 subcircuit 都填加到 main_circuit 中
 					main_circuit.subcircuit_netlist.append(subcircuit)
 
-			print('main_circuit : ', main_circuit.name)
+			#print('main_circuit : ', main_circuit.name)
 			pipeline1, pipeline2 = main_circuit.find_entire_path()
-			display_pipeline(pipeline1.path, 'pipeline1', main_circuit)
-			display_pipeline(pipeline2.path, 'pipeline2', main_circuit)
+			#display_pipeline(pipeline1.path, 'pipeline1', main_circuit)
+			#display_pipeline(pipeline2.path, 'pipeline2', main_circuit)
 			#统计 main_circuit 中的 subcircuit 的信息
 			main_circuit.calculate_subcircuit()
 
