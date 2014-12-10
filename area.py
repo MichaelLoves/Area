@@ -1062,15 +1062,14 @@ def find_combination(group):
 	path_list = []
 	temp_group = deepcopy(group)
 	for main_path in temp_group.main_path_list:
-		print('main path')
 		for mos in main_path:
 			mos.searched = 1
-			print(mos.number + ' ', end = '')
-		print()
 
 		for top_mos in temp_group.top_mos:
 			if top_mos.searched == 0:
+				print('step1', top_mos.number)
 				path = []
+				path.append(main_path)
 
 				mid_mos_list = []
 				for mid_mos in temp_group.mid_mos:
@@ -1083,30 +1082,50 @@ def find_combination(group):
 						if find_shared_node(mid_mos, bot_mos) and bot_mos.searched == 0:
 							bot_mos_list.append(bot_mos)
 
-				for top_mos in temp_group.top_mos:
-					if top_mos.searched == 0:
-						for mid_mos in mid_mos_list:
-							if find_shared_node(top_mos, mid_mos):
-								path.append([top_mos, mid_mos])
-								top_mos.searched = 1
-								mid_mos.searched = 1
-								for mos in temp_group.mos_list:
-									if mos.searched == 0:
-										path.append(mos)
-								top_mos.searched = 0
-								mid_mos.searched = 0
-							
+				if mid_mos_list:
+					for mid_mos in mid_mos_list:
+						path.append([top_mos, mid_mos])
+						top_mos.searched = 1
+						mid_mos.searched = 1
+				else:
+					path.append([top_mos])
+					top_mos.searched = 1
 
-				path_list.extend(path)
+
+				for mos in group.mos_list:
+					unsearched_mos_list = []
+					if (not has_mos([top_mos, mid_mos], mos)) and (not has_mos(main_path, mos)):
+						unsearched_mos_list.append(mos)
+					if len(unsearched_mos_list) == 1:
+						path.append([unsearched_mos_list[0]])
+					else:
+						for mos1 in unsearched_mos_list:
+							for mos2 in unsearched_mos_list:
+								if find_shared_node(mos1, mos2) and mos1.number != mos2.number:
+									path.append([mos1, mos2])
+								else:
+									path.append([mos1])
+									path.append([mos2])
+
+				top_mos.searched = 0
+				for mid_mos in mid_mos_list:
+					mid_mos.searched = 0
+
+				for item in path:
+					display('path', item, newline = 0)
+				print()
+
+				path_list.append(path)
 
 		for mos in temp_group.mos_list:
 			mos.searched = 0
-		print('path_list')
-		for item in path_list:
-			if isinstance(item, list):
-				display('path', item, newline = 0)
-			else:
-				print(item.number)
+		
+		#print('path_list')
+		#for item in path_list:
+		#	if isinstance(item, list):
+		#		display('path', item, newline = 0)
+		#	else:
+		#		print(item.number)
 		print()
 
 	return(list)
