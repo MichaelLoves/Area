@@ -1,6 +1,6 @@
 import pickle
 import re
-import sys, getopt
+import sys, getopt, operator
 from copy import deepcopy
 
 class Node:
@@ -43,7 +43,7 @@ class Group:
 		self.bot_mos = []
 		self.mos_list = []
 		self.main_path_list = []
-		self.path_list = []
+		self.all_pattern_list = []
 		self.top_node_list = []
 
 	#遍历寻找 group 中的 main_path 并添加到 main_path_list 之中
@@ -603,7 +603,7 @@ class Circuit:
 
 
 	def find_all_path(self):
-		print('test for find all path' + '*'*40)
+		#print('test for find all path' + '*'*40)
 
 		#因为还在调试阶段 使用前先初始化所有 mos.searched 的状态为0
 		#*** 此部分需要后续更改 ***#	
@@ -721,10 +721,22 @@ class Circuit:
 		#'''
 
 		for group in group_list:
-			sub_path_list = find_combination(group)
-			#print('sub_path_list')
-			#print(sub_path_list)
-			
+			group.all_pattern_list = find_all_combination(group)
+			print('Group mos list:  ', end = '')
+			for mos in group.mos_list:
+				print(mos.number + '  ', end = '')
+			print()
+			i = 1
+			for part1 in group.all_pattern_list:
+				print('pattern%d' %i)
+				for part2 in part1:
+					#display('path', part2, newline = 0)
+					print('path ', end = '')
+					for mos in part2:
+						print(mos.number + '  ', end = '')
+					print()
+				print()
+				i += 1
 		
 		'''
 		#print('group.path_list')
@@ -1057,81 +1069,124 @@ def find_path(mos_list, top_node_list):
 		display('path_list', part)
 	return(path_list)
 
+def same_pattern(pattern1, pattern2):
+	"""判断所给出的两个 pattern 是否相同
+		如pattern1: [[m1], [m2], [m3, m4]] 和pattern2: [[m1], [m3, m4], [m2]]
+		(1)从每个 pattern 中抽取 mos.number 组成两个 list
+		mos_list_1 = [['m1'], ['m2'], ['m3', 'm4']] 
+		mos_list_2 = [['m1'], ['m3', 'm4'], ['m2']]
+		(2)按照 list 中每个 list 的长度来重新排序 之后判断两个 list 是否相等
+	"""
+	#用于储存从 pattern 的 list 中抽取的 mos.number
+	mos_list_1, mos_list_2 = [], []
 
-def find_combination(group):
+	for path in pattern1:
+		temp = []
+		for mos in path:
+			temp.append(mos.number)
+		mos_list_1.append(temp)
+
+	for path in pattern2:
+		temp = []
+		for mos in path:
+			temp.append(mos.number)
+		mos_list_2.append(temp)
+
+	#按照其中每个小 list 的长度来重新排序
+	mos_list_1.sort(key = lambda x:len(x))
+	mos_list_2.sort(key = lambda x:len(x))
+
+	if mos_list_1 == mos_list_2:
+		return(True)
+
+def find_all_combination(group):
+	"""寻找一个 group 中存在的所有 pattern
+	按照所有的 main_path 来循环, 对于一个给定的 main_path, 对剩余的其他部分进行遍历, 寻找所有pattern的组合
+	"""
+	#用于储存所有的 pattern 
 	path_list = []
+	#为了不改变原 group 内的信息, 重新复制一个新的 group 用来进行操作
 	temp_group = deepcopy(group)
+
 	for main_path in temp_group.main_path_list:
+		#标记所有 main_path 中的 mos.searched 为1, 则 mos.searched 为0的就是剩余部分
 		for mos in main_path:
 			mos.searched = 1
 
 		for top_mos in temp_group.top_mos:
+			path = []
 			if top_mos.searched == 0:
-				print('step1', top_mos.number)
-				path = []
+				#首先先加入 main_path
 				path.append(main_path)
 
+				#查找与 top_mos 连接的还未被搜索的 mid_mos
 				mid_mos_list = []
 				for mid_mos in temp_group.mid_mos:
 					if find_shared_node(top_mos, mid_mos) and mid_mos.searched == 0:
 						mid_mos_list.append(mid_mos)
 
+				#查找与 mid_mos 连接的还未被搜索的 bot_mos
+				#但在现在这个版本中, 不用考虑 bot_mos 的存在, 故暂时没有用
+				#但也体现了此版本的局限性
+				'''
 				for mid_mos in mid_mos_list:
 					bot_mos_list = []
 					for bot_mos in temp_group.bot_mos:
 						if find_shared_node(mid_mos, bot_mos) and bot_mos.searched == 0:
 							bot_mos_list.append(bot_mos)
+				'''
 
+				#若存在有未被搜索的 mid_mos 例如: m51, m49, m50
 				if mid_mos_list:
 					for mid_mos in mid_mos_list:
 						path.append([top_mos, mid_mos])
 						top_mos.searched = 1
 						mid_mos.searched = 1
+					unsearched_mos_list = []				
+					for mos in temp_group.mos_list:
+						if mos.searched == 0:
+							unsearched_mos_list.append(mos)
+					if unsearched_mos_list:
+						path.append(unsearched_mos_list)
+
+				#若不存在未被搜索的 mid_mos 例如: m49, m53, m54
 				else:
 					path.append([top_mos])
 					top_mos.searched = 1
-
-
-				for mos in group.mos_list:
-					unsearched_mos_list = []
-					if (not has_mos([top_mos, mid_mos], mos)) and (not has_mos(main_path, mos)):
-						unsearched_mos_list.append(mos)
-					if len(unsearched_mos_list) == 1:
-						path.append([unsearched_mos_list[0]])
-					else:
-						for mos1 in unsearched_mos_list:
-							for mos2 in unsearched_mos_list:
-								if find_shared_node(mos1, mos2) and mos1.number != mos2.number:
-									path.append([mos1, mos2])
-								else:
-									path.append([mos1])
-									path.append([mos2])
-
+					unsearched_mos_list = []				
+					for mos in temp_group.mos_list:
+						if mos.searched == 0:
+							unsearched_mos_list.append(mos)
+					if unsearched_mos_list:
+						path.append(unsearched_mos_list)
+				
+				#为了下一次遍历 重新初始化所有 mos 的 searched 状态
 				top_mos.searched = 0
 				for mid_mos in mid_mos_list:
 					mid_mos.searched = 0
 
-				for item in path:
-					display('path', item, newline = 0)
-				print()
+				#判断此 path 是否已经存在于 path_list 中, 若不存在, 填加到其中
+				path_already_exists = 0
+				for appended_path in path_list:
+					if same_pattern(appended_path, path):
+						path_already_exists = 1
+				if not path_already_exists:
+					path_list.append(path)
 
-				path_list.append(path)
-
+			#用于处理 AND 侧的 mos, 因为不存在其他组合, 所以直接填加到 path_list 中
+			else:
+				unsearched_mos_list = []
+				for mos in temp_group.mos_list:
+					if mos.searched == 1:
+						unsearched_mos_list.append(mos)
+				if len(unsearched_mos_list) == len(temp_group.mos_list):
+					path_list.append([main_path])	
+		
+		#初始化所有 mos 的 searched 状态, 用于下一次遍历			
 		for mos in temp_group.mos_list:
 			mos.searched = 0
-		
-		#print('path_list')
-		#for item in path_list:
-		#	if isinstance(item, list):
-		#		display('path', item, newline = 0)
-		#	else:
-		#		print(item.number)
-		print()
-
-	return(list)
-
-
-
+	
+	return(path_list)
 
 def has_subcircuit(netlist):
 	for line in netlist:
