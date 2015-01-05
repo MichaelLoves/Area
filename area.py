@@ -1,6 +1,7 @@
 import pickle
 import re
 import sys, getopt, operator
+import itertools
 from copy import deepcopy
 
 class Node:
@@ -727,7 +728,7 @@ class Circuit:
 		#'''
 
 		'''通过对一个指定 main_path 的剩余部分的遍历来寻找所有的组合'''
-		for group in group_list:
+		"""for group in group_list:
 			group.all_pattern_list = find_all_combination(group)
 
 			#输出每个 group 里的所有 pattern 的信息
@@ -748,6 +749,7 @@ class Circuit:
 				print()
 				i += 1
 			'''
+		"""
 
 		'''用拼积木的方式来寻找所有的组合'''
 		
@@ -774,6 +776,8 @@ class Circuit:
 					temp.append(mos.drain)
 					group.mid_bot_node = sorted(set(temp), key = temp.index)
 
+		#用每两个 mos 创建一个小 block 并保存至 group.block_list 之中
+		#['net**', mos1, mos2]
 		for group in group_list:
 			for top_mid_node in group.top_mid_node:
 				top_mos_list = []
@@ -789,7 +793,7 @@ class Circuit:
 							mid_mos_list_1.append(mid_mos)
 					for top_mos in top_mos_list:
 						for mid_mos in mid_mos_list_1:
-							group.block_list.append([top_mos, mid_mos])
+							group.block_list.append([top_mid_node,top_mos, mid_mos])
 				else:
 					for top_mos in group.top_mos:
 						if has_node(top_mos, top_mid_node):
@@ -797,7 +801,7 @@ class Circuit:
 					for mid_mos in group.mid_mos:
 						if has_node(mid_mos, top_mid_node):
 							mid_mos_list_1 = mid_mos
-					group.block_list.append([top_mos_list, mid_mos_list_1])
+					group.block_list.append([top_mid_node, top_mos_list, mid_mos_list_1])
 
 
 
@@ -811,7 +815,7 @@ class Circuit:
 							bot_mos_list.append(bot_mos)
 					for mid_mos in mid_mos_list_2:
 						for bot_mos in bot_mos_list:
-							group.block_list.append([mid_mos, bot_mos])
+							group.block_list.append([mid_bot_node ,mid_mos, bot_mos])
 				else:
 					for mid_mos in group.mid_mos:
 						if has_node(mid_mos, mid_bot_node):
@@ -819,12 +823,32 @@ class Circuit:
 					for bot_mos in group.bot_mos:
 						if has_node(bot_mos, mid_bot_node):
 							bot_mos_list = bot_mos
-					group.block_list.append([mid_mos_list_2, bot_mos_list])
+					group.block_list.append([mid_bot_node ,mid_mos_list_2, bot_mos_list])
 
-			print('block_list')
-			for block in group.block_list:
-				display('block', block, newline = 0)
+			#print('group block list')
+			#for block in group.block_list:
+				#print(block)
+				#display('block', block, newline = 0)
+			#print()
 
+		
+		for group in group_list:
+			node_block_list = []
+			pattern_list = []
+			for top_mid_node in group.top_mid_node:
+				node_block = []
+				node_block.append(top_mid_node)
+				for block in group.block_list:
+					if top_mid_node == block[0]:
+						node_block.append(block[1:])
+				
+				print('node_block', node_block)
+				#for block in node_block_list:
+					#display('block', block)
+					#print(block)
+				node_block_list.append(node_block)
+
+			print('node_block_list', node_block_list)
 
 
 	def find_pipeline_path(self, pipeline):
@@ -1019,6 +1043,8 @@ def display(func_name, list, newline = 1):
 				print(item.name)
 			elif hasattr(item, 'block_name'):
 				print(item.block_name)
+			else:
+				print(item)
 	elif newline == 0:
 		for item in list:
 			if hasattr(item, 'number'):
@@ -1027,6 +1053,8 @@ def display(func_name, list, newline = 1):
 				print(item.name + '  ', end = '')
 			elif hasattr(item, 'block_name'):
 				print(item.block_name + '   ', end = '')				
+			else:
+				print(item)
 	print()
 
 def display_pipeline(pipeline, pipeline_name, circuit):
@@ -1420,7 +1448,7 @@ def get_netlist_data(input_file, output_file = 'output.txt', subtract = 0):
 				display('block list', part.list_of_blocks)
 			'''
 
-			print()
+			#print()
 			main_circuit.find_all_path()
 
 			#output.write("width =" + str(total_width) + "u")
