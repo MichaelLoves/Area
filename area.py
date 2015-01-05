@@ -42,9 +42,13 @@ class Group:
 		self.mid_mos = []
 		self.bot_mos = []
 		self.mos_list = []
+		self.top_mid_node = []
+		self.mid_bot_node = []
 		self.main_path_list = []
 		self.all_pattern_list = []
 		self.top_node_list = []
+		self.bot_node = ''
+		self.block_list = []
 
 	#遍历寻找 group 中的 main_path 并添加到 main_path_list 之中
 	def find_main_path(self):
@@ -655,6 +659,7 @@ class Circuit:
 				group.mid_mos = sorted(set(group.mid_mos), key = group.mid_mos.index)
 				group.bot_mos = sorted(set(group.bot_mos), key = group.bot_mos.index)
 				group.top_node_list = top_node_list
+				group.bot_node = pipeline.bot_node
 				group_list.append(group)
 
 		else:
@@ -687,6 +692,7 @@ class Circuit:
 				group.mos_list.extend(group.mid_mos)
 				group.mos_list.extend(group.bot_mos)
 				group.top_node_list = top_node_list
+				group.bot_node = pipeline.bot_node
 				group_list.append(group)
 
 		
@@ -720,8 +726,12 @@ class Circuit:
 			print()	
 		#'''
 
+		'''通过对一个指定 main_path 的剩余部分的遍历来寻找所有的组合'''
 		for group in group_list:
 			group.all_pattern_list = find_all_combination(group)
+
+			#输出每个 group 里的所有 pattern 的信息
+			'''
 			print('Group mos list:  ', end = '')
 			for mos in group.mos_list:
 				print(mos.number + '  ', end = '')
@@ -737,23 +747,84 @@ class Circuit:
 					print()
 				print()
 				i += 1
+			'''
+
+		'''用拼积木的方式来寻找所有的组合'''
 		
-		'''
-		#print('group.path_list')
-		#print(group.path_list)
-		for part in group.path_list:
-			print('***'*10)
-			display('main path', part[0], newline = 0)	
-			print('left part')
-			for item in part[1]:
-				if isinstance(item, MOSFET):
-					print(item.number + ' ', end = '')
+		#top_mos 下面的 net 编号 top_mid_node
+		for group in group_list:
+			temp = []
+			for mos in group.top_mos:
+				if mos.drain in group.top_node_list:
+					temp.append(mos.source)
+					group.top_mid_node = sorted(set(temp), key = temp.index)
+
 				else:
-					display('', item, newline = 0)
-			print()
-			print('***'*10)
-		print()
-		'''
+					temp.append(mos.drain)
+					group.top_mid_node = sorted(set(temp), key = temp.index)		
+
+		#bot_mos 上面的 net 编号 mid_bot_node
+		for group in group_list:
+			temp = []
+			for mos in group.bot_mos:
+				if mos.drain == group.bot_node and mos.source != 'gnd':
+					temp.append(mos.source)
+					group.mid_bot_node = sorted(set(temp), key = temp.index)
+				elif mos.source == group.bot_node:
+					temp.append(mos.drain)
+					group.mid_bot_node = sorted(set(temp), key = temp.index)
+
+		for group in group_list:
+			for top_mid_node in group.top_mid_node:
+				top_mos_list = []
+				mid_mos_list_1 = []
+				mid_mos_list_2 = []
+				bot_mos_list = []
+				if same_node_num(top_mid_node, group.mos_list) > 2:
+					for top_mos in group.top_mos:
+						if has_node(top_mos, top_mid_node):
+							top_mos_list.append(top_mos)
+					for mid_mos in group.mid_mos:
+						if has_node(mid_mos, top_mid_node):
+							mid_mos_list_1.append(mid_mos)
+					for top_mos in top_mos_list:
+						for mid_mos in mid_mos_list_1:
+							group.block_list.append([top_mos, mid_mos])
+				else:
+					for top_mos in group.top_mos:
+						if has_node(top_mos, top_mid_node):
+							top_mos_list = top_mos
+					for mid_mos in group.mid_mos:
+						if has_node(mid_mos, top_mid_node):
+							mid_mos_list_1 = mid_mos
+					group.block_list.append([top_mos_list, mid_mos_list_1])
+
+
+
+			for mid_bot_node in group.mid_bot_node:
+				if same_node_num(mid_bot_node, group.mos_list) > 2:
+					for mid_mos in group.mid_mos:
+						if has_node(mid_mos, mid_bot_node):
+							mid_mos_list_2.append(mid_mos)
+					for bot_mos in group.bot_mos:
+						if has_node(bot_mos, mid_bot_node):
+							bot_mos_list.append(bot_mos)
+					for mid_mos in mid_mos_list_2:
+						for bot_mos in bot_mos_list:
+							group.block_list.append([mid_mos, bot_mos])
+				else:
+					for mid_mos in group.mid_mos:
+						if has_node(mid_mos, mid_bot_node):
+							mid_mos_list_2 = mid_mos
+					for bot_mos in group.bot_mos:
+						if has_node(bot_mos, mid_bot_node):
+							bot_mos_list = bot_mos
+					group.block_list.append([mid_mos_list_2, bot_mos_list])
+
+			print('block_list')
+			for block in group.block_list:
+				display('block', block, newline = 0)
+
 
 
 	def find_pipeline_path(self, pipeline):
@@ -990,6 +1061,10 @@ def equal(list1, list2):
 	else:
 		return(False)
 
+def has_node(mos, node):
+	if mos.drain == node or mos.source == node:
+		return(True)
+
 def has_same_mos(list1, list2):
 	'''判断两个列表中是否含有相同mos
  	遇到一个相同的便马上停止 返回 True'''
@@ -1001,7 +1076,7 @@ def has_same_mos(list1, list2):
 				continue
 
 def same_node_num(node, list):
-	'''用来寻找在一个 list 中某个 node 跟几个 node 相连 进而判断是串联还是并联'''
+	'''用来寻找在一个 list 中某个 node 跟几个 node 相连 进而判断是串联(same_node_number = 2)还是并联(大于2)'''
 	same_node_number = 0
 	for mos in list:
 		if mos.source == node or mos.source == node or mos.drain == node or mos.drain == node:
