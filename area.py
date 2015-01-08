@@ -776,8 +776,9 @@ class Circuit:
 					temp.append(mos.drain)
 					group.mid_bot_node = sorted(set(temp), key = temp.index)
 
+
 		#用每两个 mos 创建一个小 block 并保存至 group.block_list 之中
-		#['net**', mos1, mos2]
+		#保存形式为: ['net**', mos1, mos2] 在列表的最前端保存 node 名称信息是为了下一步中找到某个 node 所有的 block 而服务
 		for group in group_list:
 			for top_mid_node in group.top_mid_node:
 				top_mos_list = []
@@ -804,7 +805,6 @@ class Circuit:
 					group.block_list.append([top_mid_node, top_mos_list, mid_mos_list_1])
 
 
-
 			for mid_bot_node in group.mid_bot_node:
 				if same_node_num(mid_bot_node, group.mos_list) > 2:
 					for mid_mos in group.mid_mos:
@@ -815,7 +815,7 @@ class Circuit:
 							bot_mos_list.append(bot_mos)
 					for mid_mos in mid_mos_list_2:
 						for bot_mos in bot_mos_list:
-							group.block_list.append([mid_bot_node ,mid_mos, bot_mos])
+							group.block_list.append([mid_bot_node, mid_mos, bot_mos])
 				else:
 					for mid_mos in group.mid_mos:
 						if has_node(mid_mos, mid_bot_node):
@@ -823,41 +823,63 @@ class Circuit:
 					for bot_mos in group.bot_mos:
 						if has_node(bot_mos, mid_bot_node):
 							bot_mos_list = bot_mos
-					group.block_list.append([mid_bot_node ,mid_mos_list_2, bot_mos_list])
-
-			#print('group block list')
-			#for block in group.block_list:
-				#print(block)
+					group.block_list.append([mid_bot_node,mid_mos_list_2, bot_mos_list])
+			'''
+			#输出 block 的信息
+			print('group block list')
+			for block in group.block_list:
+				print(block)
 				#display('block', block, newline = 0)
-			#print()
-
+			print()
+			#'''
 		
+
+		group_number = 1
 		for group in group_list:
+			print('group %d' %group_number)
+			group_number += 1
+
+			#把各个 node 的 block 归纳到一个 list 当中 
+			#比如: 某个 top_mid_node 为 [[<>, <>], [<>, <>]], mid_bot_node 为 [[<>, <>], [<>, <>], [<>, <>]]
+			#再将所有的 list 归纳到一个 list(node_block_list) 当中
+			#node_block_list = [ [[<>, <>], [<>, <>]],  [[<>, <>],[<>, <>],[<>, <>]] ]
 			node_block_list = []
-			pattern_list = []
+			#寻找所有 top_mid_node 的 block
 			for top_mid_node in group.top_mid_node:
-				node_block = []
-				node_block.append(top_mid_node)
+				top_mid_node_block = []
 				for block in group.block_list:
+					#在 group.block_list中的 block = ['net01', <>, <>]
 					if top_mid_node == block[0]:
-						node_block.append(block[1:])
-				
-				#print('node_block', node_block)
-				#for block in node_block_list:
-					#display('block', block)
-					#print(block)
-				node_block_list.append(node_block)
+						top_mid_node_block.append(block[1:])
+				node_block_list.append(top_mid_node_block)
 
-			#print('node_block_list', node_block_list)
+			#寻找所有 mid_bot_node 的 block
+			for mid_bot_node in group.mid_bot_node:
+				mid_bot_node_block = []
+				for block in group.block_list:
+					if mid_bot_node == block[0]:
+						mid_bot_node_block.append(block[1:])
+				node_block_list.append(mid_bot_node_block)
+			
+			#输出所有组合的 block 
+			print('block list')
+			for part in node_block_list:
+				for item in part:
+					for item2 in item:
+						print(item2.number + '  ' , end = '')
+					print('  |  ', end = '')
+			print()
 
-		print('test for list_combination')
+			pattern_list = block_combination(node_block_list)
 
-		list1 = ['a1', 'a2']
-		list2 = ['b1', 'b2']
-		list_of_list = [list1, list2]
-
-		final_list = list_combination(list_of_list)
-		print(final_list)
+			#输出所有 block组合
+			print('pattern combination (num =', len(pattern_list) ,")")
+			for pattern in pattern_list:
+				for mos in pattern:
+					print(mos.number + '  ', end = '')
+				print('   |   ', end = ' ')
+			print()
+			print()
 
 	def find_pipeline_path(self, pipeline):
 		"""对于读入的 pipeline 返回其 path"""
@@ -1331,6 +1353,25 @@ def list_combination(list_of_list):
 					#因不为 list 故无法调用 append 方法, 此时以手动形式填加列表
 					else:
 						temp2 = [item1, item2]
+					temp1.append(temp2)
+			final_list = temp1
+
+	return(final_list)
+
+def block_combination(list_of_block_list):
+	list_number = len(list_of_block_list)
+
+	for i in range(list_number):
+		#开始第一次循环时, 读取列表中的第一项作为 final_list 保存
+		if i == 0:
+			final_list = deepcopy(list_of_block_list[0])
+		else:
+			temp1 = []
+			for pattern in final_list:
+				temp2 = []
+				for block in list_of_block_list[i]:
+					temp2 = deepcopy(pattern)
+					temp2.extend(block)
 					temp1.append(temp2)
 			final_list = temp1
 
