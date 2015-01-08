@@ -842,14 +842,22 @@ class Circuit:
 					if top_mid_node == block[0]:
 						node_block.append(block[1:])
 				
-				print('node_block', node_block)
+				#print('node_block', node_block)
 				#for block in node_block_list:
 					#display('block', block)
 					#print(block)
 				node_block_list.append(node_block)
 
-			print('node_block_list', node_block_list)
+			#print('node_block_list', node_block_list)
 
+		print('test for list_combination')
+
+		list1 = ['a1', 'a2']
+		list2 = ['b1', 'b2']
+		list_of_list = [list1, list2]
+
+		final_list = list_combination(list_of_list)
+		print(final_list)
 
 	def find_pipeline_path(self, pipeline):
 		"""对于读入的 pipeline 返回其 path"""
@@ -1302,6 +1310,32 @@ def has_next_level_mos(mos, next_level_mos_list):
 	for next_mos in next_level_mos_list:
 		if mos.drain == next_mos.drain or mos.drain == next_mos.source or mos.source == next_mos.drain or mos.source == next_mos.source:
 			return(True)
+
+def list_combination(list_of_list):
+	#根据该list中list的个数来确定循环次数
+	list_number = len(list_of_list)
+
+	for i in range(list_number):
+		if i == 0:
+			final_list = deepcopy(list_of_list[0])
+		else:
+			temp1 = []
+			for item1 in final_list:
+				temp2 = []
+				for item2 in list_of_list[i]:
+					#第二次之后进入时, item1为列表形式, 拷贝原有形式之后, 直接 append item2即可
+					if type(item1) == list:
+						temp2 = deepcopy(item1)
+						temp2.append(item2)
+					#第一次进入时, 此时 final_list 中只有一个对象, item1为'a1' 
+					#因不为 list 故无法调用 append 方法, 此时以手动形式填加列表
+					else:
+						temp2 = [item1, item2]
+					temp1.append(temp2)
+			final_list = temp1
+
+	return(final_list)
+
 
 #查找一个元素的所有位置
 def find_all_index(arr, search):
