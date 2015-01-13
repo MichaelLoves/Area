@@ -836,7 +836,7 @@ class Circuit:
 
 		group_number = 1
 		for group in group_list:
-			print('group %d' %group_number)
+			#print('group %d' %group_number)
 			group_number += 1
 
 			#把各个 node 的 block 归纳到一个 list 当中 
@@ -861,25 +861,99 @@ class Circuit:
 						mid_bot_node_block.append(block[1:])
 				node_block_list.append(mid_bot_node_block)
 			
+			'''
 			#输出所有组合的 block 
 			print('block list')
 			for part in node_block_list:
 				for item in part:
+					print('[', end = '')
 					for item2 in item:
 						print(item2.number + '  ' , end = '')
-					print('  |  ', end = '')
+					print(']', end = '')
 			print()
+			#'''
 
+			#寻找所有的 pattern 组合
 			pattern_list = block_combination(node_block_list)
 
-			#输出所有 block组合
+			
+			#输出所有 block 组合
 			print('pattern combination (num =', len(pattern_list) ,")")
+			'''
 			for pattern in pattern_list:
-				for mos in pattern:
-					print(mos.number + '  ', end = '')
-				print('   |   ', end = ' ')
+				for block in pattern:
+					print('[', end = '')
+					for mos in block:
+						print(mos.number + ' ', end = '')
+					print(']', end = '')
+				print('  ||  ', end = ' ')
 			print()
 			print()
+			#'''
+
+			#去掉每两个 pattern 中相同的 mos
+			new_pattern_list = []
+			for pattern in pattern_list:
+				new_pattern = [deepcopy(pattern[0])]
+				#print('new_pattern', new_pattern)
+				for block1 in pattern:
+					for block2 in pattern[pattern.index(block1)+1:]:
+						merged_list = eliminate_same_mos(block1, block2)
+						if merged_list:
+							pattern.remove(block1)
+							pattern.remove(block2)
+							pattern.append(merged_list)
+				new_pattern_list.append(pattern)
+
+			#添加 pattern 中未有的 block 或单个 mos
+			#对于 group.mos_list 和 pattern 中的 mos 进行对比, 未使用的储存在 unused_mos_list
+			for pattern in new_pattern_list:
+				pattern_mos_list = []
+				for block in pattern:
+					for mos in block:
+						pattern_mos_list.append(mos)
+				for mos1 in group.mos_list:
+					mos1.searched = 0
+					for mos2 in pattern_mos_list:
+						if mos1.number == mos2.number:
+							mos1.searched = 1
+
+				unused_mos_list = []
+				for mos in group.mos_list:
+					if mos.searched == 0:
+						unused_mos_list.append(mos)
+
+				if unused_mos_list:
+					#寻找是否可以用 block 来填充 但是此判断方法应该有局限性
+					#*************** 判断方法需要修改 *****************
+					if len(unused_mos_list) == 2:
+						#若在 block 中存在与未用 mos 相同的模块, 则添加 block
+						unused_mos_number_list = []
+						for mos in unused_mos_list:
+							unused_mos_number_list.append(mos.number)
+						for block in group.block_list:
+							mos_number_list = []
+							for mos in block[1:]:
+								mos_number_list.append(mos.number)
+							if unused_mos_number_list == mos_number_list:
+								pattern.append(block[1:])
+								
+					#若剩余为单个 mos 则直接添加
+					else:
+						pattern.append([unused_mos_list[0]])
+			
+			#print('new_pattern_list')
+			for pattern in new_pattern_list:
+				for block in pattern:
+					print('[', end = '')
+					for mos in block:
+						print(mos.number + ' ', end = '')
+					print(']', end = '')
+				print('  ||  ', end = ' ')
+			print()
+			print()
+			#'''
+							
 
 	def find_pipeline_path(self, pipeline):
 		"""对于读入的 pipeline 返回其 path"""
@@ -1364,19 +1438,48 @@ def block_combination(list_of_block_list):
 	for i in range(list_number):
 		#开始第一次循环时, 读取列表中的第一项作为 final_list 保存
 		if i == 0:
-			final_list = deepcopy(list_of_block_list[0])
+			temp_pattern_list = deepcopy(list_of_block_list[0])
 		else:
 			temp1 = []
-			for pattern in final_list:
+			for pattern in temp_pattern_list:
 				temp2 = []
 				for block in list_of_block_list[i]:
 					temp2 = deepcopy(pattern)
 					temp2.extend(block)
 					temp1.append(temp2)
-			final_list = temp1
+			temp_pattern_list = temp1
 
-	return(final_list)
+	#手动把 temp_pattern_list 中每个 pattern 中的每两个 mos 变成一个 block [mos1, mos2]
+	final_pattern_list = []
+	for pattern in temp_pattern_list:
+		single_pattern = []
+		for i in range(0, len(pattern), 2):
+			temp1 = deepcopy(pattern[i])
+			temp2 = deepcopy(pattern[i+1])
+			temp = [temp1, temp2]
+			single_pattern.append(temp)
+		final_pattern_list.append(single_pattern)
 
+	return(final_pattern_list)
+
+def eliminate_same_mos(block1, block2):
+	mos_list = []
+	for mos in block1:
+		mos_list.append(mos)
+	for mos in block2:
+		mos_list.append(mos)
+
+	has_same_mos = 0
+	for mos1 in mos_list:
+		for mos2 in mos_list[mos_list.index(mos1)+1:]:
+			if mos2.number == mos1.number:
+				has_same_mos = 1
+				mos_list.remove(mos2)
+
+	if has_same_mos:
+		return(mos_list)
+	else:
+		return(None)
 
 #查找一个元素的所有位置
 def find_all_index(arr, search):
