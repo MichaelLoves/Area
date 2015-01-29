@@ -1,0 +1,48 @@
+删除记录
+
+48 self.main_path_list = []
+
+54-98 group 中有关 main_path 的部分
+
+122  self.path = []
+
+188  def select_top_mos(self, top_mos, pipeline):
+
+533 三个函数 find_next_mos()   merge_path()  create_path_2()
+
+298 create_path_for_subcircuit()
+
+375 creat_path_for_mid_bot()
+
+416 create_path_for_top_mid_bot()
+
+717-752 根据 group 中的 main_path 来寻找 pattern 的算法部分(其中用到的 find_all_combination()函数也随之失效)
+
+1108 equal()
+
+1022-1073 寻找 path 的部分
+
+1200 has_same_mos()
+
+1218 find_shared_mos()
+
+1241 has_path()
+
+1249 has_mos()
+
+1254 find_path()
+
+1279 same_pattern()
+
+1309 find_all_combination()
+
+1405 has_next_level_mos()
+
+1410 list_combination()
+
+
+
+
+
+
+
