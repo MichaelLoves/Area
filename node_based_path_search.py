@@ -1,7 +1,4 @@
-import pickle
-import re
-import sys, getopt, operator
-import itertools
+import re, os, sys, getopt, operator, csv
 from copy import deepcopy
 
 
@@ -10,6 +7,7 @@ class Node:
 	def __init__(self, number):
 		self.number = number
 		self.fork = 0
+		self.timing_error_rate = 0
 
 class Block:
 	"""用于生成path之后拼接的模块, 基本模块名称有 
@@ -222,6 +220,7 @@ class Circuit:
 						pattern_block.append(Block('edge_contact', 0.48, pattern_part[0].W))    #填加一个边缘处的 edge_contact
 						pattern_block.append(Block('gate', 0.18, pattern_part[0].W + 0.22*2))   #填加一个 gate
 						pattern_block.append(Block('edge_contact', 0.48, pattern_part[0].W))    #填加一个边缘处的 edge_contact
+						pattern_block.append(Block('diff_space', 0.28, pattern_part[0].W))
 					else:
 						#填加 gate 时的 W 需要根据 gate 左右两侧的 mos 的高度来决定
 						pattern_block.append(Block('edge_contact', 0.48, pattern_part[0].W))    
@@ -270,6 +269,41 @@ class Circuit:
 				group_pattern_block_list.append(single_pattern_block_list)
 			#填加每个 group 的所有 pattern 的 block 
 			self.layout_block.append(group_pattern_block_list) 
+
+
+	def calculate_pattern_area(self, pattern, node):
+		for group_pattern_list in self.layout_block:
+			for single_pattern_block_list in group_pattern_list:
+				for pattern_block in single_pattern_block_list:
+					#抽出 block_name(['m26','net074','m27','net073','m35']) 中仅以 m 开头的部分
+					#之后与参数 pattern 进行对比
+					block_name = []
+					for part in pattern_block.block_name:
+						if 'm' in part:
+							block_name.append(part)
+					if block_name == pattern:
+						target_pattern = deepcopy(pattern_block)
+
+						#计算 node 的面积, 分 sw 和 dw 两种情况
+						position = pattern_block.block_name.index(node)
+						node_block = target_pattern.list_of_blocks[position+1]
+
+						if 'sw' in node_block.block_name:
+							print(node_block.block_name, node_block.L, node_block.W)
+							node_area = node_block.L * node_block.W
+						elif 'dw' in node_block.block_name:
+							node_block_1 = node_block
+							node_block_2 = target_pattern.list_of_blocks[position+2]
+							print(node_block_1.block_name, node_block_1.L, node_block_1.W)
+							print(node_block_2.block_name, node_block_2.L, node_block_2.W)
+							node_area = node_block_1.L * node_block_1.W + node_block_2.L * node_block_2.W
+
+						target_pattern_area = target_pattern.L * target_pattern.W
+						area_ratio = node_area/target_pattern_area
+						print('node_area', node_area)
+						print('target_pattern_area', target_pattern_area)
+						print('area_ratio', area_ratio)
+
 
 
 	#输入两个点 找出两点间(未被搜索过)的 mos
@@ -585,7 +619,51 @@ class Circuit:
 
 
 			pipeline.list_of_group_pattern_list.append(new_pattern_list)
-							
+	
+
+	def choose_pattern(self, list_of_group_pattern_list):
+		#读取 Hspice 模拟后生成的 CSV 文件, 并保存其中除了第一行之外的信息
+		temp_file = open('./shift_timing_error_calculation.csv', 'r')
+		csv_file = csv.reader(temp_file)
+		line_num = 0
+		error_data = []
+		for line in csv_file:
+			if line_num == 0:
+				pass
+			else:
+				error_data.append(line)
+			line_num += 1
+		temp_file.close()
+		#print(error_data)
+
+		#在 sp 文件中找出定电流源连接着的 node 番号
+		current_source_dict = {}
+		target_node = []
+		for data in error_data:
+			current_source_dict[data[3]] = data[5]
+
+		with open('./3NAND_2_NP_errorall.sp', 'r') as sp_file:
+			temp_file = sp_file.readlines()
+			for source in current_source_dict:
+				for line in temp_file:
+					if source in line:
+						node = Node(line.split(' ')[2])
+						node.timing_error_rate = current_source_dict[source]
+						target_node.append(node)
+
+		for group_pattern_list in list_of_group_pattern_list:
+			for single_pattern in group_pattern_list:
+				for pattern_part in single_pattern:
+					for part in single_pattern:
+						for item in part:
+							if isinstance(item, Node):
+								#print(item.number)
+								pass
+
+		self.calculate_pattern_area(['m26', 'm27', 'm35'], 'net074')
+		self.calculate_pattern_area(['m26', 'm27', 'm35'], 'net073')
+
+
 	def process_pipeline(self, pipeline):
 		"""对于 pipeline 抽取更多的信息 比如各种 node 的信息"""
 
@@ -977,7 +1055,7 @@ def get_netlist_data(input_file, output_file = 'output.txt', subtract = 0):
 			'''
 
 			'''
-			#输出 main_circuirt 中的 block 信息
+			#输出 main_circuit 中的 block 信息
 			print('main_circuit.block')
 			for part in main_circuit.block:
 				print(part.block_name, part.W, part.L)
@@ -985,29 +1063,32 @@ def get_netlist_data(input_file, output_file = 'output.txt', subtract = 0):
 				display('block list', part.list_of_blocks)
 			'''
 
+			
 			#Node-based pattern search
-			print('pipeline1')
+			#print('pipeline1')
 			main_circuit.find_all_pattern(pipeline1)
 			main_circuit.create_block_for_pattern_list(pipeline1.list_of_group_pattern_list)
 
-			print('pipeline2')
+			#print('pipeline2')
 			main_circuit.find_all_pattern(pipeline2)
 			main_circuit.create_block_for_pattern_list(pipeline2.list_of_group_pattern_list)
 
-			print('main_circuirt')
+			'''
+			print('main_circuit')
 			#print(main_circuit.layout_block)
 			for group_pattern in main_circuit.layout_block:
 				#print('group_pattern', group_pattern)
 				for single_pattern in group_pattern:
 					#print('single_pattern', single_pattern)
 					for block in single_pattern:
-						print(block.block_name)
-				print()
+						print(block.block_name, block.L, block.W)
+			#'''
+			output.close()
 			
 
+			#print('test for choose_pattern()')
+			main_circuit.choose_pattern(pipeline1.list_of_group_pattern_list)
 
-			#output.write("width =" + str(total_width) + "u")
-			output.close()
 
 	except IOError as err:
 		print("File error: " + str(err))
