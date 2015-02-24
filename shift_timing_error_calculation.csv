@@ -1,3 +1,1 @@
-start timing,end timing,current height,injection node,output node,error rate,min vol
-100,100.3,100,i73,n_and_3,1,-8.4406e-02
-10,10.3,10,i72,n_and_3,1,-8.4406e-02
+start timing,end timing,current height,injection node,output node,error rate,min vol100,100.3,100,i71,n_and_3,1,-8.4406e-0210,10.3,10,i72,n_and_3,1,-8.4406e-02

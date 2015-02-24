@@ -8,6 +8,7 @@ class Node:
 		self.number = number
 		self.fork = 0
 		self.timing_error_rate = 0
+		self.area_ratio = 0
 
 class Block:
 	"""用于生成path之后拼接的模块, 基本模块名称有 
@@ -138,6 +139,7 @@ class Circuit:
 			if part in subcircuit_names:
 				self.subcircuit_num[part] += 1
 
+	#可以删除此函数
 	#对于读入的 path 生成 block 返回 block 的 list 
 	def create_block(self, path):
 		"""根据读入的 path 生成 layout 模块, path的内容为 MOSFET 和 Node 类型的混合 list
@@ -216,15 +218,18 @@ class Circuit:
 					pattern_block_W = 0         #block 的整体宽度
 					pattern_block_W_list = []   #储存每个 block 的高度, 用于找出最高的部分
 
-					if len(pattern_part) == 1:
-						pattern_block.append(Block('edge_contact', 0.48, pattern_part[0].W))    #填加一个边缘处的 edge_contact
-						pattern_block.append(Block('gate', 0.18, pattern_part[0].W + 0.22*2))   #填加一个 gate
-						pattern_block.append(Block('edge_contact', 0.48, pattern_part[0].W))    #填加一个边缘处的 edge_contact
-						pattern_block.append(Block('diff_space', 0.28, pattern_part[0].W))
+					#单个 mos [node, mos, node]
+					if len(pattern_part) == 3:
+						pattern_block.append(Block('edge_contact', 0.48, pattern_part[1].W))    #填加一个边缘处的 edge_contact
+						pattern_block.append(Block('gate', 0.18, pattern_part[1].W + 0.22*2))   #填加一个 gate
+						pattern_block.append(Block('edge_contact', 0.48, pattern_part[1].W))    #填加一个边缘处的 edge_contact
+						pattern_block.append(Block('diff_space', 0.28, pattern_part[1].W))
+
+					#多个 mos [left_node, mos, shared_node, mos, right_node]
 					else:
 						#填加 gate 时的 W 需要根据 gate 左右两侧的 mos 的高度来决定
-						pattern_block.append(Block('edge_contact', 0.48, pattern_part[0].W))    
-						for part in pattern_part[:-2]:  #part 为 pattern_part 中的每个小部分 有可能是 Node 有可能是 MOSFET 类型
+						pattern_block.append(Block('edge_contact', 0.48, pattern_part[1].W))    
+						for part in pattern_part[:-3]:  #part 为 pattern_part 中的每个小部分 有可能是 Node 有可能是 MOSFET 类型
 							if isinstance(part, MOSFET):    							    			   #以 pattern 中的 mos 作为循环的标准
 								pattern_block.append(Block('gate', part.L, part.W + 0.22*2))               #遇到一个 mos 便增加一个 gate
 								if part.W == pattern_part[pattern_part.index(part)+2].W:				   #比较当前的 gate 和下一个 gate 的 W 是否相同
@@ -241,9 +246,9 @@ class Circuit:
 										pattern_block.append(Block('gate_contact_gate_dw', 0.38, pattern_part[pattern_part.index(part)+2].W))
 							else:
 								continue
-						pattern_block.append(Block('gate', 0.18, pattern_part[-1].W + 0.22*2))		#上面的处理只能填加到倒数第二个 mos 的右侧部分, 所以手动填加最右侧的 gate
-						pattern_block.append(Block('edge_contact', 0.48, pattern_part[-1].W))		#填加最右侧的 edge_contact
-						pattern_block.append(Block('diff_space', 0.28, pattern_part[-1].W))
+						pattern_block.append(Block('gate', 0.18, pattern_part[-2].W + 0.22*2))		#上面的处理只能填加到倒数第二个 mos 的右侧部分, 所以手动填加最右侧的 gate
+						pattern_block.append(Block('edge_contact', 0.48, pattern_part[-2].W))		#填加最右侧的 edge_contact
+						pattern_block.append(Block('diff_space', 0.28, pattern_part[-2].W))
 
 					#用 pattern 中所有元素的名称来命名此 block
 					for part in pattern_part:
@@ -271,10 +276,16 @@ class Circuit:
 			self.layout_block.append(group_pattern_block_list) 
 
 
-	def calculate_pattern_area(self, pattern, node):
+	def calculate_node_area_ratio(self, node):
 		for group_pattern_list in self.layout_block:
 			for single_pattern_block_list in group_pattern_list:
 				for pattern_block in single_pattern_block_list:
+					#print(pattern_block.block_name)
+					if node.number in pattern_block.block_name:
+						print(pattern_block.block_name, '*')
+
+
+					'''
 					#抽出 block_name(['m26','net074','m27','net073','m35']) 中仅以 m 开头的部分
 					#之后与参数 pattern 进行对比
 					block_name = []
@@ -289,22 +300,15 @@ class Circuit:
 						node_block = target_pattern.list_of_blocks[position+1]
 
 						if 'sw' in node_block.block_name:
-							print(node_block.block_name, node_block.L, node_block.W)
 							node_area = node_block.L * node_block.W
 						elif 'dw' in node_block.block_name:
 							node_block_1 = node_block
 							node_block_2 = target_pattern.list_of_blocks[position+2]
-							print(node_block_1.block_name, node_block_1.L, node_block_1.W)
-							print(node_block_2.block_name, node_block_2.L, node_block_2.W)
 							node_area = node_block_1.L * node_block_1.W + node_block_2.L * node_block_2.W
 
 						target_pattern_area = target_pattern.L * target_pattern.W
 						area_ratio = node_area/target_pattern_area
-						print('node_area', node_area)
-						print('target_pattern_area', target_pattern_area)
-						print('area_ratio', area_ratio)
-
-
+					'''
 
 	#输入两个点 找出两点间(未被搜索过)的 mos
 	def search_mid_mos(self, top_node, bot_node):
@@ -407,7 +411,7 @@ class Circuit:
 			for mos in group.bot_mos:
 				print(mos.number)
 			print()
-		'''
+		#'''
 
 		#top_mos 下面的 net 编号 top_mid_node
 		for group in group_list:
@@ -593,14 +597,41 @@ class Circuit:
 					else:
 						pattern.append([unused_mos_list[0]])
 
+			#填加两个 mos 之间的 node 信息(net***)
 			for pattern in new_pattern_list:
 				for block in pattern:
+					#若 block 中存在多个 mos, 先填加中间的 shared_node, 之后填加两侧的 node
 					if len(block) >= 2:
 						for mos in block[:-1]:
 							shared_node = Node(find_shared_node(mos, block[block.index(mos)+1]))
 							if same_node_num(shared_node.number, group.mos_list) > 2 :
 								shared_node.fork = 1
 							block.insert(block.index(mos)+1, shared_node)
+
+						#为 block 的两侧填加 Node(net***) 信息
+						#当下的 block = [mos, net, mos, net, mos] 两侧也需要填加 net
+						#如果第一个 mos 的 drain 和右侧的 net 一致 则左侧的 node 为 mos 的 source
+						if block[0].drain == block[1].number:
+							left_node = Node(block[0].source)
+						else:
+							left_node = Node(block[0].drain)
+
+						#如果最后一个 mos 的 drain 和左侧的 net 一直 则右侧的 node 为 mos 的 source
+						if block[-1].drain == block[-2].number:
+							right_node = Node(block[-1].source)
+						else:
+							right_node = Node(block[-1].drain)
+
+						#将两侧的 node 分别填加到 block 之中
+						block.insert(0, left_node)
+						block.append(right_node)
+
+					#如果此 block 中只有一个 mos 则直接在两侧填加 mos 的 drain 和 source
+					elif len(block) == 1:
+						left_node = Node(block[0].drain)
+						right_node = Node(block[0].drain)
+						block.insert(0, left_node)
+						block.append(right_node)
 
 			
 			'''
@@ -620,21 +651,19 @@ class Circuit:
 
 			pipeline.list_of_group_pattern_list.append(new_pattern_list)
 	
-
 	def choose_pattern(self, list_of_group_pattern_list):
 		#读取 Hspice 模拟后生成的 CSV 文件, 并保存其中除了第一行之外的信息
-		temp_file = open('./shift_timing_error_calculation.csv', 'r')
-		csv_file = csv.reader(temp_file)
-		line_num = 0
-		error_data = []
-		for line in csv_file:
-			if line_num == 0:
-				pass
-			else:
-				error_data.append(line)
-			line_num += 1
-		temp_file.close()
-		#print(error_data)
+		with open('./shift_timing_error_calculation.csv', 'r') as temp_file:
+			csv_file = csv.reader(temp_file)
+			line_num = 0
+			error_data = []
+			for line in csv_file:
+				if line_num == 0:
+					pass
+				else:
+					error_data.append(line)
+				line_num += 1
+			#print(error_data)
 
 		#在 sp 文件中找出定电流源连接着的 node 番号
 		current_source_dict = {}
@@ -660,8 +689,11 @@ class Circuit:
 								#print(item.number)
 								pass
 
-		self.calculate_pattern_area(['m26', 'm27', 'm35'], 'net074')
-		self.calculate_pattern_area(['m26', 'm27', 'm35'], 'net073')
+		#计算每个 node 的 area_ratio
+		for node in target_node:
+			print(node.number)
+			self.calculate_node_area_ratio(node)
+
 
 
 	def process_pipeline(self, pipeline):
@@ -745,7 +777,7 @@ class Circuit:
 		temp3 = []
 		for part in self.mos_list:		
 			for part2 in self.mos_list:
-				if part.type == 'P' and part.gate == part2.gate and part.number != part2.number:
+				if part.type == 'P' and part2.type == 'P' and part.gate == part2.gate and part.number != part2.number:
 					temp1.append(part)
 		precharge_PMOS = sorted(set(temp1), key=temp1.index)  #去处相同元素而不打乱顺序
 
