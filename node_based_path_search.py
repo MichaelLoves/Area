@@ -274,44 +274,107 @@ class Circuit:
 				group_pattern_block_list.append(single_pattern_block_list)
 			#填加每个 group 的所有 pattern 的 block 
 			self.layout_block.append(group_pattern_block_list) 
+	
+	def calculate_area_for_single_pattern(self, single_pattern):
+			#用于储存所有 block
+			single_pattern_block_list = []
 
+			#single pattern 中所有 block 的面积和
+			single_pattern_block_area = 0
 
-	def calculate_node_area_ratio(self, node):
-		for group_pattern_list in self.layout_block:
-			for single_pattern_block_list in group_pattern_list:
-				for pattern_block in single_pattern_block_list:
-					#print(pattern_block.block_name)
-					if node.number in pattern_block.block_name:
-						print(pattern_block.block_name, '*')
+			for pattern_part in single_pattern:    #parttern_part 为 pattern 中的每个小部分
 
+				pattern_block_name = []     #读入 pattern 中所有元素的名称, 用来当做 block_name
+				pattern_block = []          #用于储存每个 pattern 的 block
+				pattern_block_L = 0         #block 的整体宽度
+				pattern_block_W = 0         #block 的整体宽度
+				pattern_block_W_list = []   #储存每个 block 的高度, 用于找出最高的部分
 
-					'''
-					#抽出 block_name(['m26','net074','m27','net073','m35']) 中仅以 m 开头的部分
-					#之后与参数 pattern 进行对比
-					block_name = []
-					for part in pattern_block.block_name:
-						if 'm' in part:
-							block_name.append(part)
-					if block_name == pattern:
-						target_pattern = deepcopy(pattern_block)
+				#单个 mos [node, mos, node]
+				if len(pattern_part) == 3:
+					pattern_block.append(Block('edge_contact', 0.48, pattern_part[1].W))    #填加一个边缘处的 edge_contact
+					pattern_block.append(Block('gate', 0.18, pattern_part[1].W + 0.22*2))   #填加一个 gate
+					pattern_block.append(Block('edge_contact', 0.48, pattern_part[1].W))    #填加一个边缘处的 edge_contact
+					pattern_block.append(Block('diff_space', 0.28, pattern_part[1].W))
 
-						#计算 node 的面积, 分 sw 和 dw 两种情况
-						position = pattern_block.block_name.index(node)
-						node_block = target_pattern.list_of_blocks[position+1]
+				#多个 mos [left_node, mos, shared_node, mos, right_node]
+				else:
+					#填加 gate 时的 W 需要根据 gate 左右两侧的 mos 的高度来决定
+					pattern_block.append(Block('edge_contact', 0.48, pattern_part[1].W))    
+					for part in pattern_part[:-3]:  #part 为 pattern_part 中的每个小部分 有可能是 Node 有可能是 MOSFET 类型
+						if isinstance(part, MOSFET):    							    			   #以 pattern 中的 mos 作为循环的标准
+							pattern_block.append(Block('gate', part.L, part.W + 0.22*2))               #遇到一个 mos 便增加一个 gate
+							if part.W == pattern_part[pattern_part.index(part)+2].W:				   #比较当前的 gate 和下一个 gate 的 W 是否相同
+								if pattern_part[pattern_part.index(part)+1].fork == 0:				   #判断两个 gate 之间的 node 是否为分歧点, 是则填加一个 contact
+									pattern_block.append(Block('gate_gate_sw', 0.26, part.W))		   #两个 gate 高度一致 中间没有 contact
+								else:
+									pattern_block.append(Block('gate_contact_gate_sw', 0.54, part.W))  #两个 gate 高度一致 中间有 contact
+							else:
+								if pattern_part[pattern_part.index(part)+1].fork == 0:				   #当前 gate 和下一个 gate 的 W 不同情况
+									pattern_block.append(Block('gate_gate_dw', 0.1, part.W))           #两个 gate 高度不一致 没有 contact
+									pattern_block.append(Block('gate_gate_dw', 0.32, pattern_part[pattern_part.index(part)+2].W))
+								else:					
+									pattern_block.append(Block('gate_contact_gate_dw', 0.16, part.W))  #两个 gate 高度一致 有 contact
+									pattern_block.append(Block('gate_contact_gate_dw', 0.38, pattern_part[pattern_part.index(part)+2].W))
+						else:
+							continue
+					pattern_block.append(Block('gate', 0.18, pattern_part[-2].W + 0.22*2))		#上面的处理只能填加到倒数第二个 mos 的右侧部分, 所以手动填加最右侧的 gate
+					pattern_block.append(Block('edge_contact', 0.48, pattern_part[-2].W))		#填加最右侧的 edge_contact
+					pattern_block.append(Block('diff_space', 0.28, pattern_part[-2].W))
 
-						if 'sw' in node_block.block_name:
-							node_area = node_block.L * node_block.W
-						elif 'dw' in node_block.block_name:
-							node_block_1 = node_block
-							node_block_2 = target_pattern.list_of_blocks[position+2]
-							node_area = node_block_1.L * node_block_1.W + node_block_2.L * node_block_2.W
+				#用 pattern 中所有元素的名称来命名此 block
+				for part in pattern_part:
+					pattern_block_name.append(part.number)
 
-						target_pattern_area = target_pattern.L * target_pattern.W
-						area_ratio = node_area/target_pattern_area
-					'''
+				#找出 block 中最大的高度 W
+				for part in pattern_block:
+					if part.block_name == 'gate':
+						pattern_block_W_list.append(round(part.W, 2))
+				pattern_block_W = max(pattern_block_W_list)
 
-	#输入两个点 找出两点间(未被搜索过)的 mos
+				#计算 block 的长度 L
+				for block in pattern_block:
+					pattern_block_L += block.L
+				pattern_block_L = round(pattern_block_L, 2)
+
+				final_pattern_block = Block(pattern_block_name, pattern_block_L, pattern_block_W)
+				final_pattern_block.list_of_blocks = pattern_block
+
+				#填加每个小 pattern_part 的 block
+				single_pattern_block_list.append(final_pattern_block)
+
+				single_pattern_block_area += final_pattern_block.L * final_pattern_block.W
+	
+			return(single_pattern_block_area)
+
+	def calculate_area_for_node(self, single_pattern, node):
+
+		#计算 node 的面积, 分 sw 和 dw 两种情况
+		for single_block in single_pattern:
+
+			single_block_parts = []
+			for part in single_block:
+				single_block_parts.append(part.number)
+			print('single_block_parts', single_block_parts)
+
+			if node.number in single_block_parts:
+				position = part.block_name.index(node.number)
+				node_block = part.list_of_blocks[position]
+
+				#根据 node 所在的 part 的类型来进行面积计算
+				#sw 和 edge_contact 的时候, 直接用长乘以高; dw 的时候, 把两块小 part 的面积合算
+				if 'sw' in node_block.block_name or 'edge_contact' in node_block.block_name:
+					node_area = node_block.L * node_block.W
+				elif 'dw' in node_block.block_name:
+					node_block_1 = node_block
+					node_block_2 = pattern_block.list_of_blocks[position+2]
+					node_area = node_block_1.L * node_block_1.W + node_block_2.L * node_block_2.W
+			else:
+				continue
+		return(node_area)
+
 	def search_mid_mos(self, top_node, bot_node):
+		#输入两个点 找出两点间(未被搜索过)的 mos
 		list = []
 		for mos in self.mos_list:
 			if mos.searched == 0:
@@ -680,21 +743,19 @@ class Circuit:
 						node.timing_error_rate = current_source_dict[source]
 						target_node.append(node)
 
-		for group_pattern_list in list_of_group_pattern_list:
-			for single_pattern in group_pattern_list:
-				for pattern_part in single_pattern:
-					for part in single_pattern:
-						for item in part:
-							if isinstance(item, Node):
-								#print(item.number)
-								pass
 
-		#计算每个 node 的 area_ratio
 		for node in target_node:
-			print(node.number)
-			self.calculate_node_area_ratio(node)
-
-
+			for group_pattern_list in list_of_group_pattern_list:
+				for single_pattern in group_pattern_list:
+					print('*'*100)
+					print('node number', node.number)
+					for block in single_pattern:
+						for item in block:
+							print(item.number + ' ', end = '')
+						print()
+					print(self.calculate_area_for_single_pattern(single_pattern))
+					print(self.calculate_area_for_node(single_pattern, node))
+					print('*'*100)
 
 	def process_pipeline(self, pipeline):
 		"""对于 pipeline 抽取更多的信息 比如各种 node 的信息"""
@@ -953,6 +1014,12 @@ def eliminate_same_mos(block1, block2):
 		return(mos_list)
 	else:
 		return(None)
+
+def pattern_part_has_node(pattern_part, node):
+	#判断 pattern part 是否包含 node [node1, mos1, node2, mos2, node3] 与 node1
+	for part in pattern_part:
+		if part.number == node.number:
+			return(True)
 
 
 #查找一个元素的所有位置
