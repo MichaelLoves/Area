@@ -63,6 +63,7 @@ class Pipeline:
 		self.bot_mos = []
 		self.top_mid_node = []
 		self.mid_bot_node = []
+		self.node_list = []
 		self.list_of_group_pattern_list = []
 
 class Circuit:
@@ -714,48 +715,20 @@ class Circuit:
 
 			pipeline.list_of_group_pattern_list.append(new_pattern_list)
 	
-	def choose_pattern(self, list_of_group_pattern_list):
-		#读取 Hspice 模拟后生成的 CSV 文件, 并保存其中除了第一行之外的信息
-		with open('./shift_timing_error_calculation.csv', 'r') as temp_file:
-			csv_file = csv.reader(temp_file)
-			line_num = 0
-			error_data = []
-			for line in csv_file:
-				if line_num == 0:
-					pass
-				else:
-					error_data.append(line)
-				line_num += 1
-			#print(error_data)
+	def choose_pattern(self, target_node_list, list_of_group_pattern_list):
 
-		#在 sp 文件中找出定电流源连接着的 node 番号
-		current_source_dict = {}
-		target_node = []
-		for data in error_data:
-			current_source_dict[data[3]] = data[5]
-
-		with open('./3NAND_2_NP_errorall.sp', 'r') as sp_file:
-			temp_file = sp_file.readlines()
-			for source in current_source_dict:
-				for line in temp_file:
-					if source in line:
-						node = Node(line.split(' ')[2])
-						node.timing_error_rate = current_source_dict[source]
-						target_node.append(node)
-
-
-		for node in target_node:
+		for node in target_node_list:
+			print('node number', node.number)
 			for group_pattern_list in list_of_group_pattern_list:
-				for single_pattern in group_pattern_list:
-					print('*'*100)
-					print('node number', node.number)
-					for block in single_pattern:
-						for item in block:
-							print(item.number + ' ', end = '')
-						print()
-					print(self.calculate_area_for_single_pattern(single_pattern))
-					print(self.calculate_area_for_node(single_pattern, node))
-					print('*'*100)
+				if group_pattern_list_part_has_node(group_pattern_list, node):
+					print('*'*110)
+					#寻找 node 应该在这个层面进行
+					for group_pattern_list in group_pattern_list:
+						print('*'*50)
+						for pattern in group_pattern_list:
+							display('', pattern, newline = 0)
+						print('*'*50)
+					print('*'*110)
 
 	def process_pipeline(self, pipeline):
 		"""对于 pipeline 抽取更多的信息 比如各种 node 的信息"""
@@ -1015,11 +988,61 @@ def eliminate_same_mos(block1, block2):
 	else:
 		return(None)
 
-def pattern_part_has_node(pattern_part, node):
-	#判断 pattern part 是否包含 node [node1, mos1, node2, mos2, node3] 与 node1
-	for part in pattern_part:
-		if part.number == node.number:
-			return(True)
+def group_pattern_list_part_has_node(group_pattern_list, node):
+	#判断一个 group 中是否包含 node
+
+	#在一个列表中保存 group 中所有 mos 和 node 的信息	
+	for group_pattern in group_pattern_list:
+		#保存 pattern 中所有 mos 的名字, 用来判断 node 是否在其中
+		group_pattern_parts = []
+		for pattern in group_pattern:
+			for part in pattern:
+				group_pattern_parts.append(part.number)
+
+	#判断此列表中是否包含 node			
+	if node.number in group_pattern_parts:
+		return(True)
+	else:
+		return(False)
+
+def add_pipeline_node(pipeline):
+	#把 pipeline 中的所有 node 填加到 pipeline.node_list 列表中
+	pipeline.node_list.extend([pipeline.top_node_1, pipeline.top_node_2])
+	pipeline.node_list.append(pipeline.bot_node)
+	pipeline.node_list.extend(pipeline.top_mid_node)
+	pipeline.node_list.extend(pipeline.mid_bot_node)
+
+def select_target_node():
+	#根据读入的 csv 文件, 与 sp 文件进行对比, 确定与定电流源连接的 node 信息
+
+	#读取 Hspice 模拟后生成的 CSV 文件, 并保存其中除了第一行之外的信息
+	with open('./shift_timing_error_calculation.csv', 'r') as temp_file:
+		csv_file = csv.reader(temp_file)
+		line_num = 0
+		error_data = []
+		for line in csv_file:
+			if line_num == 0:
+				pass
+			else:
+				error_data.append(line)
+			line_num += 1
+
+	#在 sp 文件中找出定电流源连接着的 node 番号
+	current_source_dict = {}
+	target_node = []
+	for data in error_data:
+		current_source_dict[data[3]] = data[5]
+
+	with open('./3NAND_2_NP_errorall.sp', 'r') as sp_file:
+		temp_file = sp_file.readlines()
+		for source in current_source_dict:
+			for line in temp_file:
+				if source in line:
+					node = Node(line.split(' ')[2])
+					node.timing_error_rate = current_source_dict[source]
+					target_node.append(node)
+
+	return(target_node)
 
 
 #查找一个元素的所有位置
@@ -1186,7 +1209,23 @@ def get_netlist_data(input_file, output_file = 'output.txt', subtract = 0):
 			
 
 			#print('test for choose_pattern()')
-			main_circuit.choose_pattern(pipeline1.list_of_group_pattern_list)
+			add_pipeline_node(pipeline1)
+			add_pipeline_node(pipeline2)
+
+			#选择目标 node
+			target_node_list = select_target_node()
+
+			#根据 node 所在 pipeline 不同, 传递不同的 pipeline 给 choose_pattern()函数
+			for target_node in target_node_list:
+				if target_node.number in pipeline1.node_list:
+					print('target_node', target_node.number)
+					main_circuit.choose_pattern(target_node_list, pipeline1.list_of_group_pattern_list)
+				else:
+					print('target_node', target_node.number)					
+					main_circuit.choose_pattern(target_node_list, pipeline2.list_of_group_pattern_list)
+
+
+
 
 
 	except IOError as err:
