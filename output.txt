@@ -1,0 +1,130 @@
+group pattern 4 
+single_pattern
+net5 m226 net14 m224 net15   [L :  2.14    W : 3.44] 
+net5 m228 net24 m229 net15 m227 net16   [L :  2.58    W : 3.44] 
+net5 m223 net14   [L :  1.42    W : 2.44] 
+
+single_pattern
+net5 m228 net24 m229 net15   [L :  1.86    W : 2.44] 
+net5 m226 net14 m224 net15 m227 net16   [L :  2.86    W : 3.44] 
+net5 m223 net14   [L :  1.42    W : 2.44] 
+
+single_pattern
+net5 m223 net14 m224 net15   [L :  2.14    W : 3.44] 
+net5 m228 net24 m229 net15 m227 net16   [L :  2.58    W : 3.44] 
+net5 m226 net14   [L :  1.42    W : 2.44] 
+
+single_pattern
+net5 m228 net24 m229 net15   [L :  1.86    W : 2.44] 
+net5 m223 net14 m224 net15 m227 net16   [L :  2.86    W : 3.44] 
+net5 m226 net14   [L :  1.42    W : 2.44] 
+
+
+group pattern 8 
+single_pattern
+net5 m221 net8 m220 net10 m218 net16   [L :  2.86    W : 5.44] 
+net5 m217 net8 m216 net10   [L :  2.14    W : 2.44] 
+
+single_pattern
+net5 m221 net8 m220 net10   [L :  2.14    W : 3.44] 
+net8 m216 net10 m218 net16   [L :  2.14    W : 5.44] 
+net5 m217 net8   [L :  1.42    W : 2.44] 
+
+single_pattern
+net5 m221 net8 m216 net10   [L :  2.14    W : 2.44] 
+net8 m220 net10 m218 net16   [L :  2.14    W : 5.44] 
+net5 m217 net8   [L :  1.42    W : 2.44] 
+
+single_pattern
+net5 m221 net8 m216 net10 m218 net16   [L :  2.86    W : 5.44] 
+net5 m217 net8 m220 net10   [L :  2.14    W : 3.44] 
+
+single_pattern
+net5 m217 net8 m220 net10 m218 net16   [L :  2.86    W : 5.44] 
+net5 m221 net8 m216 net10   [L :  2.14    W : 2.44] 
+
+single_pattern
+net5 m217 net8 m220 net10   [L :  2.14    W : 3.44] 
+net8 m216 net10 m218 net16   [L :  2.14    W : 5.44] 
+net5 m221 net8   [L :  1.42    W : 2.44] 
+
+single_pattern
+net5 m217 net8 m216 net10   [L :  2.14    W : 2.44] 
+net8 m220 net10 m218 net16   [L :  2.14    W : 5.44] 
+net5 m221 net8   [L :  1.42    W : 2.44] 
+
+single_pattern
+net5 m217 net8 m216 net10 m218 net16   [L :  2.86    W : 5.44] 
+net5 m221 net8 m220 net10   [L :  2.14    W : 3.44] 
+
+
+group pattern 1 
+single_pattern
+net39 m235 net36 m233 net37 m234 net16   [L :  2.46    W : 3.44] 
+
+
+group pattern 1 
+single_pattern
+net38 m97 net31 m92 net30 m89 net17   [L :  2.46    W : 3.44] 
+
+
+group pattern 4 
+single_pattern
+net59 m225 net13 m94 net18   [L :  2.14    W : 3.44] 
+net59 m98 net19 m93 net18 m90 net17   [L :  2.58    W : 3.44] 
+net59 m222 net13   [L :  1.42    W : 2.44] 
+
+single_pattern
+net59 m98 net19 m93 net18   [L :  1.86    W : 2.44] 
+net59 m225 net13 m94 net18 m90 net17   [L :  2.86    W : 3.44] 
+net59 m222 net13   [L :  1.42    W : 2.44] 
+
+single_pattern
+net59 m222 net13 m94 net18   [L :  2.14    W : 3.44] 
+net59 m98 net19 m93 net18 m90 net17   [L :  2.58    W : 3.44] 
+net59 m225 net13   [L :  1.42    W : 2.44] 
+
+single_pattern
+net59 m98 net19 m93 net18   [L :  1.86    W : 2.44] 
+net59 m222 net13 m94 net18 m90 net17   [L :  2.86    W : 3.44] 
+net59 m225 net13   [L :  1.42    W : 2.44] 
+
+
+group pattern 8 
+single_pattern
+net59 m219 net7 m95 net9 m91 net17   [L :  2.86    W : 5.44] 
+net59 m215 net7 m96 net9   [L :  2.14    W : 2.44] 
+
+single_pattern
+net59 m219 net7 m95 net9   [L :  2.14    W : 3.44] 
+net7 m96 net9 m91 net17   [L :  2.14    W : 5.44] 
+net59 m215 net7   [L :  1.42    W : 2.44] 
+
+single_pattern
+net59 m219 net7 m96 net9   [L :  2.14    W : 2.44] 
+net7 m95 net9 m91 net17   [L :  2.14    W : 5.44] 
+net59 m215 net7   [L :  1.42    W : 2.44] 
+
+single_pattern
+net59 m219 net7 m96 net9 m91 net17   [L :  2.86    W : 5.44] 
+net59 m215 net7 m95 net9   [L :  2.14    W : 3.44] 
+
+single_pattern
+net59 m215 net7 m95 net9 m91 net17   [L :  2.86    W : 5.44] 
+net59 m219 net7 m96 net9   [L :  2.14    W : 2.44] 
+
+single_pattern
+net59 m215 net7 m95 net9   [L :  2.14    W : 3.44] 
+net7 m96 net9 m91 net17   [L :  2.14    W : 5.44] 
+net59 m219 net7   [L :  1.42    W : 2.44] 
+
+single_pattern
+net59 m215 net7 m96 net9   [L :  2.14    W : 2.44] 
+net7 m95 net9 m91 net17   [L :  2.14    W : 5.44] 
+net59 m219 net7   [L :  1.42    W : 2.44] 
+
+single_pattern
+net59 m215 net7 m96 net9 m91 net17   [L :  2.86    W : 5.44] 
+net59 m219 net7 m95 net9   [L :  2.14    W : 3.44] 
+
+

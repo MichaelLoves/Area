@@ -254,6 +254,20 @@ class Circuit:
 					#用 pattern 中所有元素的名称来命名此 block
 					for part in pattern_part:
 						pattern_block_name.append(part.number)
+					
+
+					with open('data of every part.txt', 'a') as output_file:
+						for part in pattern_part:
+							output_file.write('%s  ' %part.number)
+							#print(part.number + '   ', end = '')
+						#print()
+						output_file.write('\n')
+
+						for block in pattern_block:
+							output_file.write('%s   L :  %s  W:  %s \n' %(block.block_name, block.L, block.W))
+							#print(block.block_name, block.L, block.W)
+						#print()
+						output_file.write('\n\n')
 
 					#找出 block 中最大的高度 W
 					for part in pattern_block:
@@ -283,7 +297,7 @@ class Circuit:
 		#single pattern 中所有 block 的面积和
 		single_pattern_block_area = 0
 
-		for pattern_part in single_pattern:    #parttern_part 为 pattern 中的每个小部分
+		for pattern_part in single_pattern:    #pattern_part 为 pattern 中的每个小部分
 
 			pattern_block_name = []     #读入 pattern 中所有元素的名称, 用来当做 block_name
 			pattern_block = []          #用于储存每个 pattern 的 block
@@ -693,7 +707,7 @@ class Circuit:
 					#如果此 block 中只有一个 mos 则直接在两侧填加 mos 的 drain 和 source
 					elif len(block) == 1:
 						left_node = Node(block[0].drain)
-						right_node = Node(block[0].drain)
+						right_node = Node(block[0].source)
 						block.insert(0, left_node)
 						block.append(right_node)
 
@@ -1186,29 +1200,43 @@ def get_netlist_data(input_file, output_file = 'output.txt', subtract = 0):
 				display('block list', part.list_of_blocks)
 			'''
 
+			#写入之前先清空文件
+			with open('data of every part.txt', 'r+') as output_file:
+				output_file.truncate()
 			
 			#Node-based pattern search
-			#print('pipeline1')
+			print('pipeline1', pipeline1.precharge_PMOS[0].number)
 			main_circuit.find_all_pattern(pipeline1)
 			main_circuit.create_block_for_pattern_list(pipeline1.list_of_group_pattern_list)
 
-			#print('pipeline2')
+			print('pipeline2', pipeline2.precharge_PMOS[0].number)
 			main_circuit.find_all_pattern(pipeline2)
 			main_circuit.create_block_for_pattern_list(pipeline2.list_of_group_pattern_list)
 
-			'''
+
+
+			#'''
 			print('main_circuit')
 			#print(main_circuit.layout_block)
 			for group_pattern in main_circuit.layout_block:
+				print('group_pattern', len(group_pattern), '\n')
 				#print('group_pattern', group_pattern)
+				output.write('group pattern %s \n' %len(group_pattern))
 				for single_pattern in group_pattern:
+					print('single_pattern\n')
 					#print('single_pattern', single_pattern)
+					output.write('single_pattern\n')
 					for block in single_pattern:
 						print(block.block_name, block.L, block.W)
+						output.write('%s   [L :  %s    W : %s] \n' %(' '.join(block.block_name), block.L, block.W) )
+					output.write('\n')
+				output.write('\n')
 			#'''
 			output.close()
 			
 
+
+			'''
 			#print('test for choose_pattern()')
 			add_pipeline_node(pipeline1)
 			add_pipeline_node(pipeline2)
@@ -1219,12 +1247,12 @@ def get_netlist_data(input_file, output_file = 'output.txt', subtract = 0):
 			#根据 node 所在 pipeline 不同, 传递不同的 pipeline 给 choose_pattern()函数
 			for target_node in target_node_list:
 				if target_node.number in pipeline1.node_list:
-					print('target_node', target_node.number)
+					#print('target_node', target_node.number)
 					main_circuit.choose_pattern(target_node_list, pipeline1.list_of_group_pattern_list)
 				else:
-					print('target_node', target_node.number)					
+					#print('target_node', target_node.number)					
 					main_circuit.choose_pattern(target_node_list, pipeline2.list_of_group_pattern_list)
-
+			'''
 
 
 

@@ -1,0 +1,640 @@
+net5  m226  net14  m224  net15  
+edge_contact   L :  0.48  W:  2.0 
+gate   L :  0.18  W:  2.44 
+gate_contact_gate_dw   L :  0.16  W:  2.0 
+gate_contact_gate_dw   L :  0.38  W:  3.0 
+gate   L :  0.18  W:  3.44 
+edge_contact   L :  0.48  W:  3.0 
+diff_space   L :  0.28  W:  3.0 
+
+
+net5  m228  net24  m229  net15  m227  net16  
+edge_contact   L :  0.48  W:  2.0 
+gate   L :  0.18  W:  2.44 
+gate_gate_sw   L :  0.26  W:  2.0 
+gate   L :  0.18  W:  2.44 
+gate_contact_gate_dw   L :  0.16  W:  2.0 
+gate_contact_gate_dw   L :  0.38  W:  3.0 
+gate   L :  0.18  W:  3.44 
+edge_contact   L :  0.48  W:  3.0 
+diff_space   L :  0.28  W:  3.0 
+
+
+net5  m223  net14  
+edge_contact   L :  0.48  W:  2.0 
+gate   L :  0.18  W:  2.44 
+edge_contact   L :  0.48  W:  2.0 
+diff_space   L :  0.28  W:  2.0 
+
+
+net5  m228  net24  m229  net15  
+edge_contact   L :  0.48  W:  2.0 
+gate   L :  0.18  W:  2.44 
+gate_gate_sw   L :  0.26  W:  2.0 
+gate   L :  0.18  W:  2.44 
+edge_contact   L :  0.48  W:  2.0 
+diff_space   L :  0.28  W:  2.0 
+
+
+net5  m226  net14  m224  net15  m227  net16  
+edge_contact   L :  0.48  W:  2.0 
+gate   L :  0.18  W:  2.44 
+gate_contact_gate_dw   L :  0.16  W:  2.0 
+gate_contact_gate_dw   L :  0.38  W:  3.0 
+gate   L :  0.18  W:  3.44 
+gate_contact_gate_sw   L :  0.54  W:  3.0 
+gate   L :  0.18  W:  3.44 
+edge_contact   L :  0.48  W:  3.0 
+diff_space   L :  0.28  W:  3.0 
+
+
+net5  m223  net14  
+edge_contact   L :  0.48  W:  2.0 
+gate   L :  0.18  W:  2.44 
+edge_contact   L :  0.48  W:  2.0 
+diff_space   L :  0.28  W:  2.0 
+
+
+net5  m223  net14  m224  net15  
+edge_contact   L :  0.48  W:  2.0 
+gate   L :  0.18  W:  2.44 
+gate_contact_gate_dw   L :  0.16  W:  2.0 
+gate_contact_gate_dw   L :  0.38  W:  3.0 
+gate   L :  0.18  W:  3.44 
+edge_contact   L :  0.48  W:  3.0 
+diff_space   L :  0.28  W:  3.0 
+
+
+net5  m228  net24  m229  net15  m227  net16  
+edge_contact   L :  0.48  W:  2.0 
+gate   L :  0.18  W:  2.44 
+gate_gate_sw   L :  0.26  W:  2.0 
+gate   L :  0.18  W:  2.44 
+gate_contact_gate_dw   L :  0.16  W:  2.0 
+gate_contact_gate_dw   L :  0.38  W:  3.0 
+gate   L :  0.18  W:  3.44 
+edge_contact   L :  0.48  W:  3.0 
+diff_space   L :  0.28  W:  3.0 
+
+
+net5  m226  net14  
+edge_contact   L :  0.48  W:  2.0 
+gate   L :  0.18  W:  2.44 
+edge_contact   L :  0.48  W:  2.0 
+diff_space   L :  0.28  W:  2.0 
+
+
+net5  m228  net24  m229  net15  
+edge_contact   L :  0.48  W:  2.0 
+gate   L :  0.18  W:  2.44 
+gate_gate_sw   L :  0.26  W:  2.0 
+gate   L :  0.18  W:  2.44 
+edge_contact   L :  0.48  W:  2.0 
+diff_space   L :  0.28  W:  2.0 
+
+
+net5  m223  net14  m224  net15  m227  net16  
+edge_contact   L :  0.48  W:  2.0 
+gate   L :  0.18  W:  2.44 
+gate_contact_gate_dw   L :  0.16  W:  2.0 
+gate_contact_gate_dw   L :  0.38  W:  3.0 
+gate   L :  0.18  W:  3.44 
+gate_contact_gate_sw   L :  0.54  W:  3.0 
+gate   L :  0.18  W:  3.44 
+edge_contact   L :  0.48  W:  3.0 
+diff_space   L :  0.28  W:  3.0 
+
+
+net5  m226  net14  
+edge_contact   L :  0.48  W:  2.0 
+gate   L :  0.18  W:  2.44 
+edge_contact   L :  0.48  W:  2.0 
+diff_space   L :  0.28  W:  2.0 
+
+
+net5  m221  net8  m220  net10  m218  net16  
+edge_contact   L :  0.48  W:  2.0 
+gate   L :  0.18  W:  2.44 
+gate_contact_gate_dw   L :  0.16  W:  2.0 
+gate_contact_gate_dw   L :  0.38  W:  3.0 
+gate   L :  0.18  W:  3.44 
+gate_contact_gate_dw   L :  0.16  W:  3.0 
+gate_contact_gate_dw   L :  0.38  W:  5.0 
+gate   L :  0.18  W:  5.44 
+edge_contact   L :  0.48  W:  5.0 
+diff_space   L :  0.28  W:  5.0 
+
+
+net5  m217  net8  m216  net10  
+edge_contact   L :  0.48  W:  2.0 
+gate   L :  0.18  W:  2.44 
+gate_contact_gate_sw   L :  0.54  W:  2.0 
+gate   L :  0.18  W:  2.44 
+edge_contact   L :  0.48  W:  2.0 
+diff_space   L :  0.28  W:  2.0 
+
+
+net5  m221  net8  m220  net10  
+edge_contact   L :  0.48  W:  2.0 
+gate   L :  0.18  W:  2.44 
+gate_contact_gate_dw   L :  0.16  W:  2.0 
+gate_contact_gate_dw   L :  0.38  W:  3.0 
+gate   L :  0.18  W:  3.44 
+edge_contact   L :  0.48  W:  3.0 
+diff_space   L :  0.28  W:  3.0 
+
+
+net8  m216  net10  m218  net16  
+edge_contact   L :  0.48  W:  2.0 
+gate   L :  0.18  W:  2.44 
+gate_contact_gate_dw   L :  0.16  W:  2.0 
+gate_contact_gate_dw   L :  0.38  W:  5.0 
+gate   L :  0.18  W:  5.44 
+edge_contact   L :  0.48  W:  5.0 
+diff_space   L :  0.28  W:  5.0 
+
+
+net5  m217  net8  
+edge_contact   L :  0.48  W:  2.0 
+gate   L :  0.18  W:  2.44 
+edge_contact   L :  0.48  W:  2.0 
+diff_space   L :  0.28  W:  2.0 
+
+
+net5  m221  net8  m216  net10  
+edge_contact   L :  0.48  W:  2.0 
+gate   L :  0.18  W:  2.44 
+gate_contact_gate_sw   L :  0.54  W:  2.0 
+gate   L :  0.18  W:  2.44 
+edge_contact   L :  0.48  W:  2.0 
+diff_space   L :  0.28  W:  2.0 
+
+
+net8  m220  net10  m218  net16  
+edge_contact   L :  0.48  W:  3.0 
+gate   L :  0.18  W:  3.44 
+gate_contact_gate_dw   L :  0.16  W:  3.0 
+gate_contact_gate_dw   L :  0.38  W:  5.0 
+gate   L :  0.18  W:  5.44 
+edge_contact   L :  0.48  W:  5.0 
+diff_space   L :  0.28  W:  5.0 
+
+
+net5  m217  net8  
+edge_contact   L :  0.48  W:  2.0 
+gate   L :  0.18  W:  2.44 
+edge_contact   L :  0.48  W:  2.0 
+diff_space   L :  0.28  W:  2.0 
+
+
+net5  m221  net8  m216  net10  m218  net16  
+edge_contact   L :  0.48  W:  2.0 
+gate   L :  0.18  W:  2.44 
+gate_contact_gate_sw   L :  0.54  W:  2.0 
+gate   L :  0.18  W:  2.44 
+gate_contact_gate_dw   L :  0.16  W:  2.0 
+gate_contact_gate_dw   L :  0.38  W:  5.0 
+gate   L :  0.18  W:  5.44 
+edge_contact   L :  0.48  W:  5.0 
+diff_space   L :  0.28  W:  5.0 
+
+
+net5  m217  net8  m220  net10  
+edge_contact   L :  0.48  W:  2.0 
+gate   L :  0.18  W:  2.44 
+gate_contact_gate_dw   L :  0.16  W:  2.0 
+gate_contact_gate_dw   L :  0.38  W:  3.0 
+gate   L :  0.18  W:  3.44 
+edge_contact   L :  0.48  W:  3.0 
+diff_space   L :  0.28  W:  3.0 
+
+
+net5  m217  net8  m220  net10  m218  net16  
+edge_contact   L :  0.48  W:  2.0 
+gate   L :  0.18  W:  2.44 
+gate_contact_gate_dw   L :  0.16  W:  2.0 
+gate_contact_gate_dw   L :  0.38  W:  3.0 
+gate   L :  0.18  W:  3.44 
+gate_contact_gate_dw   L :  0.16  W:  3.0 
+gate_contact_gate_dw   L :  0.38  W:  5.0 
+gate   L :  0.18  W:  5.44 
+edge_contact   L :  0.48  W:  5.0 
+diff_space   L :  0.28  W:  5.0 
+
+
+net5  m221  net8  m216  net10  
+edge_contact   L :  0.48  W:  2.0 
+gate   L :  0.18  W:  2.44 
+gate_contact_gate_sw   L :  0.54  W:  2.0 
+gate   L :  0.18  W:  2.44 
+edge_contact   L :  0.48  W:  2.0 
+diff_space   L :  0.28  W:  2.0 
+
+
+net5  m217  net8  m220  net10  
+edge_contact   L :  0.48  W:  2.0 
+gate   L :  0.18  W:  2.44 
+gate_contact_gate_dw   L :  0.16  W:  2.0 
+gate_contact_gate_dw   L :  0.38  W:  3.0 
+gate   L :  0.18  W:  3.44 
+edge_contact   L :  0.48  W:  3.0 
+diff_space   L :  0.28  W:  3.0 
+
+
+net8  m216  net10  m218  net16  
+edge_contact   L :  0.48  W:  2.0 
+gate   L :  0.18  W:  2.44 
+gate_contact_gate_dw   L :  0.16  W:  2.0 
+gate_contact_gate_dw   L :  0.38  W:  5.0 
+gate   L :  0.18  W:  5.44 
+edge_contact   L :  0.48  W:  5.0 
+diff_space   L :  0.28  W:  5.0 
+
+
+net5  m221  net8  
+edge_contact   L :  0.48  W:  2.0 
+gate   L :  0.18  W:  2.44 
+edge_contact   L :  0.48  W:  2.0 
+diff_space   L :  0.28  W:  2.0 
+
+
+net5  m217  net8  m216  net10  
+edge_contact   L :  0.48  W:  2.0 
+gate   L :  0.18  W:  2.44 
+gate_contact_gate_sw   L :  0.54  W:  2.0 
+gate   L :  0.18  W:  2.44 
+edge_contact   L :  0.48  W:  2.0 
+diff_space   L :  0.28  W:  2.0 
+
+
+net8  m220  net10  m218  net16  
+edge_contact   L :  0.48  W:  3.0 
+gate   L :  0.18  W:  3.44 
+gate_contact_gate_dw   L :  0.16  W:  3.0 
+gate_contact_gate_dw   L :  0.38  W:  5.0 
+gate   L :  0.18  W:  5.44 
+edge_contact   L :  0.48  W:  5.0 
+diff_space   L :  0.28  W:  5.0 
+
+
+net5  m221  net8  
+edge_contact   L :  0.48  W:  2.0 
+gate   L :  0.18  W:  2.44 
+edge_contact   L :  0.48  W:  2.0 
+diff_space   L :  0.28  W:  2.0 
+
+
+net5  m217  net8  m216  net10  m218  net16  
+edge_contact   L :  0.48  W:  2.0 
+gate   L :  0.18  W:  2.44 
+gate_contact_gate_sw   L :  0.54  W:  2.0 
+gate   L :  0.18  W:  2.44 
+gate_contact_gate_dw   L :  0.16  W:  2.0 
+gate_contact_gate_dw   L :  0.38  W:  5.0 
+gate   L :  0.18  W:  5.44 
+edge_contact   L :  0.48  W:  5.0 
+diff_space   L :  0.28  W:  5.0 
+
+
+net5  m221  net8  m220  net10  
+edge_contact   L :  0.48  W:  2.0 
+gate   L :  0.18  W:  2.44 
+gate_contact_gate_dw   L :  0.16  W:  2.0 
+gate_contact_gate_dw   L :  0.38  W:  3.0 
+gate   L :  0.18  W:  3.44 
+edge_contact   L :  0.48  W:  3.0 
+diff_space   L :  0.28  W:  3.0 
+
+
+net39  m235  net36  m233  net37  m234  net16  
+edge_contact   L :  0.48  W:  2.0 
+gate   L :  0.18  W:  2.44 
+gate_gate_sw   L :  0.26  W:  2.0 
+gate   L :  0.18  W:  2.44 
+gate_gate_dw   L :  0.1  W:  2.0 
+gate_gate_dw   L :  0.32  W:  3.0 
+gate   L :  0.18  W:  3.44 
+edge_contact   L :  0.48  W:  3.0 
+diff_space   L :  0.28  W:  3.0 
+
+
+net38  m97  net31  m92  net30  m89  net17  
+edge_contact   L :  0.48  W:  2.0 
+gate   L :  0.18  W:  2.44 
+gate_gate_sw   L :  0.26  W:  2.0 
+gate   L :  0.18  W:  2.44 
+gate_gate_dw   L :  0.1  W:  2.0 
+gate_gate_dw   L :  0.32  W:  3.0 
+gate   L :  0.18  W:  3.44 
+edge_contact   L :  0.48  W:  3.0 
+diff_space   L :  0.28  W:  3.0 
+
+
+net59  m225  net13  m94  net18  
+edge_contact   L :  0.48  W:  2.0 
+gate   L :  0.18  W:  2.44 
+gate_contact_gate_dw   L :  0.16  W:  2.0 
+gate_contact_gate_dw   L :  0.38  W:  3.0 
+gate   L :  0.18  W:  3.44 
+edge_contact   L :  0.48  W:  3.0 
+diff_space   L :  0.28  W:  3.0 
+
+
+net59  m98  net19  m93  net18  m90  net17  
+edge_contact   L :  0.48  W:  2.0 
+gate   L :  0.18  W:  2.44 
+gate_gate_sw   L :  0.26  W:  2.0 
+gate   L :  0.18  W:  2.44 
+gate_contact_gate_dw   L :  0.16  W:  2.0 
+gate_contact_gate_dw   L :  0.38  W:  3.0 
+gate   L :  0.18  W:  3.44 
+edge_contact   L :  0.48  W:  3.0 
+diff_space   L :  0.28  W:  3.0 
+
+
+net59  m222  net13  
+edge_contact   L :  0.48  W:  2.0 
+gate   L :  0.18  W:  2.44 
+edge_contact   L :  0.48  W:  2.0 
+diff_space   L :  0.28  W:  2.0 
+
+
+net59  m98  net19  m93  net18  
+edge_contact   L :  0.48  W:  2.0 
+gate   L :  0.18  W:  2.44 
+gate_gate_sw   L :  0.26  W:  2.0 
+gate   L :  0.18  W:  2.44 
+edge_contact   L :  0.48  W:  2.0 
+diff_space   L :  0.28  W:  2.0 
+
+
+net59  m225  net13  m94  net18  m90  net17  
+edge_contact   L :  0.48  W:  2.0 
+gate   L :  0.18  W:  2.44 
+gate_contact_gate_dw   L :  0.16  W:  2.0 
+gate_contact_gate_dw   L :  0.38  W:  3.0 
+gate   L :  0.18  W:  3.44 
+gate_contact_gate_sw   L :  0.54  W:  3.0 
+gate   L :  0.18  W:  3.44 
+edge_contact   L :  0.48  W:  3.0 
+diff_space   L :  0.28  W:  3.0 
+
+
+net59  m222  net13  
+edge_contact   L :  0.48  W:  2.0 
+gate   L :  0.18  W:  2.44 
+edge_contact   L :  0.48  W:  2.0 
+diff_space   L :  0.28  W:  2.0 
+
+
+net59  m222  net13  m94  net18  
+edge_contact   L :  0.48  W:  2.0 
+gate   L :  0.18  W:  2.44 
+gate_contact_gate_dw   L :  0.16  W:  2.0 
+gate_contact_gate_dw   L :  0.38  W:  3.0 
+gate   L :  0.18  W:  3.44 
+edge_contact   L :  0.48  W:  3.0 
+diff_space   L :  0.28  W:  3.0 
+
+
+net59  m98  net19  m93  net18  m90  net17  
+edge_contact   L :  0.48  W:  2.0 
+gate   L :  0.18  W:  2.44 
+gate_gate_sw   L :  0.26  W:  2.0 
+gate   L :  0.18  W:  2.44 
+gate_contact_gate_dw   L :  0.16  W:  2.0 
+gate_contact_gate_dw   L :  0.38  W:  3.0 
+gate   L :  0.18  W:  3.44 
+edge_contact   L :  0.48  W:  3.0 
+diff_space   L :  0.28  W:  3.0 
+
+
+net59  m225  net13  
+edge_contact   L :  0.48  W:  2.0 
+gate   L :  0.18  W:  2.44 
+edge_contact   L :  0.48  W:  2.0 
+diff_space   L :  0.28  W:  2.0 
+
+
+net59  m98  net19  m93  net18  
+edge_contact   L :  0.48  W:  2.0 
+gate   L :  0.18  W:  2.44 
+gate_gate_sw   L :  0.26  W:  2.0 
+gate   L :  0.18  W:  2.44 
+edge_contact   L :  0.48  W:  2.0 
+diff_space   L :  0.28  W:  2.0 
+
+
+net59  m222  net13  m94  net18  m90  net17  
+edge_contact   L :  0.48  W:  2.0 
+gate   L :  0.18  W:  2.44 
+gate_contact_gate_dw   L :  0.16  W:  2.0 
+gate_contact_gate_dw   L :  0.38  W:  3.0 
+gate   L :  0.18  W:  3.44 
+gate_contact_gate_sw   L :  0.54  W:  3.0 
+gate   L :  0.18  W:  3.44 
+edge_contact   L :  0.48  W:  3.0 
+diff_space   L :  0.28  W:  3.0 
+
+
+net59  m225  net13  
+edge_contact   L :  0.48  W:  2.0 
+gate   L :  0.18  W:  2.44 
+edge_contact   L :  0.48  W:  2.0 
+diff_space   L :  0.28  W:  2.0 
+
+
+net59  m219  net7  m95  net9  m91  net17  
+edge_contact   L :  0.48  W:  2.0 
+gate   L :  0.18  W:  2.44 
+gate_contact_gate_dw   L :  0.16  W:  2.0 
+gate_contact_gate_dw   L :  0.38  W:  3.0 
+gate   L :  0.18  W:  3.44 
+gate_contact_gate_dw   L :  0.16  W:  3.0 
+gate_contact_gate_dw   L :  0.38  W:  5.0 
+gate   L :  0.18  W:  5.44 
+edge_contact   L :  0.48  W:  5.0 
+diff_space   L :  0.28  W:  5.0 
+
+
+net59  m215  net7  m96  net9  
+edge_contact   L :  0.48  W:  2.0 
+gate   L :  0.18  W:  2.44 
+gate_contact_gate_sw   L :  0.54  W:  2.0 
+gate   L :  0.18  W:  2.44 
+edge_contact   L :  0.48  W:  2.0 
+diff_space   L :  0.28  W:  2.0 
+
+
+net59  m219  net7  m95  net9  
+edge_contact   L :  0.48  W:  2.0 
+gate   L :  0.18  W:  2.44 
+gate_contact_gate_dw   L :  0.16  W:  2.0 
+gate_contact_gate_dw   L :  0.38  W:  3.0 
+gate   L :  0.18  W:  3.44 
+edge_contact   L :  0.48  W:  3.0 
+diff_space   L :  0.28  W:  3.0 
+
+
+net7  m96  net9  m91  net17  
+edge_contact   L :  0.48  W:  2.0 
+gate   L :  0.18  W:  2.44 
+gate_contact_gate_dw   L :  0.16  W:  2.0 
+gate_contact_gate_dw   L :  0.38  W:  5.0 
+gate   L :  0.18  W:  5.44 
+edge_contact   L :  0.48  W:  5.0 
+diff_space   L :  0.28  W:  5.0 
+
+
+net59  m215  net7  
+edge_contact   L :  0.48  W:  2.0 
+gate   L :  0.18  W:  2.44 
+edge_contact   L :  0.48  W:  2.0 
+diff_space   L :  0.28  W:  2.0 
+
+
+net59  m219  net7  m96  net9  
+edge_contact   L :  0.48  W:  2.0 
+gate   L :  0.18  W:  2.44 
+gate_contact_gate_sw   L :  0.54  W:  2.0 
+gate   L :  0.18  W:  2.44 
+edge_contact   L :  0.48  W:  2.0 
+diff_space   L :  0.28  W:  2.0 
+
+
+net7  m95  net9  m91  net17  
+edge_contact   L :  0.48  W:  3.0 
+gate   L :  0.18  W:  3.44 
+gate_contact_gate_dw   L :  0.16  W:  3.0 
+gate_contact_gate_dw   L :  0.38  W:  5.0 
+gate   L :  0.18  W:  5.44 
+edge_contact   L :  0.48  W:  5.0 
+diff_space   L :  0.28  W:  5.0 
+
+
+net59  m215  net7  
+edge_contact   L :  0.48  W:  2.0 
+gate   L :  0.18  W:  2.44 
+edge_contact   L :  0.48  W:  2.0 
+diff_space   L :  0.28  W:  2.0 
+
+
+net59  m219  net7  m96  net9  m91  net17  
+edge_contact   L :  0.48  W:  2.0 
+gate   L :  0.18  W:  2.44 
+gate_contact_gate_sw   L :  0.54  W:  2.0 
+gate   L :  0.18  W:  2.44 
+gate_contact_gate_dw   L :  0.16  W:  2.0 
+gate_contact_gate_dw   L :  0.38  W:  5.0 
+gate   L :  0.18  W:  5.44 
+edge_contact   L :  0.48  W:  5.0 
+diff_space   L :  0.28  W:  5.0 
+
+
+net59  m215  net7  m95  net9  
+edge_contact   L :  0.48  W:  2.0 
+gate   L :  0.18  W:  2.44 
+gate_contact_gate_dw   L :  0.16  W:  2.0 
+gate_contact_gate_dw   L :  0.38  W:  3.0 
+gate   L :  0.18  W:  3.44 
+edge_contact   L :  0.48  W:  3.0 
+diff_space   L :  0.28  W:  3.0 
+
+
+net59  m215  net7  m95  net9  m91  net17  
+edge_contact   L :  0.48  W:  2.0 
+gate   L :  0.18  W:  2.44 
+gate_contact_gate_dw   L :  0.16  W:  2.0 
+gate_contact_gate_dw   L :  0.38  W:  3.0 
+gate   L :  0.18  W:  3.44 
+gate_contact_gate_dw   L :  0.16  W:  3.0 
+gate_contact_gate_dw   L :  0.38  W:  5.0 
+gate   L :  0.18  W:  5.44 
+edge_contact   L :  0.48  W:  5.0 
+diff_space   L :  0.28  W:  5.0 
+
+
+net59  m219  net7  m96  net9  
+edge_contact   L :  0.48  W:  2.0 
+gate   L :  0.18  W:  2.44 
+gate_contact_gate_sw   L :  0.54  W:  2.0 
+gate   L :  0.18  W:  2.44 
+edge_contact   L :  0.48  W:  2.0 
+diff_space   L :  0.28  W:  2.0 
+
+
+net59  m215  net7  m95  net9  
+edge_contact   L :  0.48  W:  2.0 
+gate   L :  0.18  W:  2.44 
+gate_contact_gate_dw   L :  0.16  W:  2.0 
+gate_contact_gate_dw   L :  0.38  W:  3.0 
+gate   L :  0.18  W:  3.44 
+edge_contact   L :  0.48  W:  3.0 
+diff_space   L :  0.28  W:  3.0 
+
+
+net7  m96  net9  m91  net17  
+edge_contact   L :  0.48  W:  2.0 
+gate   L :  0.18  W:  2.44 
+gate_contact_gate_dw   L :  0.16  W:  2.0 
+gate_contact_gate_dw   L :  0.38  W:  5.0 
+gate   L :  0.18  W:  5.44 
+edge_contact   L :  0.48  W:  5.0 
+diff_space   L :  0.28  W:  5.0 
+
+
+net59  m219  net7  
+edge_contact   L :  0.48  W:  2.0 
+gate   L :  0.18  W:  2.44 
+edge_contact   L :  0.48  W:  2.0 
+diff_space   L :  0.28  W:  2.0 
+
+
+net59  m215  net7  m96  net9  
+edge_contact   L :  0.48  W:  2.0 
+gate   L :  0.18  W:  2.44 
+gate_contact_gate_sw   L :  0.54  W:  2.0 
+gate   L :  0.18  W:  2.44 
+edge_contact   L :  0.48  W:  2.0 
+diff_space   L :  0.28  W:  2.0 
+
+
+net7  m95  net9  m91  net17  
+edge_contact   L :  0.48  W:  3.0 
+gate   L :  0.18  W:  3.44 
+gate_contact_gate_dw   L :  0.16  W:  3.0 
+gate_contact_gate_dw   L :  0.38  W:  5.0 
+gate   L :  0.18  W:  5.44 
+edge_contact   L :  0.48  W:  5.0 
+diff_space   L :  0.28  W:  5.0 
+
+
+net59  m219  net7  
+edge_contact   L :  0.48  W:  2.0 
+gate   L :  0.18  W:  2.44 
+edge_contact   L :  0.48  W:  2.0 
+diff_space   L :  0.28  W:  2.0 
+
+
+net59  m215  net7  m96  net9  m91  net17  
+edge_contact   L :  0.48  W:  2.0 
+gate   L :  0.18  W:  2.44 
+gate_contact_gate_sw   L :  0.54  W:  2.0 
+gate   L :  0.18  W:  2.44 
+gate_contact_gate_dw   L :  0.16  W:  2.0 
+gate_contact_gate_dw   L :  0.38  W:  5.0 
+gate   L :  0.18  W:  5.44 
+edge_contact   L :  0.48  W:  5.0 
+diff_space   L :  0.28  W:  5.0 
+
+
+net59  m219  net7  m95  net9  
+edge_contact   L :  0.48  W:  2.0 
+gate   L :  0.18  W:  2.44 
+gate_contact_gate_dw   L :  0.16  W:  2.0 
+gate_contact_gate_dw   L :  0.38  W:  3.0 
+gate   L :  0.18  W:  3.44 
+edge_contact   L :  0.48  W:  3.0 
+diff_space   L :  0.28  W:  3.0 
+
+
