@@ -1,0 +1,496 @@
+combination 1 
+net38  m97  net31  m92  net30  m89  net17  
+
+net59  m225  net13  m94  net18  
+net59  m98  net19  m93  net18  m90  net17  
+net59  m222  net13  
+
+net59  m219  net7  m95  net9  m91  net17  
+net59  m215  net7  m96  net9  
+
+
+
+
+
+
+combination 2 
+net38  m97  net31  m92  net30  m89  net17  
+
+net59  m225  net13  m94  net18  
+net59  m98  net19  m93  net18  m90  net17  
+net59  m222  net13  
+
+net59  m219  net7  m95  net9  
+net7  m96  net9  m91  net17  
+net59  m215  net7  
+
+
+
+
+
+
+combination 3 
+net38  m97  net31  m92  net30  m89  net17  
+
+net59  m225  net13  m94  net18  
+net59  m98  net19  m93  net18  m90  net17  
+net59  m222  net13  
+
+net59  m219  net7  m96  net9  
+net7  m95  net9  m91  net17  
+net59  m215  net7  
+
+
+
+
+
+
+combination 4 
+net38  m97  net31  m92  net30  m89  net17  
+
+net59  m225  net13  m94  net18  
+net59  m98  net19  m93  net18  m90  net17  
+net59  m222  net13  
+
+net59  m219  net7  m96  net9  m91  net17  
+net59  m215  net7  m95  net9  
+
+
+
+
+
+
+combination 5 
+net38  m97  net31  m92  net30  m89  net17  
+
+net59  m225  net13  m94  net18  
+net59  m98  net19  m93  net18  m90  net17  
+net59  m222  net13  
+
+net59  m215  net7  m95  net9  m91  net17  
+net59  m219  net7  m96  net9  
+
+
+
+
+
+
+combination 6 
+net38  m97  net31  m92  net30  m89  net17  
+
+net59  m225  net13  m94  net18  
+net59  m98  net19  m93  net18  m90  net17  
+net59  m222  net13  
+
+net59  m215  net7  m95  net9  
+net7  m96  net9  m91  net17  
+net59  m219  net7  
+
+
+
+
+
+
+combination 7 
+net38  m97  net31  m92  net30  m89  net17  
+
+net59  m225  net13  m94  net18  
+net59  m98  net19  m93  net18  m90  net17  
+net59  m222  net13  
+
+net59  m215  net7  m96  net9  
+net7  m95  net9  m91  net17  
+net59  m219  net7  
+
+
+
+
+
+
+combination 8 
+net38  m97  net31  m92  net30  m89  net17  
+
+net59  m225  net13  m94  net18  
+net59  m98  net19  m93  net18  m90  net17  
+net59  m222  net13  
+
+net59  m215  net7  m96  net9  m91  net17  
+net59  m219  net7  m95  net9  
+
+
+
+
+
+
+combination 9 
+net38  m97  net31  m92  net30  m89  net17  
+
+net59  m98  net19  m93  net18  
+net59  m225  net13  m94  net18  m90  net17  
+net59  m222  net13  
+
+net59  m219  net7  m95  net9  m91  net17  
+net59  m215  net7  m96  net9  
+
+
+
+
+
+
+combination 10 
+net38  m97  net31  m92  net30  m89  net17  
+
+net59  m98  net19  m93  net18  
+net59  m225  net13  m94  net18  m90  net17  
+net59  m222  net13  
+
+net59  m219  net7  m95  net9  
+net7  m96  net9  m91  net17  
+net59  m215  net7  
+
+
+
+
+
+
+combination 11 
+net38  m97  net31  m92  net30  m89  net17  
+
+net59  m98  net19  m93  net18  
+net59  m225  net13  m94  net18  m90  net17  
+net59  m222  net13  
+
+net59  m219  net7  m96  net9  
+net7  m95  net9  m91  net17  
+net59  m215  net7  
+
+
+
+
+
+
+combination 12 
+net38  m97  net31  m92  net30  m89  net17  
+
+net59  m98  net19  m93  net18  
+net59  m225  net13  m94  net18  m90  net17  
+net59  m222  net13  
+
+net59  m219  net7  m96  net9  m91  net17  
+net59  m215  net7  m95  net9  
+
+
+
+
+
+
+combination 13 
+net38  m97  net31  m92  net30  m89  net17  
+
+net59  m98  net19  m93  net18  
+net59  m225  net13  m94  net18  m90  net17  
+net59  m222  net13  
+
+net59  m215  net7  m95  net9  m91  net17  
+net59  m219  net7  m96  net9  
+
+
+
+
+
+
+combination 14 
+net38  m97  net31  m92  net30  m89  net17  
+
+net59  m98  net19  m93  net18  
+net59  m225  net13  m94  net18  m90  net17  
+net59  m222  net13  
+
+net59  m215  net7  m95  net9  
+net7  m96  net9  m91  net17  
+net59  m219  net7  
+
+
+
+
+
+
+combination 15 
+net38  m97  net31  m92  net30  m89  net17  
+
+net59  m98  net19  m93  net18  
+net59  m225  net13  m94  net18  m90  net17  
+net59  m222  net13  
+
+net59  m215  net7  m96  net9  
+net7  m95  net9  m91  net17  
+net59  m219  net7  
+
+
+
+
+
+
+combination 16 
+net38  m97  net31  m92  net30  m89  net17  
+
+net59  m98  net19  m93  net18  
+net59  m225  net13  m94  net18  m90  net17  
+net59  m222  net13  
+
+net59  m215  net7  m96  net9  m91  net17  
+net59  m219  net7  m95  net9  
+
+
+
+
+
+
+combination 17 
+net38  m97  net31  m92  net30  m89  net17  
+
+net59  m222  net13  m94  net18  
+net59  m98  net19  m93  net18  m90  net17  
+net59  m225  net13  
+
+net59  m219  net7  m95  net9  m91  net17  
+net59  m215  net7  m96  net9  
+
+
+
+
+
+
+combination 18 
+net38  m97  net31  m92  net30  m89  net17  
+
+net59  m222  net13  m94  net18  
+net59  m98  net19  m93  net18  m90  net17  
+net59  m225  net13  
+
+net59  m219  net7  m95  net9  
+net7  m96  net9  m91  net17  
+net59  m215  net7  
+
+
+
+
+
+
+combination 19 
+net38  m97  net31  m92  net30  m89  net17  
+
+net59  m222  net13  m94  net18  
+net59  m98  net19  m93  net18  m90  net17  
+net59  m225  net13  
+
+net59  m219  net7  m96  net9  
+net7  m95  net9  m91  net17  
+net59  m215  net7  
+
+
+
+
+
+
+combination 20 
+net38  m97  net31  m92  net30  m89  net17  
+
+net59  m222  net13  m94  net18  
+net59  m98  net19  m93  net18  m90  net17  
+net59  m225  net13  
+
+net59  m219  net7  m96  net9  m91  net17  
+net59  m215  net7  m95  net9  
+
+
+
+
+
+
+combination 21 
+net38  m97  net31  m92  net30  m89  net17  
+
+net59  m222  net13  m94  net18  
+net59  m98  net19  m93  net18  m90  net17  
+net59  m225  net13  
+
+net59  m215  net7  m95  net9  m91  net17  
+net59  m219  net7  m96  net9  
+
+
+
+
+
+
+combination 22 
+net38  m97  net31  m92  net30  m89  net17  
+
+net59  m222  net13  m94  net18  
+net59  m98  net19  m93  net18  m90  net17  
+net59  m225  net13  
+
+net59  m215  net7  m95  net9  
+net7  m96  net9  m91  net17  
+net59  m219  net7  
+
+
+
+
+
+
+combination 23 
+net38  m97  net31  m92  net30  m89  net17  
+
+net59  m222  net13  m94  net18  
+net59  m98  net19  m93  net18  m90  net17  
+net59  m225  net13  
+
+net59  m215  net7  m96  net9  
+net7  m95  net9  m91  net17  
+net59  m219  net7  
+
+
+
+
+
+
+combination 24 
+net38  m97  net31  m92  net30  m89  net17  
+
+net59  m222  net13  m94  net18  
+net59  m98  net19  m93  net18  m90  net17  
+net59  m225  net13  
+
+net59  m215  net7  m96  net9  m91  net17  
+net59  m219  net7  m95  net9  
+
+
+
+
+
+
+combination 25 
+net38  m97  net31  m92  net30  m89  net17  
+
+net59  m98  net19  m93  net18  
+net59  m222  net13  m94  net18  m90  net17  
+net59  m225  net13  
+
+net59  m219  net7  m95  net9  m91  net17  
+net59  m215  net7  m96  net9  
+
+
+
+
+
+
+combination 26 
+net38  m97  net31  m92  net30  m89  net17  
+
+net59  m98  net19  m93  net18  
+net59  m222  net13  m94  net18  m90  net17  
+net59  m225  net13  
+
+net59  m219  net7  m95  net9  
+net7  m96  net9  m91  net17  
+net59  m215  net7  
+
+
+
+
+
+
+combination 27 
+net38  m97  net31  m92  net30  m89  net17  
+
+net59  m98  net19  m93  net18  
+net59  m222  net13  m94  net18  m90  net17  
+net59  m225  net13  
+
+net59  m219  net7  m96  net9  
+net7  m95  net9  m91  net17  
+net59  m215  net7  
+
+
+
+
+
+
+combination 28 
+net38  m97  net31  m92  net30  m89  net17  
+
+net59  m98  net19  m93  net18  
+net59  m222  net13  m94  net18  m90  net17  
+net59  m225  net13  
+
+net59  m219  net7  m96  net9  m91  net17  
+net59  m215  net7  m95  net9  
+
+
+
+
+
+
+combination 29 
+net38  m97  net31  m92  net30  m89  net17  
+
+net59  m98  net19  m93  net18  
+net59  m222  net13  m94  net18  m90  net17  
+net59  m225  net13  
+
+net59  m215  net7  m95  net9  m91  net17  
+net59  m219  net7  m96  net9  
+
+
+
+
+
+
+combination 30 
+net38  m97  net31  m92  net30  m89  net17  
+
+net59  m98  net19  m93  net18  
+net59  m222  net13  m94  net18  m90  net17  
+net59  m225  net13  
+
+net59  m215  net7  m95  net9  
+net7  m96  net9  m91  net17  
+net59  m219  net7  
+
+
+
+
+
+
+combination 31 
+net38  m97  net31  m92  net30  m89  net17  
+
+net59  m98  net19  m93  net18  
+net59  m222  net13  m94  net18  m90  net17  
+net59  m225  net13  
+
+net59  m215  net7  m96  net9  
+net7  m95  net9  m91  net17  
+net59  m219  net7  
+
+
+
+
+
+
+combination 32 
+net38  m97  net31  m92  net30  m89  net17  
+
+net59  m98  net19  m93  net18  
+net59  m222  net13  m94  net18  m90  net17  
+net59  m225  net13  
+
+net59  m215  net7  m96  net9  m91  net17  
+net59  m219  net7  m95  net9  
+
+
+
+
+
+

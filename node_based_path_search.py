@@ -1,5 +1,6 @@
 import re, os, sys, getopt, operator, csv
 from copy import deepcopy
+import write_into_sp_file
 
 
 class Node:
@@ -78,6 +79,7 @@ class Circuit:
 		self.block_length = 0
 		self.pipeline = []
 		self.layout_block = []
+		self.list_of_block_info_in_every_single_pattern = {}  #用来储存每一个 pattern 中的 block 的具体信息
 
 	def create_mos_list(self):
 		'''返回 netlist 中仅以 m 开头的部分'''
@@ -209,8 +211,10 @@ class Circuit:
 
 		for group_pattern_list in list_of_group_pattern_list:
 			group_pattern_block_list = []
+			group_pattern_block_list_detailed = []
 			for single_pattern in group_pattern_list:
 				single_pattern_block_list = []
+				single_pattern_block_list_detailed = []
 				for pattern_part in single_pattern:    #parttern_part 为 pattern 中的每个小部分
 
 					pattern_block_name = []     #读入 pattern 中所有元素的名称, 用来当做 block_name
@@ -255,7 +259,7 @@ class Circuit:
 					for part in pattern_part:
 						pattern_block_name.append(part.number)
 					
-
+					'''
 					with open('data of every part.txt', 'a') as output_file:
 						for part in pattern_part:
 							output_file.write('%s  ' %part.number)
@@ -268,6 +272,7 @@ class Circuit:
 							#print(block.block_name, block.L, block.W)
 						#print()
 						output_file.write('\n\n')
+					'''
 
 					#找出 block 中最大的高度 W
 					for part in pattern_block:
@@ -280,15 +285,22 @@ class Circuit:
 						pattern_block_L += block.L
 					pattern_block_L = round(pattern_block_L, 2)
 
+					#根据决定的宽度和高度来创建新的 block
 					final_pattern_block = Block(pattern_block_name, pattern_block_L, pattern_block_W)
 					final_pattern_block.list_of_blocks = pattern_block
 
 					#填加每个小 pattern_part 的 block
 					single_pattern_block_list.append(final_pattern_block)
+
+					#填加每个小 pattern_block 的 name 和所包含的所有 block 的具体信息到 self.list_of_block_info_in_every_single_pattern中
+					#字典的 key 必须为数字、字符串、只含不可变类型元素的元组, 故将原为 list 类型的 pattern_block_name 转换为 str 类型
+					self.list_of_block_info_in_every_single_pattern[' '.join(pattern_block_name)] = pattern_block
+
 				#填加每个 pattern 的 block
 				group_pattern_block_list.append(single_pattern_block_list)
+
 			#填加每个 group 的所有 pattern 的 block 
-			self.layout_block.append(group_pattern_block_list) 
+			self.layout_block.append(group_pattern_block_list)
 	
 	def calculate_area_for_single_pattern(self, single_pattern):
 		#用于储存所有 block
@@ -882,7 +894,7 @@ class Circuit:
 
 
 def display(func_name, list, newline = 1):
-	print(func_name)
+	print(func_name + '\n')
 	if newline == 1:
 		for item in list:
 			if hasattr(item, 'number'):
@@ -892,7 +904,7 @@ def display(func_name, list, newline = 1):
 			elif hasattr(item, 'block_name'):
 				print(item.block_name)
 			else:
-				print(item)
+				print(item + ' ')
 	elif newline == 0:
 		for item in list:
 			if hasattr(item, 'number'):
@@ -902,7 +914,7 @@ def display(func_name, list, newline = 1):
 			elif hasattr(item, 'block_name'):
 				print(item.block_name + '   ', end = '')				
 			else:
-				print(item)
+				print(item + ' ', end = '')
 	print()
 
 def display_pipeline(pipeline, pipeline_name, circuit):
@@ -1059,7 +1071,6 @@ def select_target_node():
 
 	return(target_node)
 
-
 #查找一个元素的所有位置
 def find_all_index(arr, search):
 	return [index+1 for index,item in enumerate(arr) if item == search]
@@ -1088,10 +1099,11 @@ def break_into_part(filename, break_point):
 	list_of_circuits.append(Circuit(file_list[splitter_list[i][1]+2].replace('** Cell name: ', '').strip('\n'), file_list[splitter_list[i][1]+1:]))
 	return(list_of_circuits)
 
+
 def get_netlist_data(input_file, output_file = 'output.txt', subtract = 0):
 	try:
 		output = open(output_file, 'w')     		   #创建一个文件用来保存结果
-		with open(input_file) as netlist_file:
+		with open(input_file, 'r') as netlist_file:
 			#做一个 standard cell, 其中包含一个 main_circuit(有N和P Pipeline)以及若干 subcircuit(inv, cd_circuit etc.)
 			main_circuit = ''
 			subcircuit_list = []
@@ -1104,7 +1116,6 @@ def get_netlist_data(input_file, output_file = 'output.txt', subtract = 0):
 			#for circuit in list_of_circuits:
 			#	if circuit.name == 'test_for_NMOS_tree':
 			#		main_circuit = circuit
-
 
 			#把 circuit 以 m 开头的部分填加到 mos_list list 中
 			#[]部分:对于 circuit_mos_list 中的每个部分以空格分隔开来 ['m1 out in'] -> ['m1', 'out', 'in']
@@ -1120,15 +1131,15 @@ def get_netlist_data(input_file, output_file = 'output.txt', subtract = 0):
 			#并填加到 main_circuit 的 subcircuit_netlist 中
 			for subcircuit in list_of_circuits[:-1]:
 				"""!!!填加下面这一行是为了去除测试用的 test_for_NMOS_tree !!! 按理说是没有这一行的!!!"""
-				if subcircuit.name != 'test_for_NMOS_tree':
-					#抽取subcircuit 中的 mos 信息
-					subcircuit.create_mosfet([mos.split() for mos in subcircuit.create_mos_list()])
+				#if subcircuit.name != 'test_for_NMOS_tree':
+				#抽取subcircuit 中的 mos 信息
+				subcircuit.create_mosfet([mos.split() for mos in subcircuit.create_mos_list()])
 
-					#若 subcircuit 中存在另一层的 subcircuit 则进行填加
-					subcircuit.create_subcircuit(list_of_circuits)
+				#若 subcircuit 中存在另一层的 subcircuit 则进行填加
+				subcircuit.create_subcircuit(list_of_circuits)
 
-					#把所有的 subcircuit 都填加到 main_circuit 中
-					main_circuit.subcircuit_netlist.append(subcircuit)
+				#把所有的 subcircuit 都填加到 main_circuit 中
+				main_circuit.subcircuit_netlist.append(subcircuit)
 
 			#print('main_circuit : ', main_circuit.name)
 			pipeline1, pipeline2 = main_circuit.create_pipeline()
@@ -1205,35 +1216,33 @@ def get_netlist_data(input_file, output_file = 'output.txt', subtract = 0):
 				output_file.truncate()
 			
 			#Node-based pattern search
-			print('pipeline1', pipeline1.precharge_PMOS[0].number)
+			#print('pipeline1')
 			main_circuit.find_all_pattern(pipeline1)
 			main_circuit.create_block_for_pattern_list(pipeline1.list_of_group_pattern_list)
 
-			print('pipeline2', pipeline2.precharge_PMOS[0].number)
+			#print('pipeline2')
 			main_circuit.find_all_pattern(pipeline2)
 			main_circuit.create_block_for_pattern_list(pipeline2.list_of_group_pattern_list)
 
-
-
-			#'''
+			'''
 			print('main_circuit')
 			#print(main_circuit.layout_block)
 			for group_pattern in main_circuit.layout_block:
-				print('group_pattern', len(group_pattern), '\n')
-				#print('group_pattern', group_pattern)
+				#print('group_pattern', len(group_pattern), '\n')
 				output.write('group pattern %s \n' %len(group_pattern))
 				for single_pattern in group_pattern:
-					print('single_pattern\n')
-					#print('single_pattern', single_pattern)
+					#print('single_pattern\n')
 					output.write('single_pattern\n')
 					for block in single_pattern:
-						print(block.block_name, block.L, block.W)
+						#print(block.block_name, block.L, block.W)
 						output.write('%s   [L :  %s    W : %s] \n' %(' '.join(block.block_name), block.L, block.W) )
 					output.write('\n')
 				output.write('\n')
 			#'''
-			output.close()
 			
+
+			print('write_into_sp_file')
+			write_into_sp_file.write_into_file(pipeline1, pipeline2, main_circuit, input_file)
 
 
 			'''
@@ -1253,19 +1262,17 @@ def get_netlist_data(input_file, output_file = 'output.txt', subtract = 0):
 					#print('target_node', target_node.number)					
 					main_circuit.choose_pattern(target_node_list, pipeline2.list_of_group_pattern_list)
 			'''
-
-
-
+			output.close()
 
 	except IOError as err:
 		print("File error: " + str(err))
 		return(None)
 
-opts, args = getopt.getopt(sys.argv[1:], "hi:o:s:")   #命令行输入
+opts, args = getopt.getopt(sys.argv[2:], "hi:o:s:")   #命令行输入
 input_file, output_file, subtract = '', '', ''
 
 def usage():
-	print('Usage: ' + sys.argv[0] + ' -i inputfile -o outputfile -s extract_subcircuit')
+	print('Usage: ' + sys.argv[0] + ' -i input_file -o output_file -s extract_subcircuit')
 	print('-s: Default as 0 which means output netlist of the top level circuit')
 
 for op, value in opts:
