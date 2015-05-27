@@ -464,12 +464,12 @@ i_cd gnd net278 PULSE 0 current_height injection_timing_cd 0 0 current_duration 
 
 
 ******************** pattern list ********************
-m228 m229
-m226 m224 m227
-m223
-m217 m220 m218
-m221 m216
-m235 m233 m234
+net38 m97 net31 m92 net30 m89 net17
+net59 m98 net19 m93 net18
+net59 m225 net13 m94 net18 m90 net17
+net59 m222 net13
+net59 m215 net7 m95 net9 m91 net17
+net59 m219 net7 m96 net9
 ******************** pattern list ********************
  
  

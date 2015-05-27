@@ -78,11 +78,73 @@ def search_AS_PS_PD_PS(single_pattern_list, AD_AS_PD_PS_dict):
 	
 	return(mos_list, AD_AS_PD_PS_list)
 
-def calculate_area_ratio_of_node_in_single_pattern_list(node, single_pattern_list, list_of_block_info_in_every_single_pattern):
+def calculate_area_ratio_in_single_pattern_list(part, single_pattern_list, list_of_block_info_in_every_single_pattern):
 	#计算给定的 node 在其 pattern 中的面积比例
-	for
+	area_ratio = 0
+	part_area = 0
 
-def create_new_sp_file(mos_replace_dict, combinaiton_num, group_pattern_list):
+	for key in list_of_block_info_in_every_single_pattern:
+		if ' '.join(single_pattern_list) == key:
+			single_pattern_list_block = list_of_block_info_in_every_single_pattern[key]
+
+	single_pattern_list_block_area = 0
+	for block in single_pattern_list_block:
+		single_pattern_list_block_area += block.W * block.L
+
+	#先来计算 mos 的 area ratio
+	mos_list = []
+	for item in single_pattern_list:
+		if 'm' in item:
+			mos_list.append(item)
+	#print(mos_list)
+	
+	gate_list = []
+	gate_index = []
+	for index, block in enumerate(single_pattern_list_block):
+		if block.block_name == 'gate':
+			gate_list.append(block)
+			gate_index.append(index)
+	#print(gate_list)
+
+	if 'm' in part:
+		part_index = mos_list.index(part)
+		part_area = gate_list[part_index].W * gate_list[part_index].L
+	elif 'net' in part:
+		part_position = single_pattern_list.index(part)
+		if part_position == 0:
+			part_area = single_pattern_list_block[0].W * single_pattern_list_block[0].L
+		elif part_position == (len(single_pattern_list) - 1):
+			#因为 single_pattern_list_block[-1] 最后一个元素为 diff_space, 倒数第二个采薇 edge_contact
+			part_area = single_pattern_list_block[-2].W * single_pattern_list_block[-2].L
+		else:
+			#此情况为 net 处在 block list 的中间
+			#首先通过 net 在 single_pattern_list 中的位置, 得知其左右两侧的 mos 及其位置 index
+			left_mos = single_pattern_list[single_pattern_list.index(part) - 1]
+			left_mos_index = mos_list.index(left_mos)
+			right_mos = single_pattern_list[single_pattern_list.index(part) + 1]
+			right_mos_index = mos_list.index(right_mos)
+
+			#因为 mos_list 和 gate_index 中的元素是一对一的, gate_index 保存的是 mos 对应的 gate 在 single_pattern_list_block 的位置
+			#比如 mos_list = [mos1, mos2, mos3], gate_index = [1, 3, 6]
+			#得知 left_mos(mos2) - 得知其在 mos_lsit 中的位置(3) - 找到 gate_index 中对应位置的元素(4)
+			#right mos 若为 mos3, 则这个 net 对应的 block 就是 single_pattern_list_block[4:6]的元素
+			part_block_list = single_pattern_list_block[ gate_index[left_mos_index] + 1 : gate_index[right_mos_index] ]
+
+			for block in part_block_list:
+				part_area += block.W * block.L
+
+	print(single_pattern_list, single_pattern_list_block[-1].W*single_pattern_list_block[-1].L)
+	print(part, part_area)
+	#for block in single_pattern_list_block:
+	#	print(block.block_name + '  ', end = '')
+	#print()
+
+	print('all', single_pattern_list_block_area)
+	print()
+
+	return(area_ratio)
+
+def create_new_sp_file(mos_replace_dict, combinaiton_num, group_pattern_list, main_circuit):
 	#用最上面的 n 和 p pipeline 的对应表来生成另一个需要替换的 mos_replace_dict
 	mos_list = []
 	for mos in mos_replace_dict.keys():
@@ -132,14 +194,14 @@ def create_new_sp_file(mos_replace_dict, combinaiton_num, group_pattern_list):
 		new_file.write('\n' + '*'*20 + ' pattern list ' + '*'*20 + '\n')
 
 		for single_pattern_list in group_pattern_list:
-			mos_list = []
-			for part in single_pattern_list:
-				if 'm' in part:
-					mos_list.append(part)
-			new_file.write(' '.join(mos_list) + '\n')
+			area_ratio_dict = {}
 
-			for mos in mos_list:
-				print(calculate_area_and_periphery_for_block(mos, single_pattern_list, main_circuit.list_of_block_info_in_every_single_pattern))
+			for part in single_pattern_list:
+				area_ratio_dict[part] = calculate_area_ratio_in_single_pattern_list(part, single_pattern_list, main_circuit.list_of_block_info_in_every_single_pattern)
+
+			new_file.write(' '.join(single_pattern_list))
+			new_file.write('\n')
+
 
 		new_file.write('*'*20 + ' pattern list ' + '*'*20 + '\n \n \n')
 		new_file.write(old_file[-1].strip('\n'))
@@ -193,7 +255,7 @@ def write_into_file(pipeline1, pipeline2, main_circuit, sp_file):
 
 		#print('mos_replace_dict', combinaiton_num)
 		#对于给定的 mos_replace_dict 生成新的 sp 文件
-		create_new_sp_file(mos_replace_dict, combinaiton_num, group_pattern_list)
+		create_new_sp_file(mos_replace_dict, combinaiton_num, group_pattern_list, main_circuit)
 		combinaiton_num += 1
 
 
