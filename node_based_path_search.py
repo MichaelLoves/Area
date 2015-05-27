@@ -258,21 +258,6 @@ class Circuit:
 					#用 pattern 中所有元素的名称来命名此 block
 					for part in pattern_part:
 						pattern_block_name.append(part.number)
-					
-					'''
-					with open('data of every part.txt', 'a') as output_file:
-						for part in pattern_part:
-							output_file.write('%s  ' %part.number)
-							#print(part.number + '   ', end = '')
-						#print()
-						output_file.write('\n')
-
-						for block in pattern_block:
-							output_file.write('%s   L :  %s  W:  %s \n' %(block.block_name, block.L, block.W))
-							#print(block.block_name, block.L, block.W)
-						#print()
-						output_file.write('\n\n')
-					'''
 
 					#找出 block 中最大的高度 W
 					for part in pattern_block:
@@ -1210,10 +1195,6 @@ def get_netlist_data(input_file, output_file = 'output.txt', subtract = 0):
 				print(part)
 				display('block list', part.list_of_blocks)
 			'''
-
-			#写入之前先清空文件
-			with open('data of every part.txt', 'r+') as output_file:
-				output_file.truncate()
 			
 			#Node-based pattern search
 			#print('pipeline1')
@@ -1243,7 +1224,6 @@ def get_netlist_data(input_file, output_file = 'output.txt', subtract = 0):
 
 			print('write_into_sp_file')
 			write_into_sp_file.write_into_file(pipeline1, pipeline2, main_circuit, input_file)
-
 
 			'''
 			#print('test for choose_pattern()')
