@@ -77,6 +77,30 @@ def search_AS_PS_PD_PS(single_pattern_list, AD_AS_PD_PS_dict):
 	
 	return(mos_list, AD_AS_PD_PS_list)
 
+def calculate_L_W_for_CD_circuit(main_circuit):
+	'''计算 CD_circuit 的 L 和 W'''
+	#找出 CD circuit 中四个 mos 同时连接的 node
+	for part in main_circuit.netlist:
+		line = part.split(' ')
+		#若此行记述的部件为 inv_with_reset 且有一侧连着 cd_3信号, 则此部件为 CD 回路中输出端的 inverter.
+		if line[-1].strip('\n') == 'inv_with_reset' and line[3] == 'cd_3':
+			node = line[2]
+	
+	mos_W_list = {}
+	for part in main_circuit.netlist:
+		line = part.split(' ')
+		if 'm' in line[0] and (line[1] == node or line[2] == node):
+			#line 的最后元素为 'W=5e-6\n'
+			mos_W = line[-1].strip('\n').split('e')[0][-1]
+			mos_W_list[line[0]] = int(mos_W)
+
+	# edge_cont - gate - gate_gate_con_sw - gate - edge_con - diff
+	CD_circuit_L = round(2*(0.48 + 0.18 + 0.54 + 0.18 + 0.48 + 0.28), 4)
+	CD_circuit_W = max([W for W in mos_W_list.values()])
+
+	return(CD_circuit_L, CD_circuit_W)
+
+
 def calculate_area_in_single_pattern_list(part, single_pattern_list, list_of_block_info_in_every_single_pattern):
 	#计算读入的 single pattern list 中的给定 part 的面积和所有部分的面积, 进而可以求得整个 pattern list 的总面积
 	#给定部分的面积
@@ -118,9 +142,11 @@ def calculate_area_in_single_pattern_list(part, single_pattern_list, list_of_blo
 
 		#若为 block list 中最右侧的 net
 		elif part_position == (len(single_pattern_list) - 1):
-			#因为 single_pattern_list_block[-1] 最后一个元素为 diff_space, 倒数第二个采薇 edge_contact
+			#因为 single_pattern_list_block[-1] 最后一个元素为 diff_space, 倒数第二个才为 edge_contact
 			part_area = single_pattern_list_block[-2].W * single_pattern_list_block[-2].L
-			return(part_area, single_pattern_list_block[-2].W, single_pattern_list_block[-2].L)
+
+			#最后一个 net 的面积 = edge_contact 的 L 加上 diff_space 的 L(0.28)
+			return(part_area, single_pattern_list_block[-2].W, single_pattern_list_block[-2].L + 0.28)
 
 		else:
 			#此情况为 net 处在 block list 的中间
@@ -147,7 +173,7 @@ def calculate_area_in_single_pattern_list(part, single_pattern_list, list_of_blo
 
 			return(part_area, part_area_W, part_area_L)
 
-def create_new_sp_file(mos_replace_dict, combinaiton_num, group_pattern_list, main_circuit):
+def create_new_sp_file(mos_replace_dict, combinaiton_num, group_pattern_list, CD_circuit_L, main_circuit):
 	#用最上面的 n 和 p pipeline 的对应表来生成另一个需要替换的 mos_replace_dict
 
 	#以现有的 3NAND_2_NP_errorall.sp 为源文件, 对于其中的特定部分进行替换, 并生成新的 sp 文件
@@ -189,9 +215,8 @@ def create_new_sp_file(mos_replace_dict, combinaiton_num, group_pattern_list, ma
 		new_file.writelines(old_file[:-1])
 		#电路的总面积, 现在暂且以两个 pipeline 的面积为准, 但日后应该修改为 standard cell 的总面积
 		standard_cell_area = 0
-		pipeline_W, pipeline_L, pipeline_area = 0, 0, 0
+		pipeline_W, pipeline_L = 0, 0
 		part_area_W_list = []   #从中选出最宽的部分作为 pipeline_area 的 W, 整体的总和为 pipeline_area 的 L
-		cd_circuit_area = 0
 
 		new_file.write('\n' + '*'*20 + ' pattern list ' + '*'*20 + '\n')
 		for single_pattern_list in group_pattern_list:
@@ -210,29 +235,22 @@ def create_new_sp_file(mos_replace_dict, combinaiton_num, group_pattern_list, ma
 			#保存 single pattern 中每一个 block 的面积
 			single_pattern_area_dict = {}
 
-			#################### 测试 ########################
-			temp = 0
 			#用 calculate_area_in_single_pattern_list() 函数计算每个小 block 和整个 pattern 的面积
 			for part in single_pattern_list:
 				part_area, part_area_W, part_area_L = calculate_area_in_single_pattern_list(part, single_pattern_list, main_circuit.list_of_block_info_in_every_single_pattern)
 				single_pattern_area_dict[part] = part_area 
 				part_area_W_list.append((part_area_W))
 				pipeline_L += part_area_L
-				
-				#print(part, part_area_W, part_area_L, part_area)
-				temp += part_area_L
-			#print(temp)
-			#print()
 
 			area_ratio_dict_list.append(single_pattern_area_dict)
 
-		pipeline_W = sorted(part_area_W_list, reverse = True)[0]
-
-		############### 测试 ###############
-		#print('W', pipeline_W, 'L', pipeline_L)
-		#print()
-		pipeline_area = pipeline_W * pipeline_L
-		############### 测试 ###############
+		#计算 standard_cell 的总面积
+		#将所有 part 的 W 重新排列之后, 从中选出最大的
+		pipeline_W = sorted(part_area_W_list)[-1]
+		pipeline_L = round(pipeline_L, 4)
+		standard_cell_L = pipeline_L + CD_circuit_L
+		standard_cell_W = pipeline_W * 2
+		standard_cell_area = standard_cell_L * standard_cell_W
 
 		#得出无重复的 node 列表
 		temp_node_list = []
@@ -256,7 +274,7 @@ def create_new_sp_file(mos_replace_dict, combinaiton_num, group_pattern_list, ma
 
 		#将 final_area_ratio_dict 中的每一个值除以电路的总面积, 以计算面积比例
 		for key in final_area_ratio_dict:
-			final_area_ratio_dict[key] = round(final_area_ratio_dict[key]/pipeline_area, 4)
+			final_area_ratio_dict[key] = round(final_area_ratio_dict[key]/standard_cell_area, 4)
 
 		#把 final_area_ratio_dict 写入到文件中
 		new_file.write('*'*20 + ' area ratio list ' + '*'*20 + '\n')
@@ -271,7 +289,6 @@ def create_new_sp_file(mos_replace_dict, combinaiton_num, group_pattern_list, ma
 
 		#写入源文件的最后一行
 		new_file.write(old_file[-1].strip('\n'))
-
 
 def write_into_file(pipeline1, pipeline2, main_circuit, sp_file):
 	'''根据生产的 layout block 的面积, 来替换 sp 文件中的AD, AS, PD, PS参数'''
@@ -294,7 +311,9 @@ def write_into_file(pipeline1, pipeline2, main_circuit, sp_file):
 
 	#对于每个 mos 计算其 AD AS PD PS, 之后插入到 sp 文件之中
 	pipeline1_AD_AS_PD_PS_dict = create_AD_AS_PD_PS_dict(pipeline1, pipeline1.list_of_group_pattern_list, main_circuit)
-	pipeline2_AD_AS_PD_PS_dict = create_AD_AS_PD_PS_dict(pipeline2, pipeline2.list_of_group_pattern_list, main_circuit)
+
+	#计算 CD 回路的 L 和 W
+	CD_circuit_L, CD_circuit_W = calculate_L_W_for_CD_circuit(main_circuit)
 
 	combinaiton_num = 1
 	for group_pattern_list in pipeline1_all_pattern_combination_list:
@@ -313,10 +332,8 @@ def write_into_file(pipeline1, pipeline2, main_circuit, sp_file):
 		#print(group_pattern_list)
 		################### 测试 ################
 
-
 		#对于给定的 mos_replace_dict 生成新的 sp 文件
-		print(mos_replace_dict)
-		create_new_sp_file(mos_replace_dict, combinaiton_num, group_pattern_list, main_circuit)
+		create_new_sp_file(mos_replace_dict, combinaiton_num, group_pattern_list, CD_circuit_L, main_circuit)
 		combinaiton_num += 1
 
 
@@ -341,7 +358,7 @@ def write_into_file(pipeline1, pipeline2, main_circuit, sp_file):
 			i += 1
 	'''
 
-	#'''
+	'''
 	#检查生成的文件共有多少行被修改了. 每个 Pipeline 有14个 mos, 所以应共有28处修改.
 	#原文件结尾处的最后一行 .END 与 新生成的 sp 文件也不同, 所以共计29处.
 	with open('3NAND_2_NP_errorall.sp') as file1:
@@ -356,17 +373,4 @@ def write_into_file(pipeline1, pipeline2, main_circuit, sp_file):
 						num += 1
 				print('\n'*2)		
 			print('num of modification', num)
-	#'''
-
-	'''
-	with open('simulation_log1.txt') as file1:
-		with open('simulation_log2.txt') as file2:
-			a = file1.readlines()
-			b = file2.readlines()
-			num = 0
-			for line1 in a:
-				for line2 in b:
-					if line1 != line2:
-						num+=1
-			print(num)
 	#'''
