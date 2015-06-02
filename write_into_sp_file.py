@@ -41,7 +41,7 @@ def calculate_area_and_periphery_for_block(source, gate, drain):
 	return([AD, AS, PD, PS])
 
 def create_AD_AS_PD_PS_dict(pipeline, list_of_group_pattern_list, main_circuit):
-	#对于读入的 pipeline, 结合 main_circuit 中详细的 block 信息, 计算 AD AS PD PS
+	#对于读入的 pipeline, 结合 main_circuit 中详细的 block 信息, 计算每一个 mos 的 AD AS PD PS
 	pipeline_AD_AS_PD_PS_dict = {}
 	for group_pattern_list in list_of_group_pattern_list:
 		for single_pattern_list in group_pattern_list:
@@ -50,7 +50,6 @@ def create_AD_AS_PD_PS_dict(pipeline, list_of_group_pattern_list, main_circuit):
 				block_list_name = []
 				for block in block_list:
 					block_list_name.append(block.number)
-
 
 				for block_name in main_circuit.list_of_block_info_in_every_single_pattern.keys():
 					block_AD_AS_PD_PS_dict = {}
@@ -88,11 +87,6 @@ def calculate_area_in_single_pattern_list(part, single_pattern_list, list_of_blo
 		if ' '.join(single_pattern_list) == key:
 			single_pattern_list_block = list_of_block_info_in_every_single_pattern[key]
 
-	#整个 pattern list 的总面积
-	single_pattern_list_block_area = 0
-	for block in single_pattern_list_block:
-		single_pattern_list_block_area += block.W * block.L
-
 	#之后求所给定的 part 的面积, 分为 mos 和 net 两种情况
 	#从 single_pattern_list 中抽取 mos
 	mos_list = []
@@ -112,16 +106,22 @@ def calculate_area_in_single_pattern_list(part, single_pattern_list, list_of_blo
 	if 'm' in part:
 		part_index = mos_list.index(part)
 		part_area = gate_list[part_index].W * gate_list[part_index].L
+		return(part_area, gate_list[part_index].W, gate_list[part_index].L)
+
 	#如果 part 为 net 
 	else:
 		part_position = single_pattern_list.index(part)
 		#若为 block list 中最左侧的 net
 		if part_position == 0:
 			part_area = single_pattern_list_block[0].W * single_pattern_list_block[0].L
+			return(part_area, single_pattern_list_block[0].W, single_pattern_list_block[0].L)
+
 		#若为 block list 中最右侧的 net
 		elif part_position == (len(single_pattern_list) - 1):
 			#因为 single_pattern_list_block[-1] 最后一个元素为 diff_space, 倒数第二个采薇 edge_contact
 			part_area = single_pattern_list_block[-2].W * single_pattern_list_block[-2].L
+			return(part_area, single_pattern_list_block[-2].W, single_pattern_list_block[-2].L)
+
 		else:
 			#此情况为 net 处在 block list 的中间
 			#首先通过 net 在 single_pattern_list 中的位置, 得知其左右两侧的 mos 及其位置 index
@@ -136,26 +136,24 @@ def calculate_area_in_single_pattern_list(part, single_pattern_list, list_of_blo
 			#right mos 若为 mos3, 则这个 net 对应的 block 就是 single_pattern_list_block[4:6]的元素
 			part_block_list = single_pattern_list_block[ gate_index[left_mos_index] + 1 : gate_index[right_mos_index] ]
 
+			part_area_W, part_area_L = 0, 0
+			W_list = []
 			for block in part_block_list:
+				W_list.append(block.W)
+				part_area_L += block.L
 				part_area += block.W * block.L
+			#取两个小 block 中较大一方的 W 作为整体的 W
+			part_area_W = max(W_list)
 
-	return(part_area, single_pattern_list_block_area)
+			return(part_area, part_area_W, part_area_L)
 
 def create_new_sp_file(mos_replace_dict, combinaiton_num, group_pattern_list, main_circuit):
 	#用最上面的 n 和 p pipeline 的对应表来生成另一个需要替换的 mos_replace_dict
-	mos_list = []
-	for mos in mos_replace_dict.keys():
-		if mos in n_pipeline_to_p_pipeline_dict:
-			#print(mos, n_pipeline_to_p_pipeline_dict[mos])
-			mos_list.append(n_pipeline_to_p_pipeline_dict[mos])
-		#若 mos 不在 n_pipeline_to_p_pipeline_dict 中, 说明读入的为 p pipeline 生成的 replace ditc, 这时候用 p_pipeline_to_n_pipeline_dict
-		else:
-			mos_list.append(p_pipeline_to_n_pipeline_dict[mos])
 
 	#以现有的 3NAND_2_NP_errorall.sp 为源文件, 对于其中的特定部分进行替换, 并生成新的 sp 文件
 	with open('3NAND_2_NP_errorall.sp', 'r') as source_file:
 		old_file = source_file.readlines()
-		for mos in mos_replace_dict.keys():
+		for mos in mos_replace_dict:
 			for index, line in enumerate(old_file):
 				if mos in line:
 					AD = mos_replace_dict[mos][0]
@@ -190,7 +188,10 @@ def create_new_sp_file(mos_replace_dict, combinaiton_num, group_pattern_list, ma
 	with open('./sp_file_for_all_combination/combinaiton%s.sp' %combinaiton_num ,'w+') as new_file:
 		new_file.writelines(old_file[:-1])
 		#电路的总面积, 现在暂且以两个 pipeline 的面积为准, 但日后应该修改为 standard cell 的总面积
-		two_pipeline_area = 0
+		standard_cell_area = 0
+		pipeline_W, pipeline_L, pipeline_area = 0, 0, 0
+		part_area_W_list = []   #从中选出最宽的部分作为 pipeline_area 的 W, 整体的总和为 pipeline_area 的 L
+		cd_circuit_area = 0
 
 		new_file.write('\n' + '*'*20 + ' pattern list ' + '*'*20 + '\n')
 		for single_pattern_list in group_pattern_list:
@@ -204,17 +205,34 @@ def create_new_sp_file(mos_replace_dict, combinaiton_num, group_pattern_list, ma
 
 		#计算每部分的每个 pattern 的面积和电路的总面积(standard cell 的总面积)
 		for single_pattern_list in group_pattern_list:
+			single_pattern_list_block_area = 0
+
 			#保存 single pattern 中每一个 block 的面积
 			single_pattern_area_dict = {}
 
+			#################### 测试 ########################
+			temp = 0
 			#用 calculate_area_in_single_pattern_list() 函数计算每个小 block 和整个 pattern 的面积
 			for part in single_pattern_list:
-				part_area, pattern_area = calculate_area_in_single_pattern_list(part, single_pattern_list, main_circuit.list_of_block_info_in_every_single_pattern)
+				part_area, part_area_W, part_area_L = calculate_area_in_single_pattern_list(part, single_pattern_list, main_circuit.list_of_block_info_in_every_single_pattern)
 				single_pattern_area_dict[part] = part_area 
-
-			two_pipeline_area += pattern_area
+				part_area_W_list.append((part_area_W))
+				pipeline_L += part_area_L
+				
+				#print(part, part_area_W, part_area_L, part_area)
+				temp += part_area_L
+			#print(temp)
+			#print()
 
 			area_ratio_dict_list.append(single_pattern_area_dict)
+
+		pipeline_W = sorted(part_area_W_list, reverse = True)[0]
+
+		############### 测试 ###############
+		#print('W', pipeline_W, 'L', pipeline_L)
+		#print()
+		pipeline_area = pipeline_W * pipeline_L
+		############### 测试 ###############
 
 		#得出无重复的 node 列表
 		temp_node_list = []
@@ -238,7 +256,7 @@ def create_new_sp_file(mos_replace_dict, combinaiton_num, group_pattern_list, ma
 
 		#将 final_area_ratio_dict 中的每一个值除以电路的总面积, 以计算面积比例
 		for key in final_area_ratio_dict:
-			final_area_ratio_dict[key] = round(final_area_ratio_dict[key]/two_pipeline_area, 4)
+			final_area_ratio_dict[key] = round(final_area_ratio_dict[key]/pipeline_area, 4)
 
 		#把 final_area_ratio_dict 写入到文件中
 		new_file.write('*'*20 + ' area ratio list ' + '*'*20 + '\n')
@@ -254,16 +272,13 @@ def create_new_sp_file(mos_replace_dict, combinaiton_num, group_pattern_list, ma
 		#写入源文件的最后一行
 		new_file.write(old_file[-1].strip('\n'))
 
+
 def write_into_file(pipeline1, pipeline2, main_circuit, sp_file):
+	'''根据生产的 layout block 的面积, 来替换 sp 文件中的AD, AS, PD, PS参数'''
+
 	#先清除同目录下的 sp_file_for_all_combination 文件夹
 	for file in glob.glob('./sp_file_for_all_combination/*'):
 		os.remove(file)
-
-	#根据生产的 layout block 的面积, 来替换 sp 文件中的AD, AS, PD, PS参数
-	main_circuit_mos_list = []
-	for line in main_circuit.netlist:
-		if re.findall(r'\bm\d{2,3}\b.*\b', line):
-			main_circuit_mos_list.append(line)
 
 	#因为每个 pipeline 中共有三个部分, 所以循环三次, 但其实这样的做法欠缺通用性
 	pipeline1_all_pattern_combination_list = []
@@ -272,18 +287,10 @@ def write_into_file(pipeline1, pipeline2, main_circuit, sp_file):
 			for group_3 in pipeline1.list_of_group_pattern_list[2]:
 				pipeline1_all_pattern_combination_list.append([group_1, group_2, group_3])
 
-	pipeline2_all_pattern_combination_list = []
-	for group_1 in pipeline2.list_of_group_pattern_list[0]:
-		for group_2 in pipeline2.list_of_group_pattern_list[1]:
-			for group_3 in pipeline2.list_of_group_pattern_list[2]:
-				pipeline2_all_pattern_combination_list.append([group_1, group_2, group_3])
-
 	#先生成每个 pipeline 的 group_pattern_name_list 之后依次在 list_of_block_info 中找到对应的具体信息
 	#pipeline 的 list_of_group_pattern_list 中的分层方法
 	#group_pattern_list - single_pattern_list - block_list - block
 	pipeline1_all_pattern_combination_list = create_all_pattern_combination_list(pipeline1_all_pattern_combination_list)
-	pipeline2_all_pattern_combination_list = create_all_pattern_combination_list(pipeline2_all_pattern_combination_list)
-
 
 	#对于每个 mos 计算其 AD AS PD PS, 之后插入到 sp 文件之中
 	pipeline1_AD_AS_PD_PS_dict = create_AD_AS_PD_PS_dict(pipeline1, pipeline1.list_of_group_pattern_list, main_circuit)
@@ -301,8 +308,14 @@ def write_into_file(pipeline1, pipeline2, main_circuit, sp_file):
 			for index, mos in enumerate(mos_list):
 				mos_replace_dict[mos] = AD_AS_PD_PS_list[index]
 
-		#print('mos_replace_dict', combinaiton_num)
+		################### 测试 ################
+		#print('combinaiton_num', combinaiton_num)
+		#print(group_pattern_list)
+		################### 测试 ################
+
+
 		#对于给定的 mos_replace_dict 生成新的 sp 文件
+		print(mos_replace_dict)
 		create_new_sp_file(mos_replace_dict, combinaiton_num, group_pattern_list, main_circuit)
 		combinaiton_num += 1
 
@@ -328,18 +341,32 @@ def write_into_file(pipeline1, pipeline2, main_circuit, sp_file):
 			i += 1
 	'''
 
-	'''
+	#'''
 	#检查生成的文件共有多少行被修改了. 每个 Pipeline 有14个 mos, 所以应共有28处修改.
+	#原文件结尾处的最后一行 .END 与 新生成的 sp 文件也不同, 所以共计29处.
 	with open('3NAND_2_NP_errorall.sp') as file1:
 		sp_file_1 = file1.readlines()
 		for file in glob.glob('./sp_file_for_all_combination/*'):
-		#with open('./sp_file_for_all_combination/combinaiton1.sp') as file2:
 			num = 0
 			with open(file) as file2:
 				sp_file_2 = file2.readlines()
 				for index, line1 in enumerate(sp_file_1):
 					if line1 != sp_file_2[index]:
+						print(index, sp_file_2[index], end = '')
 						num += 1
-
+				print('\n'*2)		
 			print('num of modification', num)
+	#'''
+
 	'''
+	with open('simulation_log1.txt') as file1:
+		with open('simulation_log2.txt') as file2:
+			a = file1.readlines()
+			b = file2.readlines()
+			num = 0
+			for line1 in a:
+				for line2 in b:
+					if line1 != line2:
+						num+=1
+			print(num)
+	#'''

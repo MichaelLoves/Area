@@ -142,67 +142,6 @@ class Circuit:
 			if part in subcircuit_names:
 				self.subcircuit_num[part] += 1
 
-	#可以删除此函数
-	#对于读入的 path 生成 block 返回 block 的 list 
-	def create_block(self, path):
-		"""根据读入的 path 生成 layout 模块, path的内容为 MOSFET 和 Node 类型的混合 list
-		   返回一个 block, 其中包含的内容为: 作为 block_name 的 path_name, L, W, block 列表
-		"""
-		entire_block = []     #用于储存每个小 block
-		path_name = []		  #读入 path 的名称, 用来当做 block_name
-		entire_block_L = 0    #整个 block 的宽度
-		entire_block_W = 0	  #整个 block 的高度
-		list_of_block_W = []  #储存每个 block 的高度, 以便找出最高的部分
-
-		#先判断需要计算的 path 中是否只包含一个 mos
-		if len(path) == 1:
-			entire_block.append(Block('edge_contact' ,0.48, path[0].W)) 		  #填加一个边缘处的 edge_contact
-			entire_block.append(Block('gate', 0.18, path[0].W+0.22*2))			  #填加一个 gate
-			entire_block.append(Block('edge_contact' ,0.48, path[0].W))			  #填加一个边缘处的 edge_contact
-		else:
-			#填加 gate 时的 W 需要再根据左右连接处的 W 来判断一下
-			entire_block.append(Block('edge_contact' ,0.48, path[0].W)) 		  #填加一个边缘处的 edge_contact
-			for part in path[:-2]:
-				if isinstance(part, MOSFET):
-					entire_block.append(Block('gate', part.L, part.W+0.22*2))       #填加一个 gate
-					if part.W == path[path.index(part)+2].W:		 			  #比较当前 gate 和下面一个 gate 的 W 是否相同
-						if path[path.index(part)+1].fork == 0:
-							entire_block.append(Block('gate_gate_sw' ,0.26, part.W))      #两个 gate 宽度一致 没有 contact
-						else:
-							entire_block.append(Block('gate_contact_gate_sw', 0.54, part.W)) #两个 gate 宽度一致 有 contact
-					else:
-						if path[path.index(part)+1].fork == 0:
-							entire_block.append(Block('gate_gate_dw', 0.1, part.W))       #两个 gate 宽度不一致 没有 contact
-							entire_block.append(Block('gate_gate_dw', 0.32, path[path.index(part)+2].W)) 
-						else:	
-							entire_block.append(Block('gate_contact_gate_dw', 0.16, part.W))		  #两个 gate 宽度不一致 有 contact
-							entire_block.append(Block('gate_contact_gate_dw' ,0.38, path[path.index(part)+2].W))
-				else:
-					continue
-			entire_block.append(Block('gate', 0.18, path[-1].W+0.22*2))		  #因为上面逻辑只能填加到倒数第二个 mos 的右侧的部分 所以手动填加最右侧的 gate
-			entire_block.append(Block('edge_contact' ,0.48, path[-1].W))      #填加最右面的 edge_contact
-			entire_block.append(Block('diff_space', 0.28, path[-1].W))
-
-		#用 path 的名称来命名此 block
-		for part in path:
-			path_name.append(part.number)
-
-		#决定 block 中最大的高度 W
-		for part in entire_block:
-			if part.block_name == 'gate':
-				list_of_block_W.append(round(part.W, 2))
-		entire_block_W = max(list_of_block_W)
-
-		#决定 block 的长度 L
-		for block in entire_block:
-			entire_block_L += block.L
-		entire_block_L = round(entire_block_L, 2)
-
-		path_block = Block(path_name, entire_block_L, entire_block_W)
-		path_block.list_of_blocks = entire_block
-
-		return(path_block)
-
 	def create_block_for_pattern_list(self, list_of_group_pattern_list):
 		"""读入 pipeline 的 pattern_list, pattern_list 的内容为 mos 和 node 类型的混合 list
 		   返回一个 block, 其中包含的内容为: 以pattern中的元素名称作为命名的 block_name, 长度 L, 高度 W, 生成的 block的 列表"""
