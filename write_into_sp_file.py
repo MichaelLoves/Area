@@ -100,7 +100,6 @@ def calculate_L_W_for_CD_circuit(main_circuit):
 
 	return(CD_circuit_L, CD_circuit_W)
 
-
 def calculate_area_in_single_pattern_list(part, single_pattern_list, list_of_block_info_in_every_single_pattern):
 	#计算读入的 single pattern list 中的给定 part 的面积和所有部分的面积, 进而可以求得整个 pattern list 的总面积
 	#给定部分的面积
@@ -173,7 +172,7 @@ def calculate_area_in_single_pattern_list(part, single_pattern_list, list_of_blo
 
 			return(part_area, part_area_W, part_area_L)
 
-def create_new_sp_file(mos_replace_dict, combinaiton_num, group_pattern_list, CD_circuit_L, main_circuit):
+def create_new_sp_file(mos_replace_dict, combination_num, group_pattern_list, CD_circuit_L, main_circuit):
 	#用最上面的 n 和 p pipeline 的对应表来生成另一个需要替换的 mos_replace_dict
 
 	#以现有的 3NAND_2_NP_errorall.sp 为源文件, 对于其中的特定部分进行替换, 并生成新的 sp 文件
@@ -211,7 +210,7 @@ def create_new_sp_file(mos_replace_dict, combinaiton_num, group_pattern_list, CD
 					old_file[index] = ''.join(line)
 
 	#将替换后的临时文件写入新的 sp 文件
-	with open('./sp_file_for_all_combination/combinaiton%s.sp' %combinaiton_num ,'w+') as new_file:
+	with open('./sp_file_for_all_combination/combination%s.sp' %combination_num ,'w+') as new_file:
 		new_file.writelines(old_file[:-1])
 		#电路的总面积, 现在暂且以两个 pipeline 的面积为准, 但日后应该修改为 standard cell 的总面积
 		standard_cell_area = 0
@@ -220,6 +219,7 @@ def create_new_sp_file(mos_replace_dict, combinaiton_num, group_pattern_list, CD
 
 		new_file.write('\n' + '*'*20 + ' pattern list ' + '*'*20 + '\n')
 		for single_pattern_list in group_pattern_list:
+			new_file.write('* ')
 			for part in single_pattern_list:
 				new_file.write(part + '  ')
 			new_file.write('\n')
@@ -315,7 +315,7 @@ def write_into_file(pipeline1, pipeline2, main_circuit, sp_file):
 	#计算 CD 回路的 L 和 W
 	CD_circuit_L, CD_circuit_W = calculate_L_W_for_CD_circuit(main_circuit)
 
-	combinaiton_num = 1
+	combination_num = 1
 	for group_pattern_list in pipeline1_all_pattern_combination_list:
 		#对于 group pattern list 中包含的所有 mos, 替换其后面的 AD AS PD PS 参数
 		mos_replace_dict = {}
@@ -328,13 +328,13 @@ def write_into_file(pipeline1, pipeline2, main_circuit, sp_file):
 				mos_replace_dict[mos] = AD_AS_PD_PS_list[index]
 
 		################### 测试 ################
-		#print('combinaiton_num', combinaiton_num)
+		#print('combination_num', combination_num)
 		#print(group_pattern_list)
 		################### 测试 ################
 
 		#对于给定的 mos_replace_dict 生成新的 sp 文件
-		create_new_sp_file(mos_replace_dict, combinaiton_num, group_pattern_list, CD_circuit_L, main_circuit)
-		combinaiton_num += 1
+		create_new_sp_file(mos_replace_dict, combination_num, group_pattern_list, CD_circuit_L, main_circuit)
+		combination_num += 1
 
 
 	'''
