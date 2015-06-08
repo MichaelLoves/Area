@@ -1193,6 +1193,7 @@ input_file, output_file, subtract = '', '', ''
 def usage():
 	print('Usage: ' + sys.argv[0] + ' -i input_file -o output_file -s extract_subcircuit')
 	print('-s: Default as 0 which means output netlist of the top level circuit')
+	#python3 node_based_path_search.py write_into_sp_file.py -i netlist_lvs_3AND_3_NP.txt -o output.txt
 
 for op, value in opts:
 	if op == "-i":

@@ -1,11 +1,22 @@
-import re, os, sys, getopt, operator, glob
+import re, os, sys, getopt, operator, glob, math
 from copy import deepcopy
+
+#C_j = 970E-18
+#C_jsw = 261E-18
+
+#来自HSPICE MOSFET Models Manual
+C_j = 4.31E-4 
+C_jsw = 3.96E-10
+
+#C_j = 2E-15
+#C_jsw = 0.28E-15
 
 n_pipeline_to_p_pipeline_dict = {'m97':'m235', 'm92':'m233', 'm89':'m234', 'm98':'m228', 'm93':'m229', 
 'm225':'m226', 'm222':'m223', 'm94':'m224', 'm90':'m227', 'm219':'m221', 'm95':'m220', 'm215':'m217', 'm96':'m216', 'm91':'m218'}
 
 p_pipeline_to_n_pipeline_dict = {'m235':'m97', 'm233':'m92', 'm234':'m89', 'm228':'m98', 'm229':'m93',
 'm226':'m225', 'm223':'m222', 'm224':'m94', 'm227':'m90', 'm221':'m219', 'm220':'m95', 'm217':'m215', 'm216':'m96', 'm218':'m91'}
+
 
 def display_all_combination_list(pipeline_all_pattern_combination_list):
 	for single_combination in pipeline_all_pattern_combination_list:
@@ -77,7 +88,25 @@ def search_AS_PS_PD_PS(single_pattern_list, AD_AS_PD_PS_dict):
 	
 	return(mos_list, AD_AS_PD_PS_list)
 
-def calculate_L_W_for_CD_circuit(main_circuit):
+def find_smaller_W(left_mos, right_mos, pattern, list_of_block_info_in_every_single_pattern):
+	#直接用 pattern 的名字来当 key, 找到对应的 block
+	pattern_block = list_of_block_info_in_every_single_pattern[' '.join(pattern)]
+
+	#找到 left_mos 和 right_mos 对应的 block
+	gate_list = []
+	for block in pattern_block:
+		if block.block_name == 'gate':
+			gate_list.append(block)
+
+	left_mos_W = gate_list[0].W
+	right_mos_W = gate_list[1].W
+
+	if left_mos_W == right_mos_W:
+		return(left_mos_W, 'same width')
+	else:
+		return(min(left_mos_W, right_mos_W), 'different width')
+
+def calculate_CD_circuit_area(main_circuit):
 	'''计算 CD_circuit 的 L 和 W'''
 	#找出 CD circuit 中四个 mos 同时连接的 node
 	for part in main_circuit.netlist:
@@ -89,16 +118,21 @@ def calculate_L_W_for_CD_circuit(main_circuit):
 	mos_W_list = {}
 	for part in main_circuit.netlist:
 		line = part.split(' ')
-		if 'm' in line[0] and (line[1] == node or line[2] == node):
+		#找到 CD circuit 中连接 n_and_3 和 n_nand_3 的两个 nmos
+		if 'm' in line[0] and (line[1] == node or line[2] == node) and line[5] == 'N':
 			#line 的最后元素为 'W=5e-6\n'
 			mos_W = line[-1].strip('\n').split('e')[0][-1]
 			mos_W_list[line[0]] = int(mos_W)
 
-	# edge_cont - gate - gate_gate_con_sw - gate - edge_con - diff
-	CD_circuit_L = round(2*(0.48 + 0.18 + 0.54 + 0.18 + 0.48 + 0.28), 4)
-	CD_circuit_W = max([W for W in mos_W_list.values()])
+	#1个 edge_cont - gate - gate_gate_con_sw - gate - edge_con - diff
+	#4个 edge_cont - gate - edge _cont - diff
+	CD_circuit_L = round((0.48 + 0.18 + 0.54 + 0.18 + 0.48 + 0.28 + (0.48 + 0.18 + 0.48 + 0.28)*4   ), 4)
+	CD_circuit_W = max([W for W in mos_W_list.values()]) + 0.22*2
 
-	return(CD_circuit_L, CD_circuit_W)
+	#在计算面积的时候, W 要加上下面 PMOS 部分的 W (4u)
+	CD_circuit_area = CD_circuit_L * (CD_circuit_W + 4)
+
+	return(CD_circuit_area)
 
 def calculate_area_in_single_pattern_list(part, single_pattern_list, list_of_block_info_in_every_single_pattern):
 	#计算读入的 single pattern list 中的给定 part 的面积和所有部分的面积, 进而可以求得整个 pattern list 的总面积
@@ -172,12 +206,82 @@ def calculate_area_in_single_pattern_list(part, single_pattern_list, list_of_blo
 
 			return(part_area, part_area_W, part_area_L)
 
-def create_new_sp_file(mos_replace_dict, combination_num, group_pattern_list, CD_circuit_L, main_circuit):
+def share_node_mos(mos_replace_dict, group_pattern_list, list_of_block_info_in_every_single_pattern):
+	#记录所有需要修改的 mos 和 net 信息
+	change_list = []
+
+	for pattern in group_pattern_list:
+		if len(pattern) == 5:
+			share_node_num = 1
+			shared_node_list = []
+			left_mos = pattern[1]
+			right_mos = pattern[3]
+			mos_list = [left_mos, right_mos]
+
+			#找出两个 mos 中较窄的 W
+			smaller_W, compare_result = find_smaller_W(left_mos, right_mos, pattern, list_of_block_info_in_every_single_pattern)
+
+			#计算中间 node 的容量
+			#C_drain = C_j * AD + C_jsw * PD, C_source = C_j * AS + C_jsw * PS
+			#mos_replace_dict 中的对应关系为 'mos': [AD p, AS p, PD u, PS u]
+			#所以要用 left_mos 的 AD PD,  right_mos 的 AS PS
+			left_mos_AD = float(mos_replace_dict[left_mos][0].strip('p')) * pow(10, -6)
+			left_mos_PD = float(mos_replace_dict[left_mos][2].strip('u')) * pow(10, -6)
+			right_mos_AS = float(mos_replace_dict[right_mos][1].strip('p')) * pow(10, -12)
+			right_mos_PS = float(mos_replace_dict[right_mos][3].strip('u')) * pow(10, -12)
+			shared_node_list.append(pattern[2])
+			
+			if compare_result == 'same width':
+				shared_node_list.append( C_j * left_mos_AD + C_jsw * left_mos_PD + C_j * right_mos_AS + C_jsw * right_mos_PS )
+			elif compare_result == 'different width':
+				shared_node_list.append( C_j * left_mos_AD + C_jsw * (left_mos_PD - smaller_W) + C_j * right_mos_AS + C_jsw * (right_mos_PS - smaller_W) )
+			
+			change_list.append([ mos_list, shared_node_list, share_node_num ])
+
+		elif len(pattern) == 7:
+			share_node_num = 2
+			shared_node_list = []
+			left_mos = pattern[1]
+			middle_mos = pattern[3]
+			right_mos = pattern[5]
+			mos_list = [left_mos, middle_mos, right_mos]
+
+			smaller_W_1, compare_result_1 = find_smaller_W(left_mos, middle_mos, pattern, list_of_block_info_in_every_single_pattern)
+			smaller_W_2, compare_result_2 = find_smaller_W(middle_mos, right_mos, pattern, list_of_block_info_in_every_single_pattern)
+
+			left_mos_AD = float(mos_replace_dict[left_mos][0].strip('p')) * pow(10, -6)
+			left_mos_PD = float(mos_replace_dict[left_mos][2].strip('u')) * pow(10, -6)
+			middle_mos_AS = float(mos_replace_dict[middle_mos][1].strip('p')) * pow(10, -12)
+			middle_mos_PS = float(mos_replace_dict[middle_mos][3].strip('u')) * pow(10, -12)
+			middle_mos_AD = float(mos_replace_dict[middle_mos][0].strip('p')) * pow(10, -6)
+			middle_mos_PD = float(mos_replace_dict[middle_mos][2].strip('u')) * pow(10, -6)
+			right_mos_AS = float(mos_replace_dict[right_mos][1].strip('p')) * pow(10, -12)
+			right_mos_PS = float(mos_replace_dict[right_mos][3].strip('u')) * pow(10, -12)
+
+			#左面的 node
+			shared_node_list.append(pattern[2])
+			if compare_result_1 == 'same width':
+				shared_node_list.append( C_j * left_mos_AD + C_jsw * left_mos_PD  + C_j * middle_mos_AS + C_jsw * middle_mos_PS )
+			elif compare_result_1 == 'different width':
+				shared_node_list.append( C_j * left_mos_AD + C_jsw * (left_mos_PD - smaller_W_1)  + C_j * middle_mos_AS + C_jsw * (middle_mos_PS - smaller_W_1 ) )
+
+			#右面的 node
+			shared_node_list.append(pattern[4]) 
+			if compare_result_2 == 'same width':
+				shared_node_list.append( C_j * middle_mos_AD + C_jsw * middle_mos_PD + C_j * right_mos_AS + C_jsw * right_mos_PS )
+			elif compare_result_2 == 'different width':
+				shared_node_list.append( C_j * middle_mos_AD + C_jsw * (middle_mos_PD - smaller_W_2 ) + C_j * right_mos_AS + C_jsw * (right_mos_PS - smaller_W_2 ) )
+			change_list.append([ mos_list, shared_node_list, share_node_num ])
+
+	return(change_list)
+
+def create_new_sp_file(mos_replace_dict, combination_num, group_pattern_list, CD_circuit_area, main_circuit):
 	#用最上面的 n 和 p pipeline 的对应表来生成另一个需要替换的 mos_replace_dict
 
 	#以现有的 3NAND_2_NP_errorall.sp 为源文件, 对于其中的特定部分进行替换, 并生成新的 sp 文件
 	with open('3NAND_2_NP_errorall.sp', 'r') as source_file:
 		old_file = source_file.readlines()
+
 		for mos in mos_replace_dict:
 			for index, line in enumerate(old_file):
 				if mos in line:
@@ -208,6 +312,70 @@ def create_new_sp_file(mos_replace_dict, combination_num, group_pattern_list, CD
 					line = line.split('AD', 2)
 					line[1] = 'AD=' + AD + ' AS=' + AS + ' PD=' + PD + ' PS=' + PS + '\n'
 					old_file[index] = ''.join(line)
+
+
+		#找出两个 mos 之间存在连接的 node 的所有情况.
+		#此时, 把两侧的 mos AS/PS 或者 AD/PD 修改为0, 手动添加 C left_mos right_mos capacitance
+		change_list = share_node_mos(mos_replace_dict, group_pattern_list, main_circuit.list_of_block_info_in_every_single_pattern)
+
+		for list in change_list:
+			# mos1 net mos2 仅有一个连接 node 的情况
+			if list[-1] == 1:
+				left_mos = list[0][0]
+				right_mos = list[0][1]
+				node = list[1][0]
+				capacitance = list[1][1]
+
+				#left mos 的 AD PD 重置为0, right mos 的 AS PS 重置为0
+				for index, line in enumerate(old_file):
+					if left_mos in line:
+						new_line = line.split('AD')[0] + 'AD=0 ' + line.split('PD')[0].split(' ')[-2] + ' PD=0 ' + line.split('PD')[1].split(' ')[1]
+						old_file[index] = new_line
+					elif right_mos in line:
+						new_line = line.split('AS')[0] + 'AS=0 ' + line.split('PS')[0].split(' ')[-2] + ' PS=0\n'
+						old_file[index] = new_line
+						capacitance_line = index
+
+				#转换 capacitance 的格式 pF
+				num1 = float(str(capacitance).split('e')[0])
+				num2 = float(str(capacitance).split('e')[1])
+				num1 = str(round(num1 * pow(10, 12 + num2), 1))
+				old_file.insert(capacitance_line + 1, ''.join(['C ' + left_mos + ' ' + right_mos + ' ' + num1 + 'pF' + '\n']))
+	
+			elif list[-1] == 2:
+			# mos1 net1 mos2 net2 mos3 有两个连接 node 的情况
+				left_mos = list[0][0]
+				middle_mos = list[0][1]
+				right_mos = list[0][2]
+				node1 = list[1][0]
+				node2 = list[1][2]
+				node1_capacitance = list[1][1]
+				node2_capacitance = list[1][3]				
+
+				#left mos 的 AD PD 重置为0, middle mos 的 AD PD AS PS 重置为0, right mos 的 AS PS 重置为0
+				for index, line in enumerate(old_file):
+					if left_mos in line:
+						new_line = line.split('AD')[0] + 'AD=0 ' + line.split('PD')[0].split(' ')[-2] + ' PD=0 ' + line.split('PD')[1].split(' ')[1]
+						old_file[index] = new_line
+					elif middle_mos in line:
+						new_line = line.split('AD')[0] + 'AD=0 AS=0 PD=0 PS=0\n'
+						old_file[index] = new_line
+					elif right_mos in line:
+						new_line = line.split('AS')[0] + 'AS=0 ' + line.split('PS')[0].split(' ')[-2] + ' PS=0\n'
+						old_file[index] = new_line
+						capacitance_line = index
+				
+				#转换 capacitance 的格式 pF
+				node1_num1 = float(str(node1_capacitance).split('e')[0])
+				node1_num2 = float(str(node1_capacitance).split('e')[1])
+				node1_num1 = str(round(node1_num1 * pow(10, 12 + node1_num2), 1))
+
+				node2_num1 = float(str(node2_capacitance).split('e')[0])
+				node2_num2 = float(str(node2_capacitance).split('e')[1])
+				node2_num1 = str(round(node2_num1 * pow(10, 12 + node2_num2), 1))
+
+				old_file.insert(capacitance_line + 1, ''.join(['C ' + left_mos + ' ' + middle_mos + ' ' + node1_num1 + 'pF' + '\n']))
+				old_file.insert(capacitance_line + 2, ''.join(['C ' + middle_mos + ' ' + right_mos + ' ' + node2_num1 + 'pF' + '\n']))
 
 	#将替换后的临时文件写入新的 sp 文件
 	with open('./sp_file_for_all_combination/combination%s.sp' %combination_num ,'w+') as new_file:
@@ -245,12 +413,20 @@ def create_new_sp_file(mos_replace_dict, combination_num, group_pattern_list, CD
 			area_ratio_dict_list.append(single_pattern_area_dict)
 
 		#计算 standard_cell 的总面积
-		#将所有 part 的 W 重新排列之后, 从中选出最大的
+		#最宽的 pmos 的 W, 为 4u
+		pmos_W = 4
+
+		#pipeline 的面积
 		pipeline_W = sorted(part_area_W_list)[-1]
 		pipeline_L = round(pipeline_L, 4)
-		standard_cell_L = pipeline_L + CD_circuit_L
-		standard_cell_W = pipeline_W * 2
-		standard_cell_area = standard_cell_L * standard_cell_W
+		pipeline_area = (pipeline_W + pmos_W) * 2 * pipeline_L
+ 
+		#CD circuit 的面积已知, 为 CD_circuit_area
+
+		#其他 nmos 的面积的概算 : L * W
+		other_nmos_area = (0.48 + 0.18 + 0.48 + 0.28)*7  * (4 + 0.22*2)
+
+		standard_cell_area = pipeline_area + CD_circuit_area + other_nmos_area
 
 		#得出无重复的 node 列表
 		temp_node_list = []
@@ -313,7 +489,7 @@ def write_into_file(pipeline1, pipeline2, main_circuit, sp_file):
 	pipeline1_AD_AS_PD_PS_dict = create_AD_AS_PD_PS_dict(pipeline1, pipeline1.list_of_group_pattern_list, main_circuit)
 
 	#计算 CD 回路的 L 和 W
-	CD_circuit_L, CD_circuit_W = calculate_L_W_for_CD_circuit(main_circuit)
+	CD_circuit_area = calculate_CD_circuit_area(main_circuit)
 
 	combination_num = 1
 	for group_pattern_list in pipeline1_all_pattern_combination_list:
@@ -327,15 +503,9 @@ def write_into_file(pipeline1, pipeline2, main_circuit, sp_file):
 			for index, mos in enumerate(mos_list):
 				mos_replace_dict[mos] = AD_AS_PD_PS_list[index]
 
-		################### 测试 ################
-		#print('combination_num', combination_num)
-		#print(group_pattern_list)
-		################### 测试 ################
-
 		#对于给定的 mos_replace_dict 生成新的 sp 文件
-		create_new_sp_file(mos_replace_dict, combination_num, group_pattern_list, CD_circuit_L, main_circuit)
+		create_new_sp_file(mos_replace_dict, combination_num, group_pattern_list, CD_circuit_area, main_circuit)
 		combination_num += 1
-
 
 	'''
 	#把 all_pattern_combination_list 的信息输出
