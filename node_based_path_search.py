@@ -1045,7 +1045,6 @@ def get_netlist_data(input_file, output_file = 'output.txt', subtract = 0):
 			#[]部分:对于 circuit_mos_list 中的每个部分以空格分隔开来 ['m1 out in'] -> ['m1', 'out', 'in']
 			#之后调用 circuit 类型的 mosfet 函数把每个 m 的信息保存成一个 mosfet
 			main_circuit.create_mosfet([mos.split() for mos in main_circuit.create_mos_list()])
-
 			#输出 circuit 中 netlist 部分的信息
 			#print('Netlist')
 			#for i in main_circuit.mos_list:
@@ -1067,8 +1066,6 @@ def get_netlist_data(input_file, output_file = 'output.txt', subtract = 0):
 
 			#print('main_circuit : ', main_circuit.name)
 			pipeline1, pipeline2 = main_circuit.create_pipeline()
-			#display_pipeline(pipeline1.path, 'pipeline1', main_circuit)
-			#display_pipeline(pipeline2.path, 'pipeline2', main_circuit)
 
 			#统计 main_circuit 中的 subcircuit 的信息
 			main_circuit.calculate_subcircuit()

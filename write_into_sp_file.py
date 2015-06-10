@@ -208,9 +208,43 @@ def calculate_area_in_single_pattern_list(part, single_pattern_list, list_of_blo
 
 def share_node_mos(mos_replace_dict, group_pattern_list, list_of_block_info_in_every_single_pattern):
 	#记录所有需要修改的 mos 和 net 信息
+	# mos_replace_dict 中的顺序为 mos : AD AS PD PS
 	change_list = []
 
+	node_capacitance_dict = {}
+	for single_pattern_list in group_pattern_list:
+		for part in single_pattern_list:
+			if 'net' in part:
+				node_capacitance_dict[part] = 0
+	### 测试 ###		
+	print('before')
+	print(node_capacitance_dict)
+	### 测试 ###
+
+
 	for pattern in group_pattern_list:
+		# pattern 中的顺序为 [node1, mos1, node2, mos2, node3, mos3, node4]
+		# mos 的顺序为 drain, gate, source
+
+		if len(pattern) == 3:
+			#[node1, mos1, node2]
+			#初始化字典
+			node1 = pattern[0]
+			mos = pattern[1]
+			node2 = pattern[2]
+			node_capacitance_dict[node1] = 0
+			node_capacitance_dict[node2] = 0
+
+			#计算两侧 node1 和 node2 的容量
+			#C_drain = C_j * AD + C_jsw * PD, C_source = C_j * AS + C_jsw * PS
+			AD = float(mos_replace_dict[mos][0].strip('p')) * pow(10, -6)
+			PD = float(mos_replace_dict[mos][2].strip('u')) * pow(10, -6)
+			AS = float(mos_replace_dict[mos][1].strip('p')) * pow(10, -12)
+			PS = float(mos_replace_dict[mos][3].strip('u')) * pow(10, -12)
+
+			node_capacitance_dict[node1] += C_j * AD + C_jsw * PD
+			node_capacitance_dict[node2] += C_j * AS + C_jsw * PS		
+
 		if len(pattern) == 5:
 			share_node_num = 1
 			shared_node_list = []
@@ -225,6 +259,7 @@ def share_node_mos(mos_replace_dict, group_pattern_list, list_of_block_info_in_e
 			#C_drain = C_j * AD + C_jsw * PD, C_source = C_j * AS + C_jsw * PS
 			#mos_replace_dict 中的对应关系为 'mos': [AD p, AS p, PD u, PS u]
 			#所以要用 left_mos 的 AD PD,  right_mos 的 AS PS
+			###### 要修改 ####
 			left_mos_AD = float(mos_replace_dict[left_mos][0].strip('p')) * pow(10, -6)
 			left_mos_PD = float(mos_replace_dict[left_mos][2].strip('u')) * pow(10, -6)
 			right_mos_AS = float(mos_replace_dict[right_mos][1].strip('p')) * pow(10, -12)
@@ -273,7 +308,14 @@ def share_node_mos(mos_replace_dict, group_pattern_list, list_of_block_info_in_e
 				shared_node_list.append( C_j * middle_mos_AD + C_jsw * (middle_mos_PD - smaller_W_2 ) + C_j * right_mos_AS + C_jsw * (right_mos_PS - smaller_W_2 ) )
 			change_list.append([ mos_list, shared_node_list, share_node_num ])
 
+	### 测试 ###
+	print('after')
+	print(node_capacitance_dict)
+	print()
+	### 测试 ###
+
 	return(change_list)
+
 
 def create_new_sp_file(mos_replace_dict, combination_num, group_pattern_list, CD_circuit_area, main_circuit):
 	#用最上面的 n 和 p pipeline 的对应表来生成另一个需要替换的 mos_replace_dict
@@ -281,7 +323,7 @@ def create_new_sp_file(mos_replace_dict, combination_num, group_pattern_list, CD
 	#以现有的 3NAND_2_NP_errorall.sp 为源文件, 对于其中的特定部分进行替换, 并生成新的 sp 文件
 	with open('3NAND_2_NP_errorall.sp', 'r') as source_file:
 		old_file = source_file.readlines()
-
+		
 		for mos in mos_replace_dict:
 			for index, line in enumerate(old_file):
 				if mos in line:
@@ -317,6 +359,7 @@ def create_new_sp_file(mos_replace_dict, combination_num, group_pattern_list, CD
 		#找出两个 mos 之间存在连接的 node 的所有情况.
 		#此时, 把两侧的 mos AS/PS 或者 AD/PD 修改为0, 手动添加 C left_mos right_mos capacitance
 		change_list = share_node_mos(mos_replace_dict, group_pattern_list, main_circuit.list_of_block_info_in_every_single_pattern)
+
 
 		for list in change_list:
 			# mos1 net mos2 仅有一个连接 node 的情况
@@ -466,6 +509,7 @@ def create_new_sp_file(mos_replace_dict, combination_num, group_pattern_list, CD
 		#写入源文件的最后一行
 		new_file.write(old_file[-1].strip('\n'))
 
+
 def write_into_file(pipeline1, pipeline2, main_circuit, sp_file):
 	'''根据生产的 layout block 的面积, 来替换 sp 文件中的AD, AS, PD, PS参数'''
 
@@ -487,6 +531,8 @@ def write_into_file(pipeline1, pipeline2, main_circuit, sp_file):
 
 	#对于每个 mos 计算其 AD AS PD PS, 之后插入到 sp 文件之中
 	pipeline1_AD_AS_PD_PS_dict = create_AD_AS_PD_PS_dict(pipeline1, pipeline1.list_of_group_pattern_list, main_circuit)
+	pipeline2_AD_AS_PD_PS_dict = create_AD_AS_PD_PS_dict(pipeline1, pipeline2.list_of_group_pattern_list, main_circuit)
+
 
 	#计算 CD 回路的 L 和 W
 	CD_circuit_area = calculate_CD_circuit_area(main_circuit)
