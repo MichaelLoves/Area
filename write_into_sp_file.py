@@ -40,14 +40,14 @@ def create_all_pattern_combination_list(all_pattern_combination_list):
 		group_combination_list_string.append(single_combination_list_string)
 	return(group_combination_list_string)
 
-def calculate_area_and_periphery_for_block(source, gate, drain):
+def calculate_area_and_periphery_for_block(drain, gate, source):
 	#对于读入的block 计算其 AD(Drain diffusion area), AS(Source diffusion area), PD(Drain diffusion periphery), PS(Source diffusion periphery)
 	AD = str(round(drain.W * drain.L, 2)) + 'p'
 	AS = str(round(source.W * source.L, 2)) + 'p'
 	PD = str(round(drain.W * 2 + drain.L * 2, 2)) + 'u'
 	PS = str(round(source.W * 2 + source.L * 2, 2)) + 'u'
 
-	#print('source gate drain', source.block_name, gate.block_name, drain.block_name)
+	#print('drain gate source', drain.block_name, gate.block_name, source.block_name)
 	#print('AD AS PD PS', AD, AS, PD, PS)
 	return([AD, AS, PD, PS])
 
@@ -98,13 +98,20 @@ def find_smaller_W(left_mos, right_mos, pattern, list_of_block_info_in_every_sin
 		if block.block_name == 'gate':
 			gate_list.append(block)
 
-	left_mos_W = gate_list[0].W
-	right_mos_W = gate_list[1].W
+	mos_list = [mos for mos in pattern if 'm' in mos]
+	for index, mos in enumerate(mos_list):
+		if mos == left_mos:
+			left_mos_index = index
+		elif mos == right_mos:
+			right_mos_index = index
+
+	left_mos_W = gate_list[left_mos_index].W
+	right_mos_W = gate_list[right_mos_index].W
 
 	if left_mos_W == right_mos_W:
-		return(left_mos_W, 'same width')
+		return((left_mos_W - 0.44) * pow(10, -6), 'same width')
 	else:
-		return(min(left_mos_W, right_mos_W), 'different width')
+		return((min(left_mos_W, right_mos_W) - 0.44) * pow(10, -6), 'different width')
 
 def calculate_CD_circuit_area(main_circuit):
 	'''计算 CD_circuit 的 L 和 W'''
@@ -216,11 +223,8 @@ def share_node_mos(mos_replace_dict, group_pattern_list, list_of_block_info_in_e
 		for part in single_pattern_list:
 			if 'net' in part:
 				node_capacitance_dict[part] = 0
-	### 测试 ###		
-	print('before')
-	print(node_capacitance_dict)
-	### 测试 ###
 
+	print(mos_replace_dict)
 
 	for pattern in group_pattern_list:
 		# pattern 中的顺序为 [node1, mos1, node2, mos2, node3, mos3, node4]
@@ -228,85 +232,109 @@ def share_node_mos(mos_replace_dict, group_pattern_list, list_of_block_info_in_e
 
 		if len(pattern) == 3:
 			#[node1, mos1, node2]
-			#初始化字典
 			node1 = pattern[0]
 			mos = pattern[1]
 			node2 = pattern[2]
-			node_capacitance_dict[node1] = 0
-			node_capacitance_dict[node2] = 0
+			print(pattern)
 
 			#计算两侧 node1 和 node2 的容量
 			#C_drain = C_j * AD + C_jsw * PD, C_source = C_j * AS + C_jsw * PS
-			AD = float(mos_replace_dict[mos][0].strip('p')) * pow(10, -6)
+			AD = float(mos_replace_dict[mos][0].strip('p')) * pow(10, -12)
 			PD = float(mos_replace_dict[mos][2].strip('u')) * pow(10, -6)
 			AS = float(mos_replace_dict[mos][1].strip('p')) * pow(10, -12)
-			PS = float(mos_replace_dict[mos][3].strip('u')) * pow(10, -12)
+			PS = float(mos_replace_dict[mos][3].strip('u')) * pow(10, -6)
 
 			node_capacitance_dict[node1] += C_j * AD + C_jsw * PD
 			node_capacitance_dict[node2] += C_j * AS + C_jsw * PS		
 
 		if len(pattern) == 5:
-			share_node_num = 1
-			shared_node_list = []
+			#[node1, left_mos, node2, right_mos, node3]
+			print(pattern)
+
+			node1 = pattern[0]
 			left_mos = pattern[1]
+			node2 = pattern[2]
 			right_mos = pattern[3]
-			mos_list = [left_mos, right_mos]
+			node3 = pattern[4]
 
 			#找出两个 mos 中较窄的 W
 			smaller_W, compare_result = find_smaller_W(left_mos, right_mos, pattern, list_of_block_info_in_every_single_pattern)
 
+			#计算两侧 node 的容量
+			left_mos_AD = float(mos_replace_dict[left_mos][0].strip('p')) * pow(10, -12)
+			left_mos_PD = float(mos_replace_dict[left_mos][2].strip('u')) * pow(10, -6)
+			node_capacitance_dict[node1] += C_j * left_mos_AD + C_jsw * left_mos_PD
+
+			right_mos_AS = float(mos_replace_dict[right_mos][1].strip('p')) * pow(10, -12)
+			right_mos_PS = float(mos_replace_dict[right_mos][3].strip('u')) * pow(10, -6)
+			node_capacitance_dict[node3] += C_j * right_mos_AS + C_jsw * right_mos_PS
+
 			#计算中间 node 的容量
 			#C_drain = C_j * AD + C_jsw * PD, C_source = C_j * AS + C_jsw * PS
 			#mos_replace_dict 中的对应关系为 'mos': [AD p, AS p, PD u, PS u]
-			#所以要用 left_mos 的 AD PD,  right_mos 的 AS PS
-			###### 要修改 ####
-			left_mos_AD = float(mos_replace_dict[left_mos][0].strip('p')) * pow(10, -6)
-			left_mos_PD = float(mos_replace_dict[left_mos][2].strip('u')) * pow(10, -6)
-			right_mos_AS = float(mos_replace_dict[right_mos][1].strip('p')) * pow(10, -12)
-			right_mos_PS = float(mos_replace_dict[right_mos][3].strip('u')) * pow(10, -12)
-			shared_node_list.append(pattern[2])
-			
+			#所以要用 left_mos 的 AS PS,  right_mos 的 AD PD
+			left_mos_AS = float(mos_replace_dict[left_mos][1].strip('p')) * pow(10, -12) 
+			left_mos_PS = float(mos_replace_dict[left_mos][3].strip('u')) * pow(10, -6)
+			right_mos_AD = float(mos_replace_dict[right_mos][0].strip('p')) * pow(10, -12) 
+			right_mos_PD = float(mos_replace_dict[right_mos][2].strip('u')) * pow(10, -6)
+
 			if compare_result == 'same width':
-				shared_node_list.append( C_j * left_mos_AD + C_jsw * left_mos_PD + C_j * right_mos_AS + C_jsw * right_mos_PS )
+				#当 width 相同时, 只算一边的就可以了. 因为在创建 AD AS PD PS dict 的时候, mos1 node1(block:gate_gate_sw) mos2
+				#mos1 的 source 和 mos2 的 drain 的数据是相同的
+				node_capacitance_dict[node2] += C_j * left_mos_AS + C_jsw * left_mos_PS
 			elif compare_result == 'different width':
-				shared_node_list.append( C_j * left_mos_AD + C_jsw * (left_mos_PD - smaller_W) + C_j * right_mos_AS + C_jsw * (right_mos_PS - smaller_W) )
+				#当 width 不同时, 需要算两边. 因为此时为 mos1 gate_gate_dw gate_gate_dw mos2
+				node_capacitance_dict[node2] += C_j * left_mos_AS + C_jsw * (left_mos_PS - smaller_W) + C_j * right_mos_AD + C_jsw * (right_mos_PD - smaller_W) 
 			
-			change_list.append([ mos_list, shared_node_list, share_node_num ])
 
 		elif len(pattern) == 7:
-			share_node_num = 2
-			shared_node_list = []
+			#[node1, left_mos, node2, middle_mos, node3, right_mos, node4]
+			print(pattern)
+
+			node1 = pattern[0]
 			left_mos = pattern[1]
+			node2 = pattern[2]
 			middle_mos = pattern[3]
+			node3 = pattern[4]
 			right_mos = pattern[5]
-			mos_list = [left_mos, middle_mos, right_mos]
+			node4 = pattern[6]
 
 			smaller_W_1, compare_result_1 = find_smaller_W(left_mos, middle_mos, pattern, list_of_block_info_in_every_single_pattern)
 			smaller_W_2, compare_result_2 = find_smaller_W(middle_mos, right_mos, pattern, list_of_block_info_in_every_single_pattern)
 
-			left_mos_AD = float(mos_replace_dict[left_mos][0].strip('p')) * pow(10, -6)
+			#AD AS PD PS
+			left_mos_AD = float(mos_replace_dict[left_mos][0].strip('p')) * pow(10, -12)
 			left_mos_PD = float(mos_replace_dict[left_mos][2].strip('u')) * pow(10, -6)
-			middle_mos_AS = float(mos_replace_dict[middle_mos][1].strip('p')) * pow(10, -12)
-			middle_mos_PS = float(mos_replace_dict[middle_mos][3].strip('u')) * pow(10, -12)
-			middle_mos_AD = float(mos_replace_dict[middle_mos][0].strip('p')) * pow(10, -6)
+			left_mos_AS = float(mos_replace_dict[left_mos][1].strip('p')) * pow(10, -12)
+			left_mos_PS = float(mos_replace_dict[left_mos][3].strip('u')) * pow(10, -6)
+
+			middle_mos_AD = float(mos_replace_dict[middle_mos][0].strip('p')) * pow(10, -12)
 			middle_mos_PD = float(mos_replace_dict[middle_mos][2].strip('u')) * pow(10, -6)
+			middle_mos_AS = float(mos_replace_dict[middle_mos][1].strip('p')) * pow(10, -12)
+			middle_mos_PS = float(mos_replace_dict[middle_mos][3].strip('u')) * pow(10, -6)
+			
+			right_mos_AD = float(mos_replace_dict[right_mos][0].strip('p')) * pow(10, -12)
+			right_mos_PD = float(mos_replace_dict[right_mos][2].strip('u')) * pow(10, -6)
 			right_mos_AS = float(mos_replace_dict[right_mos][1].strip('p')) * pow(10, -12)
-			right_mos_PS = float(mos_replace_dict[right_mos][3].strip('u')) * pow(10, -12)
+			right_mos_PS = float(mos_replace_dict[right_mos][3].strip('u')) * pow(10, -6)
 
-			#左面的 node
-			shared_node_list.append(pattern[2])
+
+			#计算两侧 node 的容量
+			node_capacitance_dict[node1] += C_j * left_mos_AD + C_jsw * left_mos_PD
+			node_capacitance_dict[node4] += C_j * right_mos_AS + C_jsw * right_mos_PS
+
+			#计算中间的两个 node 的容量
+			#左侧的 node
 			if compare_result_1 == 'same width':
-				shared_node_list.append( C_j * left_mos_AD + C_jsw * left_mos_PD  + C_j * middle_mos_AS + C_jsw * middle_mos_PS )
+				node_capacitance_dict[node2] += C_j * left_mos_AS + C_jsw * left_mos_PS 
 			elif compare_result_1 == 'different width':
-				shared_node_list.append( C_j * left_mos_AD + C_jsw * (left_mos_PD - smaller_W_1)  + C_j * middle_mos_AS + C_jsw * (middle_mos_PS - smaller_W_1 ) )
+				node_capacitance_dict[node2] += C_j * left_mos_AS + C_jsw * (left_mos_PS - smaller_W_1)  + C_j * middle_mos_AD + C_jsw * (middle_mos_PD - smaller_W_1 ) 
 
-			#右面的 node
-			shared_node_list.append(pattern[4]) 
+			#右侧的 node
 			if compare_result_2 == 'same width':
-				shared_node_list.append( C_j * middle_mos_AD + C_jsw * middle_mos_PD + C_j * right_mos_AS + C_jsw * right_mos_PS )
+				node_capacitance_dict[node3] += C_j * middle_mos_AS + C_jsw * middle_mos_PS 
 			elif compare_result_2 == 'different width':
-				shared_node_list.append( C_j * middle_mos_AD + C_jsw * (middle_mos_PD - smaller_W_2 ) + C_j * right_mos_AS + C_jsw * (right_mos_PS - smaller_W_2 ) )
-			change_list.append([ mos_list, shared_node_list, share_node_num ])
+				node_capacitance_dict[node3] += C_j * middle_mos_AS + C_jsw * (middle_mos_PS - smaller_W_2 ) + C_j * right_mos_AD + C_jsw * (right_mos_PD - smaller_W_2 ) 
 
 	### 测试 ###
 	print('after')
@@ -360,7 +388,7 @@ def create_new_sp_file(mos_replace_dict, combination_num, group_pattern_list, CD
 		#此时, 把两侧的 mos AS/PS 或者 AD/PD 修改为0, 手动添加 C left_mos right_mos capacitance
 		change_list = share_node_mos(mos_replace_dict, group_pattern_list, main_circuit.list_of_block_info_in_every_single_pattern)
 
-
+		'''
 		for list in change_list:
 			# mos1 net mos2 仅有一个连接 node 的情况
 			if list[-1] == 1:
@@ -419,6 +447,7 @@ def create_new_sp_file(mos_replace_dict, combination_num, group_pattern_list, CD
 
 				old_file.insert(capacitance_line + 1, ''.join(['C ' + left_mos + ' ' + middle_mos + ' ' + node1_num1 + 'pF' + '\n']))
 				old_file.insert(capacitance_line + 2, ''.join(['C ' + middle_mos + ' ' + right_mos + ' ' + node2_num1 + 'pF' + '\n']))
+			'''
 
 	#将替换后的临时文件写入新的 sp 文件
 	with open('./sp_file_for_all_combination/combination%s.sp' %combination_num ,'w+') as new_file:
