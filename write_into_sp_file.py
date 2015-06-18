@@ -419,6 +419,7 @@ def create_new_sp_file(mos_replace_dict, combination_num, n_pipeline_group_patte
 
 		#对于 n_pipeline 中的 mos, 一一填加容量, 并改写 mos 所连接的 net 番号
 		n_pipeline_capacitor_num = 1
+		capacitance_per_u = 0.341
 
 		#用来记录该 net 处是否已经插入了 capacitor
 		n_pipelinenode_has_capacitor_dict = {}
@@ -441,10 +442,17 @@ def create_new_sp_file(mos_replace_dict, combination_num, n_pipeline_group_patte
 						if (line[1] == 'vdd' and line[2] == 'cd_n_3' and line[3] == node_in_3AND) or (line[1] == node_in_3AND and line[2] == 'cd_n_3' and line[3] == 'vdd'):
 							n_pipeline_precharge_PMOS_1 = line[0]
 
-				capacitance = str(round(n_pipeline_node_capacitance_dict[node_in_3AND]/pow(10, -15) ,2)) + 'f'
+				#因为在进行 Hspice Simulation 的时候, 系统会自动会 net 加容量. 所以需要把这部分容量减下去, 以确保最后模拟时 net 的容量和由 layout 生产的相同.
+				#具体的加法详见 Evernote 2015年6月18日 记录.
+				number_of_W = 0.0
+				for mos in main_circuit.mos_list:
+					if (mos.drain == node or mos.source == node) and mos.type == "N":
+						number_of_W += mos.W
+				capacitance = round(n_pipeline_node_capacitance_dict[node_in_3AND]/pow(10, -15) ,2)
+				modified_capacitance = str( round(capacitance - number_of_W * capacitance_per_u, 2) ) + 'f'
 
 				#需要写入的容量的一行
-				capacitor_line = 'c' + str(n_pipeline_capacitor_num) + ' ' + node_in_3AND + ' ' + 'gnd ' + capacitance + '\n'
+				capacitor_line = 'c' + str(n_pipeline_capacitor_num) + ' ' + node_in_3AND + ' ' + 'gnd ' + modified_capacitance + '   *** ( ' + str(capacitance) + ' f)' '\n'
 				index_list = []
 				for index, line in enumerate(old_file):
 					if 'netlist_sim' in line:
@@ -461,10 +469,15 @@ def create_new_sp_file(mos_replace_dict, combination_num, n_pipeline_group_patte
 						if (line[1] == 'vdd' and line[2] == 'cd_n_3' and line[3] == node_in_3AND) or (line[1] == node_in_3AND and line[2] == 'cd_n_3' and line[3] == 'vdd'):
 							n_pipeline_precharge_PMOS_2 = line[0]
 
-				capacitance = str(round(n_pipeline_node_capacitance_dict[node_in_3AND]/pow(10, -15) ,2)) + 'f'
+				number_of_W = 0.0
+				for mos in main_circuit.mos_list:
+					if (mos.drain == node or mos.source == node) and mos.type == "N":
+						number_of_W += mos.W
+				capacitance = round(n_pipeline_node_capacitance_dict[node_in_3AND]/pow(10, -15) ,2)
+				modified_capacitance = str( round(capacitance - number_of_W * capacitance_per_u, 2) ) + 'f'
 
 				#需要写入的容量的一行
-				capacitor_line = 'c' + str(n_pipeline_capacitor_num) + ' ' + node_in_3AND + ' ' + 'gnd ' + capacitance + '\n'
+				capacitor_line = 'c' + str(n_pipeline_capacitor_num) + ' ' + node_in_3AND + ' ' + 'gnd ' + modified_capacitance + '   *** ( ' + str(capacitance) + ' f)' '\n'
 				index_list = []
 				for index, line in enumerate(old_file):
 					if 'netlist_sim' in line:
@@ -481,10 +494,15 @@ def create_new_sp_file(mos_replace_dict, combination_num, n_pipeline_group_patte
 						if (line[1] == node_in_3AND and line[2] == 'cd_n_3' and line[3] == 'gnd') or (line[1] == 'gnd' and line[2] == 'cd_n_3' and line[3] == node_in_3AND):
 							n_pipeline_foot_NMOS = line[0]
 
-				capacitance = str(round(n_pipeline_node_capacitance_dict[node_in_3AND]/pow(10, -15) ,2)) + 'f'
+				number_of_W = 0.0
+				for mos in main_circuit.mos_list:
+					if (mos.drain == node or mos.source == node) and mos.type == "N":
+						number_of_W += mos.W
+				capacitance = round(n_pipeline_node_capacitance_dict[node_in_3AND]/pow(10, -15) ,2)
+				modified_capacitance = str( round(capacitance - number_of_W * capacitance_per_u, 2) ) + 'f'
 
 				#需要写入的容量的一行
-				capacitor_line = 'c' + str(n_pipeline_capacitor_num) + ' ' + node_in_3AND + ' ' + 'gnd ' + capacitance + '\n'
+				capacitor_line = 'c' + str(n_pipeline_capacitor_num) + ' ' + node_in_3AND + ' ' + 'gnd ' + modified_capacitance + '   *** ( ' + str(capacitance) + ' f)' '\n'
 				index_list = []
 				for index, line in enumerate(old_file):
 					if 'netlist_sim' in line:
@@ -500,10 +518,16 @@ def create_new_sp_file(mos_replace_dict, combination_num, n_pipeline_group_patte
 					if len(single_pattern_list) == 7 and node in single_pattern_list and n_pipelinenode_has_capacitor_dict[node_in_3AND] == 0:
 						node_index = single_pattern_list.index(node)
 						mos_before_capacitor = single_pattern_list[node_index - 1]
-						capacitance = str(round(n_pipeline_node_capacitance_dict[node_in_3AND]/pow(10, -15), 2)) + 'f'
+
+						number_of_W = 0.0
+						for mos in main_circuit.mos_list:
+							if (mos.drain == node or mos.source == node) and mos.type == "N":
+								number_of_W += mos.W
+						capacitance = round(n_pipeline_node_capacitance_dict[node_in_3AND]/pow(10, -15) ,2)
+						modified_capacitance = str( round(capacitance - number_of_W * capacitance_per_u, 2) ) + 'f'
 
 						#需要写入的容量的一行
-						capacitor_line = 'c' + str(n_pipeline_capacitor_num) + ' ' + node_in_3AND + ' ' + 'gnd ' + capacitance + '\n'
+						capacitor_line = 'c' + str(n_pipeline_capacitor_num) + ' ' + node_in_3AND + ' ' + 'gnd ' + modified_capacitance + '   *** ( ' + str(capacitance) + ' f)' '\n'
 
 						#将需要添加的 capacitor 添加到 '*** netlist_sim ***'这行的前面
 						index_list = []
@@ -517,10 +541,17 @@ def create_new_sp_file(mos_replace_dict, combination_num, n_pipeline_group_patte
 
 					elif len(single_pattern_list) == 5 and node == single_pattern_list[2] and n_pipelinenode_has_capacitor_dict[node_in_3AND] == 0:
 						mos_before_capacitor = single_pattern_list[1]
-						capacitance = str(round(n_pipeline_node_capacitance_dict[node_in_3AND]/pow(10, -15) ,2)) + 'f'
+
+						number_of_W = 0.0
+						for mos in main_circuit.mos_list:
+							if (mos.drain == node or mos.source == node) and mos.type == "N":
+								number_of_W += mos.W
+						capacitance = round(n_pipeline_node_capacitance_dict[node_in_3AND]/pow(10, -15) ,2)
+						modified_capacitance = str( round(capacitance - number_of_W * capacitance_per_u, 2) ) + 'f'
 
 						#需要写入的容量的一行
-						capacitor_line = 'c' + str(n_pipeline_capacitor_num) + ' ' + node_in_3AND + ' ' + 'gnd ' + capacitance + '\n'
+						capacitor_line = 'c' + str(n_pipeline_capacitor_num) + ' ' + node_in_3AND + ' ' + 'gnd ' + modified_capacitance + '   *** ( ' + str(capacitance) + ' f)' '\n'
+
 						index_list = []
 						for index, line in enumerate(old_file):
 							if 'netlist_sim' in line:
@@ -555,10 +586,16 @@ def create_new_sp_file(mos_replace_dict, combination_num, n_pipeline_group_patte
 						if (line[1] == 'vdd' and line[2] == 'cd_3' and line[3] == node_in_3AND) or (line[1] == node_in_3AND and line[2] == 'cd_3' and line[3] == 'vdd'):
 							p_pipeline_precharge_PMOS_1 = line[0]
 
-				capacitance = str(round(p_pipeline_node_capacitance_dict[node_in_3AND]/pow(10, -15) ,2)) + 'f'
+				number_of_W = 0.0
+				for mos in main_circuit.mos_list:
+					if (mos.drain == node or mos.source == node) and mos.type == "N":
+						number_of_W += mos.W
+				capacitance = round(p_pipeline_node_capacitance_dict[node_in_3AND]/pow(10, -15) ,2)
+				modified_capacitance = str( round(capacitance - number_of_W * capacitance_per_u, 2) ) + 'f'
 
 				#需要写入的容量的一行
-				capacitor_line = 'c' + str(p_pipeline_capacitor_num) + ' ' + node_in_3AND + ' ' + 'gnd ' + capacitance + '\n'
+				capacitor_line = 'c' + str(p_pipeline_capacitor_num) + ' ' + node_in_3AND + ' ' + 'gnd ' + modified_capacitance + '   *** ( ' + str(capacitance) + ' f)' '\n'
+
 				index_list = []
 				for index, line in enumerate(old_file):
 					if 'netlist_sim' in line:
@@ -575,10 +612,16 @@ def create_new_sp_file(mos_replace_dict, combination_num, n_pipeline_group_patte
 						if (line[1] == 'vdd' and line[2] == 'cd_3' and line[3] == node_in_3AND) or (line[1] == node_in_3AND and line[2] == 'cd_3' and line[3] == 'vdd'):
 							p_pipeline_precharge_PMOS_2 = line[0]
 
-				capacitance = str(round(p_pipeline_node_capacitance_dict[node_in_3AND]/pow(10, -15) ,2)) + 'f'
+				number_of_W = 0.0
+				for mos in main_circuit.mos_list:
+					if (mos.drain == node or mos.source == node) and mos.type == "N":
+						number_of_W += mos.W
+				capacitance = round(p_pipeline_node_capacitance_dict[node_in_3AND]/pow(10, -15) ,2)
+				modified_capacitance = str( round(capacitance - number_of_W * capacitance_per_u, 2) ) + 'f'
 
 				#需要写入的容量的一行
-				capacitor_line = 'c' + str(p_pipeline_capacitor_num) + ' ' + node_in_3AND + ' ' + 'gnd ' + capacitance + '\n'
+				capacitor_line = 'c' + str(p_pipeline_capacitor_num) + ' ' + node_in_3AND + ' ' + 'gnd ' + modified_capacitance + '   *** ( ' + str(capacitance) + ' f)' '\n'
+
 				index_list = []
 				for index, line in enumerate(old_file):
 					if 'netlist_sim' in line:
@@ -595,10 +638,16 @@ def create_new_sp_file(mos_replace_dict, combination_num, n_pipeline_group_patte
 						if (line[1] == node_in_3AND and line[2] == 'cd_3' and line[3] == 'gnd') or (line[1] == 'gnd' and line[2] == 'cd_3' and line[3] == node_in_3AND):
 							p_pipeline_foot_NMOS = line[0]
 
-				capacitance = str(round(p_pipeline_node_capacitance_dict[node_in_3AND]/pow(10, -15) ,2)) + 'f'
+				number_of_W = 0.0
+				for mos in main_circuit.mos_list:
+					if (mos.drain == node or mos.source == node) and mos.type == "N":
+						number_of_W += mos.W
+				capacitance = round(p_pipeline_node_capacitance_dict[node_in_3AND]/pow(10, -15) ,2)
+				modified_capacitance = str( round(capacitance - number_of_W * capacitance_per_u, 2) ) + 'f'
 
 				#需要写入的容量的一行
-				capacitor_line = 'c' + str(p_pipeline_capacitor_num) + ' ' + node_in_3AND + ' ' + 'gnd ' + capacitance + '\n'
+				capacitor_line = 'c' + str(p_pipeline_capacitor_num) + ' ' + node_in_3AND + ' ' + 'gnd ' + modified_capacitance + '   *** ( ' + str(capacitance) + ' f)' '\n'
+
 				index_list = []
 				for index, line in enumerate(old_file):
 					if 'netlist_sim' in line:
@@ -614,10 +663,16 @@ def create_new_sp_file(mos_replace_dict, combination_num, n_pipeline_group_patte
 					if len(single_pattern_list) == 7 and node in single_pattern_list and p_pipelinenode_has_capacitor_dict[node_in_3AND] == 0:
 						node_index = single_pattern_list.index(node)
 						mos_before_capacitor = single_pattern_list[node_index - 1]
-						capacitance = str(round(p_pipeline_node_capacitance_dict[node_in_3AND]/pow(10, -15), 2)) + 'f'
+
+						number_of_W = 0.0
+						for mos in main_circuit.mos_list:
+							if (mos.drain == node or mos.source == node) and mos.type == "N":
+								number_of_W += mos.W
+						capacitance = round(p_pipeline_node_capacitance_dict[node_in_3AND]/pow(10, -15) ,2)
+						modified_capacitance = str( round(capacitance - number_of_W * capacitance_per_u, 2) ) + 'f'
 
 						#需要写入的容量的一行
-						capacitor_line = 'c' + str(p_pipeline_capacitor_num) + ' ' + node_in_3AND + ' ' + 'gnd ' + capacitance + '\n'
+						capacitor_line = 'c' + str(p_pipeline_capacitor_num) + ' ' + node_in_3AND + ' ' + 'gnd ' + modified_capacitance + '   *** ( ' + str(capacitance) + ' f)' '\n'
 
 						#将需要添加的 capacitor 添加到 '*** netlist_sim ***'这行的前面
 						index_list = []
@@ -631,11 +686,17 @@ def create_new_sp_file(mos_replace_dict, combination_num, n_pipeline_group_patte
 
 					elif len(single_pattern_list) == 5 and node == single_pattern_list[2] and p_pipelinenode_has_capacitor_dict[node_in_3AND] == 0:
 						mos_before_capacitor = single_pattern_list[1]
-						capacitance = str(round(p_pipeline_node_capacitance_dict[node_in_3AND]/pow(10, -15) ,2)) + 'f'
+
+						number_of_W = 0.0
+						for mos in main_circuit.mos_list:
+							if (mos.drain == node or mos.source == node) and mos.type == "N":
+								number_of_W += mos.W
+						capacitance = round(p_pipeline_node_capacitance_dict[node_in_3AND]/pow(10, -15) ,2)
+						modified_capacitance = str( round(capacitance - number_of_W * capacitance_per_u, 2) ) + 'f'
 
 						#需要写入的容量的一行
-						capacitor_line = 'c' + str(p_pipeline_capacitor_num) + ' ' + node_in_3AND + ' ' + 'gnd ' + capacitance + '\n'
-		
+						capacitor_line = 'c' + str(p_pipeline_capacitor_num) + ' ' + node_in_3AND + ' ' + 'gnd ' + modified_capacitance + '   *** ( ' + str(capacitance) + ' f)' '\n'
+
 						index_list = []
 						for index, line in enumerate(old_file):
 							if 'netlist_sim' in line:

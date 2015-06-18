@@ -410,26 +410,26 @@ xi81 gnd p_nand_4 net0279 vdd inv2
 xi80 gnd p_and_4 net0280 vdd inv2
 
 
-c1 net0136 gnd 3.13f
-c2 net246 gnd 8.34f
-c3 net0342 gnd 6.92f
-c4 net0336 gnd 1.83f
-c5 net0330 gnd 5.87f
-c6 net105 gnd 11.91f
-c7 net132 gnd 2.38f
-c8 net284 gnd 1.83f
-c9 net0348 gnd 7.93f
-c10 net0316 gnd 12.39f
-c11 net0381 gnd 7.93f
-c12 net0118 gnd 1.83f
-c13 net0129 gnd 1.83f
-c14 net296 gnd 3.13f
-c15 net0386 gnd 11.91f
-c16 net0117 gnd 6.92f
-c17 net0116 gnd 12.39f
-c18 net0382 gnd 2.38f
-c19 net0112 gnd 5.87f
-c20 net0367 gnd 8.34f
+c1 net132 gnd 1.7f   *** ( 2.38 f)
+c2 net0316 gnd 7.28f   *** ( 12.39 f)
+c3 net0330 gnd 3.48f   *** ( 5.87 f)
+c4 net0348 gnd 4.52f   *** ( 7.93 f)
+c5 net0136 gnd 1.42f   *** ( 3.13 f)
+c6 net105 gnd 8.5f   *** ( 11.91 f)
+c7 net246 gnd 5.27f   *** ( 8.34 f)
+c8 net0342 gnd 4.19f   *** ( 6.92 f)
+c9 net284 gnd 0.47f   *** ( 1.83 f)
+c10 net0336 gnd 0.47f   *** ( 1.83 f)
+c11 net0386 gnd 8.5f   *** ( 11.91 f)
+c12 net0129 gnd 0.47f   *** ( 1.83 f)
+c13 net0118 gnd 0.47f   *** ( 1.83 f)
+c14 net296 gnd 1.42f   *** ( 3.13 f)
+c15 net0382 gnd 1.7f   *** ( 2.38 f)
+c16 net0117 gnd 4.19f   *** ( 6.92 f)
+c17 net0381 gnd 4.52f   *** ( 7.93 f)
+c18 net0116 gnd 7.28f   *** ( 12.39 f)
+c19 net0367 gnd 5.27f   *** ( 8.34 f)
+c20 net0112 gnd 3.48f   *** ( 5.87 f)
 
 *********************netlist_sim**********************
 
