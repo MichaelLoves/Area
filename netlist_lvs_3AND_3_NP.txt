@@ -34,34 +34,34 @@ m0 out in vdd vdd P L=180e-9 W=2e-6
 m242 net44 net73 vdd vdd P L=180e-9 W=5e-6
 m240 net44 net74 vdd vdd P L=180e-9 W=5e-6
 m232 net16 cd_n_3 gnd gnd N L=180e-9 W=4e-6
-m218 net10 n_nand_2 net16 gnd N L=180e-9 W=5e-6
-m227 net15 n_and_2 net16 gnd N L=180e-9 W=3e-6
 m234 net36 n_and_2 net16 gnd N L=180e-9 W=3e-6
+m227 net15 n_and_2 net16 gnd N L=180e-9 W=3e-6
+m218 net10 n_nand_2 net16 gnd N L=180e-9 W=5e-6
+m233 net35 n_and_2 net36 gnd N L=180e-9 W=2e-6
+m229 net24 n_and_2 net15 gnd N L=180e-9 W=2e-6
+m224 net14 n_nand_2 net15 gnd N L=180e-9 W=3e-6
 m220 net8 n_nand_2 net10 gnd N L=180e-9 W=3e-6
 m216 net8 n_and_2 net10 gnd N L=180e-9 W=2e-6
-m224 net14 n_nand_2 net15 gnd N L=180e-9 W=3e-6
-m229 net24 n_and_2 net15 gnd N L=180e-9 W=2e-6
-m233 net35 n_and_2 net36 gnd N L=180e-9 W=2e-6
+m235 net38 n_and_2 net35 gnd N L=180e-9 W=2e-6
 m228 net5 n_nand_2 net24 gnd N L=180e-9 W=2e-6
 m226 net5 n_nand_2 net14 gnd N L=180e-9 W=2e-6
 m223 net5 n_and_2 net14 gnd N L=180e-9 W=2e-6
 m221 net5 n_nand_2 net8 gnd N L=180e-9 W=2e-6
 m217 net5 n_and_2 net8 gnd N L=180e-9 W=2e-6
-m235 net38 n_and_2 net35 gnd N L=180e-9 W=2e-6
-m215 net57 p_and_2 net7 gnd N L=180e-9 W=2e-6
-m219 net57 p_nand_2 net7 gnd N L=180e-9 W=2e-6
+m97 net37 p_and_2 net30 gnd N L=180e-9 W=2e-6
+m98 net57 p_nand_2 net19 gnd N L=180e-9 W=2e-6
 m225 net57 p_nand_2 net13 gnd N L=180e-9 W=2e-6
 m222 net57 p_and_2 net13 gnd N L=180e-9 W=2e-6
-m98 net57 p_nand_2 net19 gnd N L=180e-9 W=2e-6
-m97 net37 p_and_2 net30 gnd N L=180e-9 W=2e-6
+m219 net57 p_nand_2 net7 gnd N L=180e-9 W=2e-6
+m215 net57 p_and_2 net7 gnd N L=180e-9 W=2e-6
+m92 net30 p_and_2 net29 gnd N L=180e-9 W=2e-6
+m93 net19 p_and_2 net18 gnd N L=180e-9 W=2e-6
+m94 net13 p_nand_2 net18 gnd N L=180e-9 W=3e-6
 m95 net7 p_nand_2 net9 gnd N L=180e-9 W=3e-6
 m96 net7 p_and_2 net9 gnd N L=180e-9 W=2e-6
-m94 net13 p_nand_2 net18 gnd N L=180e-9 W=3e-6
-m93 net19 p_and_2 net18 gnd N L=180e-9 W=2e-6
-m92 net30 p_and_2 net29 gnd N L=180e-9 W=2e-6
-m91 net9 p_nand_2 net17 gnd N L=180e-9 W=5e-6
-m90 net18 p_and_2 net17 gnd N L=180e-9 W=3e-6
 m89 net29 p_and_2 net17 gnd N L=180e-9 W=3e-6
+m90 net18 p_and_2 net17 gnd N L=180e-9 W=3e-6
+m91 net9 p_nand_2 net17 gnd N L=180e-9 W=5e-6
 m88 net17 cd_3 gnd gnd N L=180e-9 W=4e-6
 m238 net38 n_and_3 vdd vdd P L=180e-9 W=1e-6
 m237 net38 cd_n_3 vdd vdd P L=180e-9 W=4e-6
@@ -71,34 +71,14 @@ m236 net37 cd_3 vdd vdd P L=180e-9 W=4e-6
 m230 net57 cd_3 vdd vdd P L=180e-9 W=4e-6
 m239 net37 p_and_3 vdd vdd P L=180e-9 W=1e-6
 m214 net57 p_nand_3 vdd vdd P L=180e-9 W=1e-6
-xi64 gnd net44 cd_3 reset vdd inv_with_reset
 xi62 gnd net38 n_and_3 reset vdd inv_with_reset
 xi58 gnd net5 n_nand_3 reset vdd inv_with_reset
 xi60 gnd cd_3 cd_n_3 reset vdd inv_with_reset
+xi64 gnd net44 cd_3 reset vdd inv_with_reset
 xi61 gnd net37 p_and_3 reset vdd inv_with_reset
 xi59 gnd net57 p_nand_3 reset vdd inv_with_reset
 xi63 gnd cd_3 net44 vdd inv
-i_n8 gnd net10 PULSE 0 0 0
-i_n6 gnd net15 PULSE 0 0 0
-i_n3 gnd net36 PULSE 0 0 0
-i_cd gnd net44 PULSE 0 0 0
-i_n7 gnd net8 PULSE 0 0 0
-i_n5 gnd net14 PULSE 0 0 0
-i_n4 gnd net24 PULSE 0 0 0
-i_n2 gnd net35 PULSE 0 0 0
-i_test gnd n_and_3 PULSE 0 0 0
-i_n1 gnd net38 PULSE 0 0 0
-i_n9 gnd net5 PULSE 0 0 0
-i_p9 gnd net57 PULSE 0 0 0
-i_p1 gnd net37 PULSE 0 0 0
-i_p2 gnd net30 PULSE 0 0 0
-i_p5 gnd net13 PULSE 0 0 0
-i_p7 gnd net7 PULSE 0 0 0
-i_p4 gnd net19 PULSE 0 0 0
-i_p8 gnd net9 PULSE 0 0 0
-i_p6 gnd net18 PULSE 0 0 0
-i_p3 gnd net29 PULSE 0 0 0
 xi39 gnd p_nand_3 net73 vdd inv2
 xi38 gnd p_and_3 net74 vdd inv2
-m241 net44 n_and_3 gnd gnd N L=180e-9 W=2e-6
 m243 net44 n_nand_3 gnd gnd N L=180e-9 W=2e-6
+m241 net44 n_and_3 gnd gnd N L=180e-9 W=2e-6

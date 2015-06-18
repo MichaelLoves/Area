@@ -4,6 +4,7 @@
 .OPTION MTTHRESH=10               $ Multi-core operation if >10 transitor
 .OPTION PROBE                    $ Nanosim requires this line
 .OPTION INGOLD                  $ 指定输出结果的显示格式
+.OPTION CAPTAB=1
 .PROBE TRAN V(*) I(i_n1) I(i_n2) I(i_n3) I(i_n4) I(i_n5) I(i_n6) I(i_n7) I(i_n8) I(i_n9) I(i_p1) I(i_p2) I(i_p3) I(i_p4) I(i_p5) I(i_p6) I(i_p7) I(i_p8) I(i_p9) I(i_cd)       $ Nanosim requires to specify output node
 
 
@@ -20,7 +21,7 @@
 *** 测量信号 n_and_3, n_and_4, cd_3, cd_4 波形宽度 pulse_width (OK)
 .MEASURE TRAN n_and_3_pulse_width TRIG V(n_and_3) VAL=0.1 RISE=5 TARG V(n_and_3) VAL=0.1 FALL=5
 .MEASURE TRAN n_and_4_pulse_width TRIG V(n_and_4) VAL=0.1 RISE=5 TARG V(n_and_4) VAL=0.1 FALL=5
-.MEASURE TRAN cd_3_pulse_width TRIG V(cd_3) VAL=0.1 FALL=5 TARG V(cd_3) VAL=0.1 RISE=5 
+.MEASURE TRAN cd_3_pulse_width TRIG V(cd_3) VAL=0.1 RISE=5 TARG V(cd_3) VAL=0.1 FALL=5 
 .MEASURE TRAN cd_4_pulse_width TRIG V(cd_4) VAL=0.1 RISE=5 TARG V(cd_4) VAL=0.1 FALL=5
 
 
@@ -263,36 +264,36 @@ m260 net0179 p_and_4 vdd vdd P L=180e-9 W=1e-6 AD=2.00p AS=2.00p PD=6.00u PS=6.0
 m259 net0262 p_nand_4 vdd vdd P L=180e-9 W=1e-6 AD=2.00p AS=2.00p PD=6.00u PS=6.00u 
 m270 net0180 n_and_4 vdd vdd P L=180e-9 W=1e-6 AD=2.00p AS=2.00p PD=6.00u PS=6.00u 
 m269 net0180 cd_n_4 vdd vdd P L=180e-9 W=4e-6 AD=8.00p AS=8.00p PD=12.00u PS=12.00u 
-m235 net132 n_and_2 net0336 gnd N L=180e-9 W=2e-6 AD=0.96p AS=0.52p PD=4.96u PS=4.52u
-m234 net0136 n_and_2 net0316 gnd N L=180e-9 W=3e-6 AD=0.96p AS=1.44p PD=6.64u PS=6.96u
-m233 net0336 n_and_2 net0136 gnd N L=180e-9 W=2e-6 AD=0.52p AS=0.2p PD=4.52u PS=4.2u
-m97 net0382 p_and_2 net0129 gnd N L=180e-9 W=2e-6 AD=0.96p AS=0.52p PD=4.96u PS=4.52u
-m92 net0129 p_and_2 net296 gnd N L=180e-9 W=2e-6 AD=0.52p AS=0.2p PD=4.52u PS=4.2u
-m89 net296 p_and_2 net0116 gnd N L=180e-9 W=3e-6 AD=0.96p AS=1.44p PD=6.64u PS=6.96u
+m235 net132 n_and_2 net0336 gnd N L=180e-9 W=2e-6 AD=0 AS=0 PD=0 PS=0
+m234 net0136 n_and_2 net0316 gnd N L=180e-9 W=3e-6 AD=0 AS=0 PD=0 PS=0
+m233 net0336 n_and_2 net0136 gnd N L=180e-9 W=2e-6 AD=0 AS=0 PD=0 PS=0
+m97 net0382 p_and_2 net0129 gnd N L=180e-9 W=2e-6 AD=0 AS=0 PD=0 PS=0
+m92 net0129 p_and_2 net296 gnd N L=180e-9 W=2e-6 AD=0 AS=0 PD=0 PS=0
+m89 net296 p_and_2 net0116 gnd N L=180e-9 W=3e-6 AD=0 AS=0 PD=0 PS=0
 m232 net0316 cd_n_3 gnd gnd N L=180e-9 W=4e-6 AD=8.00p AS=8.00p PD=12.00u PS=12.00u 
 m88 net0116 cd_3 gnd gnd N L=180e-9 W=4e-6 AD=8.00p AS=8.00p PD=12.00u PS=12.00u 
-m229 net284 n_and_2 net0342 gnd N L=180e-9 W=2e-6 AD=0.52p AS=0.32p PD=4.52u PS=4.32u
-m228 net105 n_nand_2 net284 gnd N L=180e-9 W=2e-6 AD=0.96p AS=0.52p PD=4.96u PS=4.52u
-m98 net0386 p_nand_2 net0118 gnd N L=180e-9 W=2e-6 AD=0.96p AS=0.52p PD=4.96u PS=4.52u
-m93 net0118 p_and_2 net0117 gnd N L=180e-9 W=2e-6 AD=0.52p AS=0.32p PD=4.52u PS=4.32u
-m90 net0117 p_and_2 net0116 gnd N L=180e-9 W=3e-6 AD=1.14p AS=1.44p PD=6.76u PS=6.96u
-m227 net0342 n_and_2 net0316 gnd N L=180e-9 W=3e-6 AD=1.14p AS=1.44p PD=6.76u PS=6.96u
-m226 net105 n_nand_2 net0330 gnd N L=180e-9 W=2e-6 AD=0.96p AS=0.96p PD=4.96u PS=4.96u
-m225 net0386 p_nand_2 net0112 gnd N L=180e-9 W=2e-6 AD=0.96p AS=0.96p PD=4.96u PS=4.96u
-m224 net0330 n_nand_2 net0342 gnd N L=180e-9 W=3e-6 AD=1.14p AS=1.44p PD=6.76u PS=6.96u
-m94 net0112 p_nand_2 net0117 gnd N L=180e-9 W=3e-6 AD=1.14p AS=1.44p PD=6.76u PS=6.96u
-m223 net105 n_and_2 net0330 gnd N L=180e-9 W=2e-6 AD=0.96p AS=0.32p PD=4.96u PS=4.32u
-m222 net0386 p_and_2 net0112 gnd N L=180e-9 W=2e-6 AD=0.96p AS=0.32p PD=4.96u PS=4.32u
-m221 net105 n_nand_2 net246 gnd N L=180e-9 W=2e-6 AD=0.96p AS=0.32p PD=4.96u PS=4.32u
-m220 net246 n_nand_2 net0348 gnd N L=180e-9 W=3e-6 AD=1.14p AS=1.44p PD=6.76u PS=6.96u
-m219 net0386 p_nand_2 net0367 gnd N L=180e-9 W=2e-6 AD=0.96p AS=0.32p PD=4.96u PS=4.32u
-m95 net0367 p_nand_2 net0381 gnd N L=180e-9 W=3e-6 AD=1.14p AS=1.44p PD=6.76u PS=6.96u
-m218 net0348 n_nand_2 net0316 gnd N L=180e-9 W=5e-6 AD=1.9p AS=2.4p PD=10.76u PS=10.96u
-m91 net0381 p_nand_2 net0116 gnd N L=180e-9 W=5e-6 AD=1.9p AS=2.4p PD=10.76u PS=10.96u
-m217 net105 n_and_2 net246 gnd N L=180e-9 W=2e-6 AD=0.96p AS=0.96p PD=4.96u PS=4.96u
-m216 net246 n_and_2 net0348 gnd N L=180e-9 W=2e-6 AD=0.96p AS=0.32p PD=4.96u PS=4.32u
-m215 net0386 p_and_2 net0367 gnd N L=180e-9 W=2e-6 AD=0.96p AS=0.96p PD=4.96u PS=4.96u
-m96 net0367 p_and_2 net0381 gnd N L=180e-9 W=2e-6 AD=0.96p AS=0.32p PD=4.96u PS=4.32u
+m229 net284 n_and_2 net0342 gnd N L=180e-9 W=2e-6 AD=0 AS=0 PD=0 PS=0
+m228 net105 n_nand_2 net284 gnd N L=180e-9 W=2e-6 AD=0 AS=0 PD=0 PS=0
+m98 net0386 p_nand_2 net0118 gnd N L=180e-9 W=2e-6 AD=0 AS=0 PD=0 PS=0
+m93 net0118 p_and_2 net0117 gnd N L=180e-9 W=2e-6 AD=0 AS=0 PD=0 PS=0
+m90 net0117 p_and_2 net0116 gnd N L=180e-9 W=3e-6 AD=0 AS=0 PD=0 PS=0
+m227 net0342 n_and_2 net0316 gnd N L=180e-9 W=3e-6 AD=0 AS=0 PD=0 PS=0
+m226 net105 n_nand_2 net0330 gnd N L=180e-9 W=2e-6 AD=0 AS=0 PD=0 PS=0
+m225 net0386 p_nand_2 net0112 gnd N L=180e-9 W=2e-6 AD=0 AS=0 PD=0 PS=0
+m224 net0330 n_nand_2 net0342 gnd N L=180e-9 W=3e-6 AD=0 AS=0 PD=0 PS=0
+m94 net0112 p_nand_2 net0117 gnd N L=180e-9 W=3e-6 AD=0 AS=0 PD=0 PS=0
+m223 net105 n_and_2 net0330 gnd N L=180e-9 W=2e-6 AD=0 AS=0 PD=0 PS=0
+m222 net0386 p_and_2 net0112 gnd N L=180e-9 W=2e-6 AD=0 AS=0 PD=0 PS=0
+m221 net105 n_nand_2 net246 gnd N L=180e-9 W=2e-6 AD=0 AS=0 PD=0 PS=0
+m220 net246 n_nand_2 net0348 gnd N L=180e-9 W=3e-6 AD=0 AS=0 PD=0 PS=0
+m219 net0386 p_nand_2 net0367 gnd N L=180e-9 W=2e-6 AD=0 AS=0 PD=0 PS=0
+m95 net0367 p_nand_2 net0381 gnd N L=180e-9 W=3e-6 AD=0 AS=0 PD=0 PS=0
+m218 net0348 n_nand_2 net0316 gnd N L=180e-9 W=5e-6 AD=0 AS=0 PD=0 PS=0
+m91 net0381 p_nand_2 net0116 gnd N L=180e-9 W=5e-6 AD=0 AS=0 PD=0 PS=0
+m217 net105 n_and_2 net246 gnd N L=180e-9 W=2e-6 AD=0 AS=0 PD=0 PS=0
+m216 net246 n_and_2 net0348 gnd N L=180e-9 W=2e-6 AD=0 AS=0 PD=0 PS=0
+m215 net0386 p_and_2 net0367 gnd N L=180e-9 W=2e-6 AD=0 AS=0 PD=0 PS=0
+m96 net0367 p_and_2 net0381 gnd N L=180e-9 W=2e-6 AD=0 AS=0 PD=0 PS=0
 m208 net299 p_and_1 net68 gnd N L=180e-9 W=3e-6 AD=6.00p AS=6.00p PD=10.00u PS=10.00u 
 m207 net288 n_and_1 net67 gnd N L=180e-9 W=3e-6 AD=6.00p AS=6.00p PD=10.00u PS=10.00u 
 m206 net287 n_and_1 net288 gnd N L=180e-9 W=2e-6 AD=4.00p AS=4.00p PD=8.00u PS=8.00u 
@@ -409,6 +410,27 @@ xi81 gnd p_nand_4 net0279 vdd inv2
 xi80 gnd p_and_4 net0280 vdd inv2
 
 
+c1 net0136 gnd 3.13f
+c2 net246 gnd 6.02f
+c3 net0342 gnd 6.92f
+c4 net0336 gnd 1.83f
+c5 net0330 gnd 5.87f
+c6 net105 gnd 11.91f
+c7 net132 gnd 2.38f
+c8 net284 gnd 1.83f
+c9 net0348 gnd 8.82f
+c10 net0316 gnd 12.39f
+c11 net0381 gnd 8.82f
+c12 net0118 gnd 1.83f
+c13 net0129 gnd 1.83f
+c14 net296 gnd 3.13f
+c15 net0386 gnd 11.91f
+c16 net0117 gnd 6.92f
+c17 net0116 gnd 12.39f
+c18 net0382 gnd 2.38f
+c19 net0112 gnd 5.87f
+c20 net0367 gnd 6.02f
+
 *********************netlist_sim**********************
 
 
@@ -439,67 +461,70 @@ xi80 gnd p_and_4 net0280 vdd inv2
 
 
 
+
+
+
 ******************** injection node ********************
 *** pulse i1 i2 delay rise fall pw period
 i_n1 gnd net132 PULSE 0 current_height injection_timing_n1 0 0 current_duration simtime
-i_n2 gnd net282 PULSE 0 current_height injection_timing_n2 0 0 current_duration simtime
-i_n3 gnd net283 PULSE 0 current_height injection_timing_n3 0 0 current_duration simtime
+i_n2 gnd net0336 PULSE 0 current_height injection_timing_n2 0 0 current_duration simtime
+i_n3 gnd net0136 PULSE 0 current_height injection_timing_n3 0 0 current_duration simtime
 i_n4 gnd net284 PULSE 0 current_height injection_timing_n4 0 0 current_duration simtime
-i_n5 gnd net113 PULSE 0 current_height injection_timing_n5 0 0 current_duration simtime
-i_n6 gnd net114 PULSE 0 current_height injection_timing_n6 0 0 current_duration simtime
+i_n5 gnd net0330 PULSE 0 current_height injection_timing_n5 0 0 current_duration simtime
+i_n6 gnd net0342 PULSE 0 current_height injection_timing_n6 0 0 current_duration simtime
 i_n7 gnd net246 PULSE 0 current_height injection_timing_n7 0 0 current_duration simtime
-i_n8 gnd net109 PULSE 0 current_height injection_timing_n8 0 0 current_duration simtime
+i_n8 gnd net0348 PULSE 0 current_height injection_timing_n8 0 0 current_duration simtime
 i_n9 gnd net105 PULSE 0 current_height injection_timing_n9 0 0 current_duration simtime
-i_p1 gnd net261 PULSE 0 current_height injection_timing_p1 0 0 current_duration simtime
-i_p2 gnd net295 PULSE 0 current_height injection_timing_p2 0 0 current_duration simtime
+
+i_p1 gnd net0382 PULSE 0 current_height injection_timing_p1 0 0 current_duration simtime
+i_p2 gnd net0129 PULSE 0 current_height injection_timing_p2 0 0 current_duration simtime
 i_p3 gnd net296 PULSE 0 current_height injection_timing_p3 0 0 current_duration simtime
-i_p4 gnd net297 PULSE 0 current_height injection_timing_p4 0 0 current_duration simtime
-i_p5 gnd net112 PULSE 0 current_height injection_timing_p5 0 0 current_duration simtime
-i_p6 gnd net117 PULSE 0 current_height injection_timing_p6 0 0 current_duration simtime
-i_p7 gnd net245 PULSE 0 current_height injection_timing_p7 0 0 current_duration simtime
-i_p8 gnd net247 PULSE 0 current_height injection_timing_p8 0 0 current_duration simtime
-i_p9 gnd net239 PULSE 0 current_height injection_timing_p9 0 0 current_duration simtime
+i_p4 gnd net0118 PULSE 0 current_height injection_timing_p4 0 0 current_duration simtime
+i_p5 gnd net0112 PULSE 0 current_height injection_timing_p5 0 0 current_duration simtime
+i_p6 gnd net0117 PULSE 0 current_height injection_timing_p6 0 0 current_duration simtime
+i_p7 gnd net0367 PULSE 0 current_height injection_timing_p7 0 0 current_duration simtime
+i_p8 gnd net0381 PULSE 0 current_height injection_timing_p8 0 0 current_duration simtime
+i_p9 gnd net0386 PULSE 0 current_height injection_timing_p9 0 0 current_duration simtime
 i_cd gnd net278 PULSE 0 current_height injection_timing_cd 0 0 current_duration simtime
 ******************** injection node ********************
 
 
 
 ******************** pattern list ********************
-* net57  m219  net7  m95  net9  
-* net7  m96  net9  m91  net17  
-* net57  m215  net7  
-* net57  m222  net13  m94  net18  
-* net57  m98  net19  m93  net18  m90  net17  
-* net57  m225  net13  
-* net37  m97  net30  m92  net29  m89  net17  
+* net38  m235  net35  m233  net36  m234  net16  
+* net5  m223  net14  m224  net15  
+* net5  m228  net24  m229  net15  m227  net16  
+* net5  m226  net14  
+* net5  m217  net8  m216  net10  m218  net16  
+* net5  m221  net8  m220  net10  
 ******************** pattern list ********************
  
  
 ******************** area ratio list ********************
-* m215 : 0.0012
-* m219 : 0.0012
-* m222 : 0.0012
-* m225 : 0.0012
-* m89 : 0.0017
-* m90 : 0.0017
-* m91 : 0.0027
-* m92 : 0.0012
-* m93 : 0.0012
-* m94 : 0.0017
-* m95 : 0.0017
-* m96 : 0.0012
-* m97 : 0.0012
-* m98 : 0.0012
-* net13 : 0.0066
-* net17 : 0.0145
-* net18 : 0.008
-* net19 : 0.0014
-* net29 : 0.0032
-* net30 : 0.0014
-* net37 : 0.0026
-* net57 : 0.0132
-* net7 : 0.0093
-* net9 : 0.01
+* m216 : 0.0013
+* m217 : 0.0013
+* m218 : 0.0028
+* m220 : 0.0018
+* m221 : 0.0013
+* m223 : 0.0013
+* m224 : 0.0018
+* m226 : 0.0013
+* m227 : 0.0018
+* m228 : 0.0013
+* m229 : 0.0013
+* m233 : 0.0013
+* m234 : 0.0018
+* m235 : 0.0013
+* net10 : 0.0104
+* net14 : 0.0069
+* net15 : 0.0083
+* net16 : 0.015
+* net24 : 0.0015
+* net35 : 0.0015
+* net36 : 0.0033
+* net38 : 0.0027
+* net5 : 0.0137
+* net8 : 0.0072
 ******************** area ratio list ********************
 
 .END

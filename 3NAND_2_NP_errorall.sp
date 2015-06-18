@@ -4,6 +4,7 @@
 .OPTION MTTHRESH=10               $ Multi-core operation if >10 transitor
 .OPTION PROBE                    $ Nanosim requires this line
 .OPTION INGOLD                  $ 指定输出结果的显示格式
+.OPTION CAPTAB=1
 .PROBE TRAN V(*) I(i_n1) I(i_n2) I(i_n3) I(i_n4) I(i_n5) I(i_n6) I(i_n7) I(i_n8) I(i_n9) I(i_p1) I(i_p2) I(i_p3) I(i_p4) I(i_p5) I(i_p6) I(i_p7) I(i_p8) I(i_p9) I(i_cd)       $ Nanosim requires to specify output node
 
 
@@ -20,7 +21,7 @@
 *** 测量信号 n_and_3, n_and_4, cd_3, cd_4 波形宽度 pulse_width (OK)
 .MEASURE TRAN n_and_3_pulse_width TRIG V(n_and_3) VAL=0.1 RISE=5 TARG V(n_and_3) VAL=0.1 FALL=5
 .MEASURE TRAN n_and_4_pulse_width TRIG V(n_and_4) VAL=0.1 RISE=5 TARG V(n_and_4) VAL=0.1 FALL=5
-.MEASURE TRAN cd_3_pulse_width TRIG V(cd_3) VAL=0.1 FALL=5 TARG V(cd_3) VAL=0.1 RISE=5 
+.MEASURE TRAN cd_3_pulse_width TRIG V(cd_3) VAL=0.1 RISE=5 TARG V(cd_3) VAL=0.1 FALL=5 
 .MEASURE TRAN cd_4_pulse_width TRIG V(cd_4) VAL=0.1 RISE=5 TARG V(cd_4) VAL=0.1 FALL=5
 
 
@@ -409,6 +410,7 @@ xi81 gnd p_nand_4 net0279 vdd inv2
 xi80 gnd p_and_4 net0280 vdd inv2
 
 
+
 *********************netlist_sim**********************
 
 
@@ -439,26 +441,30 @@ xi80 gnd p_and_4 net0280 vdd inv2
 
 
 
+
+
+
 ******************** injection node ********************
 *** pulse i1 i2 delay rise fall pw period
 i_n1 gnd net132 PULSE 0 current_height injection_timing_n1 0 0 current_duration simtime
-i_n2 gnd net282 PULSE 0 current_height injection_timing_n2 0 0 current_duration simtime
-i_n3 gnd net283 PULSE 0 current_height injection_timing_n3 0 0 current_duration simtime
+i_n2 gnd net0336 PULSE 0 current_height injection_timing_n2 0 0 current_duration simtime
+i_n3 gnd net0136 PULSE 0 current_height injection_timing_n3 0 0 current_duration simtime
 i_n4 gnd net284 PULSE 0 current_height injection_timing_n4 0 0 current_duration simtime
-i_n5 gnd net113 PULSE 0 current_height injection_timing_n5 0 0 current_duration simtime
-i_n6 gnd net114 PULSE 0 current_height injection_timing_n6 0 0 current_duration simtime
+i_n5 gnd net0330 PULSE 0 current_height injection_timing_n5 0 0 current_duration simtime
+i_n6 gnd net0342 PULSE 0 current_height injection_timing_n6 0 0 current_duration simtime
 i_n7 gnd net246 PULSE 0 current_height injection_timing_n7 0 0 current_duration simtime
-i_n8 gnd net109 PULSE 0 current_height injection_timing_n8 0 0 current_duration simtime
+i_n8 gnd net0348 PULSE 0 current_height injection_timing_n8 0 0 current_duration simtime
 i_n9 gnd net105 PULSE 0 current_height injection_timing_n9 0 0 current_duration simtime
-i_p1 gnd net261 PULSE 0 current_height injection_timing_p1 0 0 current_duration simtime
-i_p2 gnd net295 PULSE 0 current_height injection_timing_p2 0 0 current_duration simtime
+
+i_p1 gnd net0382 PULSE 0 current_height injection_timing_p1 0 0 current_duration simtime
+i_p2 gnd net0129 PULSE 0 current_height injection_timing_p2 0 0 current_duration simtime
 i_p3 gnd net296 PULSE 0 current_height injection_timing_p3 0 0 current_duration simtime
-i_p4 gnd net297 PULSE 0 current_height injection_timing_p4 0 0 current_duration simtime
-i_p5 gnd net112 PULSE 0 current_height injection_timing_p5 0 0 current_duration simtime
-i_p6 gnd net117 PULSE 0 current_height injection_timing_p6 0 0 current_duration simtime
-i_p7 gnd net245 PULSE 0 current_height injection_timing_p7 0 0 current_duration simtime
-i_p8 gnd net247 PULSE 0 current_height injection_timing_p8 0 0 current_duration simtime
-i_p9 gnd net239 PULSE 0 current_height injection_timing_p9 0 0 current_duration simtime
+i_p4 gnd net0118 PULSE 0 current_height injection_timing_p4 0 0 current_duration simtime
+i_p5 gnd net0112 PULSE 0 current_height injection_timing_p5 0 0 current_duration simtime
+i_p6 gnd net0117 PULSE 0 current_height injection_timing_p6 0 0 current_duration simtime
+i_p7 gnd net0367 PULSE 0 current_height injection_timing_p7 0 0 current_duration simtime
+i_p8 gnd net0381 PULSE 0 current_height injection_timing_p8 0 0 current_duration simtime
+i_p9 gnd net0386 PULSE 0 current_height injection_timing_p9 0 0 current_duration simtime
 i_cd gnd net278 PULSE 0 current_height injection_timing_cd 0 0 current_duration simtime
 ******************** injection node ********************
 

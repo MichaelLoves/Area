@@ -1,21 +1,31 @@
 import re, os, sys, getopt, operator, glob, math
 from copy import deepcopy
 
-#C_j = 970E-18
-#C_jsw = 261E-18
+#Sakurai
+#C_j = 4.96491e-3
+#C_jsw = 2.45744e-10
 
-#来自HSPICE MOSFET Models Manual
-C_j = 4.31E-4 
-C_jsw = 3.96E-10
+#来自 rules/rohm180/spice/hspice/bu40n1.mdl
+C_j = 9.478e-4
+C_jsw = 2.968e-10
 
-#C_j = 2E-15
-#C_jsw = 0.28E-15
-
-n_pipeline_to_p_pipeline_dict = {'m97':'m235', 'm92':'m233', 'm89':'m234', 'm98':'m228', 'm93':'m229', 
+n_pipeline_to_p_pipeline_mos_dict = {'m97':'m235', 'm92':'m233', 'm89':'m234', 'm98':'m228', 'm93':'m229', 
 'm225':'m226', 'm222':'m223', 'm94':'m224', 'm90':'m227', 'm219':'m221', 'm95':'m220', 'm215':'m217', 'm96':'m216', 'm91':'m218'}
 
-p_pipeline_to_n_pipeline_dict = {'m235':'m97', 'm233':'m92', 'm234':'m89', 'm228':'m98', 'm229':'m93',
+p_pipeline_to_n_pipeline_mos_dict = {'m235':'m97', 'm233':'m92', 'm234':'m89', 'm228':'m98', 'm229':'m93',
 'm226':'m225', 'm223':'m222', 'm224':'m94', 'm227':'m90', 'm221':'m219', 'm220':'m95', 'm217':'m215', 'm216':'m96', 'm218':'m91'}
+
+n_pipeline_to_p_pipeline_net_dict ={'net132':'net0382', 'net0336':'net0129', 'net0136':'net296', 'net105':'net0386', 'net284':'net0118', 
+'net0330':'net0112', 'net0342':'net0117', 'net246':'net0367', 'net0348':'net0381', 'net0316':'net0116'}
+
+p_pipeline_to_n_pipeline_net_dict ={'net0382':'net132', 'net0129':'net0336', 'net296':'net0136', 'net0386':'net105', 'net0118':'net284', 
+'net0112':'net0330', 'net0117':'net0342', 'net0367':'net246', 'net0381':'net0348', 'net0116':'net0316'}
+
+test_sp_net_to_3AND_sp_net_dict_n_pipeline = {'net38':'net132', 'net35':'net0336', 'net36':'net0136', 'net5':'net105', 'net24':'net284', 
+'net14':'net0330', 'net15':'net0342', 'net8':'net246', 'net10':'net0348', 'net16':'net0316'}
+
+test_sp_net_to_3AND_sp_net_dict_p_pipeline = {'net37':'net0382', 'net30':'net0129', 'net29':'net296', 'net57':'net0386', 'net19':'net0118', 
+'net13':'net0112', 'net18':'net0117', 'net7':'net0367', 'net9':'net0381', 'net17':'net0116'}
 
 
 def display_all_combination_list(pipeline_all_pattern_combination_list):
@@ -213,18 +223,15 @@ def calculate_area_in_single_pattern_list(part, single_pattern_list, list_of_blo
 
 			return(part_area, part_area_W, part_area_L)
 
-def share_node_mos(mos_replace_dict, group_pattern_list, list_of_block_info_in_every_single_pattern):
+def calculate_node_capacitance(mos_replace_dict, group_pattern_list, list_of_block_info_in_every_single_pattern):
 	#记录所有需要修改的 mos 和 net 信息
-	# mos_replace_dict 中的顺序为 mos : AD AS PD PS
-	change_list = []
-
+	#mos_replace_dict 中的顺序为 mos : AD AS PD PS
+	#用储存每个 net 的容量的字典
 	node_capacitance_dict = {}
 	for single_pattern_list in group_pattern_list:
 		for part in single_pattern_list:
 			if 'net' in part:
 				node_capacitance_dict[part] = 0
-
-	print(mos_replace_dict)
 
 	for pattern in group_pattern_list:
 		# pattern 中的顺序为 [node1, mos1, node2, mos2, node3, mos3, node4]
@@ -235,7 +242,6 @@ def share_node_mos(mos_replace_dict, group_pattern_list, list_of_block_info_in_e
 			node1 = pattern[0]
 			mos = pattern[1]
 			node2 = pattern[2]
-			print(pattern)
 
 			#计算两侧 node1 和 node2 的容量
 			#C_drain = C_j * AD + C_jsw * PD, C_source = C_j * AS + C_jsw * PS
@@ -249,8 +255,6 @@ def share_node_mos(mos_replace_dict, group_pattern_list, list_of_block_info_in_e
 
 		if len(pattern) == 5:
 			#[node1, left_mos, node2, right_mos, node3]
-			print(pattern)
-
 			node1 = pattern[0]
 			left_mos = pattern[1]
 			node2 = pattern[2]
@@ -280,8 +284,9 @@ def share_node_mos(mos_replace_dict, group_pattern_list, list_of_block_info_in_e
 
 			if compare_result == 'same width':
 				#当 width 相同时, 只算一边的就可以了. 因为在创建 AD AS PD PS dict 的时候, mos1 node1(block:gate_gate_sw) mos2
-				#mos1 的 source 和 mos2 的 drain 的数据是相同的
-				node_capacitance_dict[node2] += C_j * left_mos_AS + C_jsw * left_mos_PS
+				#mos1 的 source 和 mos2 的 drain 的数据是相同的, 所以只算一侧就可以了
+				node_capacitance_dict[node2] += C_j * left_mos_AS + C_jsw * left_mos_PS 
+
 			elif compare_result == 'different width':
 				#当 width 不同时, 需要算两边. 因为此时为 mos1 gate_gate_dw gate_gate_dw mos2
 				node_capacitance_dict[node2] += C_j * left_mos_AS + C_jsw * (left_mos_PS - smaller_W) + C_j * right_mos_AD + C_jsw * (right_mos_PD - smaller_W) 
@@ -289,8 +294,6 @@ def share_node_mos(mos_replace_dict, group_pattern_list, list_of_block_info_in_e
 
 		elif len(pattern) == 7:
 			#[node1, left_mos, node2, middle_mos, node3, right_mos, node4]
-			print(pattern)
-
 			node1 = pattern[0]
 			left_mos = pattern[1]
 			node2 = pattern[2]
@@ -298,6 +301,7 @@ def share_node_mos(mos_replace_dict, group_pattern_list, list_of_block_info_in_e
 			node3 = pattern[4]
 			right_mos = pattern[5]
 			node4 = pattern[6]
+
 
 			smaller_W_1, compare_result_1 = find_smaller_W(left_mos, middle_mos, pattern, list_of_block_info_in_every_single_pattern)
 			smaller_W_2, compare_result_2 = find_smaller_W(middle_mos, right_mos, pattern, list_of_block_info_in_every_single_pattern)
@@ -336,118 +340,312 @@ def share_node_mos(mos_replace_dict, group_pattern_list, list_of_block_info_in_e
 			elif compare_result_2 == 'different width':
 				node_capacitance_dict[node3] += C_j * middle_mos_AS + C_jsw * (middle_mos_PS - smaller_W_2 ) + C_j * right_mos_AD + C_jsw * (right_mos_PD - smaller_W_2 ) 
 
-	### 测试 ###
-	print('after')
-	print(node_capacitance_dict)
-	print()
-	### 测试 ###
+	return(node_capacitance_dict)
 
-	return(change_list)
-
-
-def create_new_sp_file(mos_replace_dict, combination_num, group_pattern_list, CD_circuit_area, main_circuit):
+def create_new_sp_file(mos_replace_dict, combination_num, n_pipeline_group_pattern_list, p_pipeline_group_pattern_list,  CD_circuit_area, pipeline1, pipeline2, main_circuit):
 	#用最上面的 n 和 p pipeline 的对应表来生成另一个需要替换的 mos_replace_dict
 
 	#以现有的 3NAND_2_NP_errorall.sp 为源文件, 对于其中的特定部分进行替换, 并生成新的 sp 文件
 	with open('3NAND_2_NP_errorall.sp', 'r') as source_file:
 		old_file = source_file.readlines()
 		
+		#重置需要手动填加容量的 MOS 的 AD AS PD PS 为0
 		for mos in mos_replace_dict:
 			for index, line in enumerate(old_file):
 				if mos in line:
-					AD = mos_replace_dict[mos][0]
-					AS = mos_replace_dict[mos][1]
-					PD = mos_replace_dict[mos][2]
-					PS = mos_replace_dict[mos][3]
-
-					#把原有的行以'AD'为界分为两部分, 用字典中的值替换掉后面的部分
-					line = line.split('AD', 2)
-					line[1] = 'AD=' + AD + ' AS=' + AS + ' PD=' + PD + ' PS=' + PS + '\n'
+					#把原有的行以'AD'为界分为两部分, 用字典中的值替换掉后面的部分	
+					line = line.split('AD')
+					line[1] = 'AD=0 AS=0 PD=0 PS=0\n'
 					old_file[index] = ''.join(line)
 
 			#找出在另一个 pipeline 中与已经替换了的 mos 处于对称位置的 mos, 也需将其信息进行替换
-			if mos in n_pipeline_to_p_pipeline_dict:
-				the_other_mos = n_pipeline_to_p_pipeline_dict[mos]
+			if mos in n_pipeline_to_p_pipeline_mos_dict:
+				the_other_mos = n_pipeline_to_p_pipeline_mos_dict[mos]
 			else:
-				the_other_mos = p_pipeline_to_n_pipeline_dict[mos]
+				the_other_mos = p_pipeline_to_n_pipeline_mos_dict[mos]
 
 			for index, line in enumerate(old_file):
 				if the_other_mos in line:
-					AD = mos_replace_dict[mos][0]
-					AS = mos_replace_dict[mos][1]
-					PD = mos_replace_dict[mos][2]
-					PS = mos_replace_dict[mos][3]
-
 					#把原有的行以'AD'为界分为两部分, 用字典中的值替换掉后面的部分
-					line = line.split('AD', 2)
-					line[1] = 'AD=' + AD + ' AS=' + AS + ' PD=' + PD + ' PS=' + PS + '\n'
+					line = line.split('AD')
+					line[1] = 'AD=0 AS=0 PD=0 PS=0\n'
 					old_file[index] = ''.join(line)
 
 
-		#找出两个 mos 之间存在连接的 node 的所有情况.
-		#此时, 把两侧的 mos AS/PS 或者 AD/PD 修改为0, 手动添加 C left_mos right_mos capacitance
-		change_list = share_node_mos(mos_replace_dict, group_pattern_list, main_circuit.list_of_block_info_in_every_single_pattern)
+		#根据每个 net 的容量插入 capacitor
+		#根据 test 的 sp 文件获得每个 net 的具体容量
+		node_capacitance_dict_from_test_sp = calculate_node_capacitance(mos_replace_dict, n_pipeline_group_pattern_list, main_circuit.list_of_block_info_in_every_single_pattern)
 
-		'''
-		for list in change_list:
-			# mos1 net mos2 仅有一个连接 node 的情况
-			if list[-1] == 1:
-				left_mos = list[0][0]
-				right_mos = list[0][1]
-				node = list[1][0]
-				capacitance = list[1][1]
+		#之后把容量再对应到原来的 3AND 的 sp 文件中的 net
+		n_pipeline_node_capacitance_dict = {}
+		p_pipeline_node_capacitance_dict = {}
+		for key in node_capacitance_dict_from_test_sp:
+			if key in test_sp_net_to_3AND_sp_net_dict_n_pipeline:
+				n_pipeline_node_capacitance_dict[test_sp_net_to_3AND_sp_net_dict_n_pipeline[key]] = node_capacitance_dict_from_test_sp[key]
+			elif key in test_sp_net_to_3AND_sp_net_dict_p_pipeline:
+				p_pipeline_node_capacitance_dict[test_sp_net_to_3AND_sp_net_dict_p_pipeline[key]] = node_capacitance_dict_from_test_sp[key]
 
-				#left mos 的 AD PD 重置为0, right mos 的 AS PS 重置为0
+		#因为只能完成 n 或者 p pipeline 其中的一个, 另一侧的也需要对应着来填补
+		if n_pipeline_node_capacitance_dict:
+			for key in n_pipeline_node_capacitance_dict:
+				p_pipeline_node_capacitance_dict[n_pipeline_to_p_pipeline_net_dict[key]] = n_pipeline_node_capacitance_dict[key]
+		elif p_pipeline_node_capacitance_dict:
+			for key in p_pipeline_node_capacitance_dict:
+				n_pipeline_node_capacitance_dict[p_pipeline_to_n_pipeline_net_dict[key]] = p_pipeline_node_capacitance_dict[key]
+
+
+		### 测试
+		print('node_capacitance_dict')
+		#print(n_pipeline_node_capacitance_dict)
+		#print('n', n_pipeline_node_capacitance_dict, len(n_pipeline_node_capacitance_dict))
+		#print('p', p_pipeline_node_capacitance_dict, len(p_pipeline_node_capacitance_dict))
+		#print(group_pattern_list)
+		#print(pipeline1.top_node_1, pipeline1.top_node_2, pipeline1.bot_node)
+
+		#因为查找 net 在哪个 group_pattern_list 中时, 用到的是 test.sp, 所以用一个综合的字典来对应test.sp 和3AND.sp 中的 net
+		test_sp_to_3AND_sp_net_dict = test_sp_net_to_3AND_sp_net_dict_n_pipeline.copy()
+		test_sp_to_3AND_sp_net_dict.update(test_sp_net_to_3AND_sp_net_dict_p_pipeline)
+
+		#决定 n pipeline 和 p pipeline 的 top node 和 bot node 列表
+		temp_list_1 = [pipeline1.top_node_1, pipeline1.top_node_2, pipeline1.bot_node]
+		temp_list_2 = [pipeline2.top_node_1, pipeline2.top_node_2, pipeline2.bot_node]
+
+		if 'net38' in temp_list_1:
+			n_pipeline_top_bot_node_list = temp_list_1
+			p_pipeline_top_bot_node_list = temp_list_2
+		else:
+			n_pipeline_top_bot_node_list = temp_list_2
+			p_pipeline_top_bot_node_list = temp_list_1
+
+		#对于 n_pipeline 中的 mos, 一一填加容量, 并改写 mos 所连接的 net 番号
+		n_pipeline_capacitor_num = 1
+
+		#用来记录该 net 处是否已经插入了 capacitor
+		n_pipelinenode_has_capacitor_dict = {}
+		for node_in_3AND in n_pipeline_node_capacitance_dict:
+			n_pipelinenode_has_capacitor_dict[node_in_3AND] = 0
+
+		for node_in_3AND in n_pipeline_node_capacitance_dict:
+			#node_in_3AND 为原 sp 文件中的 net 番号, node 为 test.sp 文件中的番号, 用来寻找 node 所在的 pattern
+			for key, value in test_sp_to_3AND_sp_net_dict.items():
+				if node_in_3AND == value:
+					node = key
+			#print('node_in_3AND', node_in_3AND, node, n_pipeline_top_bot_node_list)
+
+			#先处理两个 top node 和一个 bottom node		
+			if node == n_pipeline_top_bot_node_list[0]:
+				#找到最顶端的 precharge_PMOS
+				for line in old_file:
+					if re.findall(r'\bm\w+', line):
+						line = line.split(' ')
+						if (line[1] == 'vdd' and line[2] == 'cd_n_3' and line[3] == node_in_3AND) or (line[1] == node_in_3AND and line[2] == 'cd_n_3' and line[3] == 'vdd'):
+							n_pipeline_precharge_PMOS_1 = line[0]
+
+				capacitance = str(round(n_pipeline_node_capacitance_dict[node_in_3AND]/pow(10, -15) ,2)) + 'f'
+
+				#需要写入的容量的一行
+				capacitor_line = 'c' + str(n_pipeline_capacitor_num) + ' ' + node_in_3AND + ' ' + 'gnd ' + capacitance + '\n'
+				index_list = []
 				for index, line in enumerate(old_file):
-					if left_mos in line:
-						new_line = line.split('AD')[0] + 'AD=0 ' + line.split('PD')[0].split(' ')[-2] + ' PD=0 ' + line.split('PD')[1].split(' ')[1]
-						old_file[index] = new_line
-					elif right_mos in line:
-						new_line = line.split('AS')[0] + 'AS=0 ' + line.split('PS')[0].split(' ')[-2] + ' PS=0\n'
-						old_file[index] = new_line
-						capacitance_line = index
+					if 'netlist_sim' in line:
+						index_list.append(index)
+				old_file.insert(index_list[-1]-1, capacitor_line)
 
-				#转换 capacitance 的格式 pF
-				num1 = float(str(capacitance).split('e')[0])
-				num2 = float(str(capacitance).split('e')[1])
-				num1 = str(round(num1 * pow(10, 12 + num2), 1))
-				old_file.insert(capacitance_line + 1, ''.join(['C ' + left_mos + ' ' + right_mos + ' ' + num1 + 'pF' + '\n']))
-	
-			elif list[-1] == 2:
-			# mos1 net1 mos2 net2 mos3 有两个连接 node 的情况
-				left_mos = list[0][0]
-				middle_mos = list[0][1]
-				right_mos = list[0][2]
-				node1 = list[1][0]
-				node2 = list[1][2]
-				node1_capacitance = list[1][1]
-				node2_capacitance = list[1][3]				
+				n_pipelinenode_has_capacitor_dict[node_in_3AND] = 1
 
-				#left mos 的 AD PD 重置为0, middle mos 的 AD PD AS PS 重置为0, right mos 的 AS PS 重置为0
+			elif node == n_pipeline_top_bot_node_list[1]:
+				#找到最顶端的 precharge_PMOS
+				for line in old_file:
+					if re.findall(r'\bm\w+', line):
+						line = line.split(' ')
+						if (line[1] == 'vdd' and line[2] == 'cd_n_3' and line[3] == node_in_3AND) or (line[1] == node_in_3AND and line[2] == 'cd_n_3' and line[3] == 'vdd'):
+							n_pipeline_precharge_PMOS_2 = line[0]
+
+				capacitance = str(round(n_pipeline_node_capacitance_dict[node_in_3AND]/pow(10, -15) ,2)) + 'f'
+
+				#需要写入的容量的一行
+				capacitor_line = 'c' + str(n_pipeline_capacitor_num) + ' ' + node_in_3AND + ' ' + 'gnd ' + capacitance + '\n'
+				index_list = []
 				for index, line in enumerate(old_file):
-					if left_mos in line:
-						new_line = line.split('AD')[0] + 'AD=0 ' + line.split('PD')[0].split(' ')[-2] + ' PD=0 ' + line.split('PD')[1].split(' ')[1]
-						old_file[index] = new_line
-					elif middle_mos in line:
-						new_line = line.split('AD')[0] + 'AD=0 AS=0 PD=0 PS=0\n'
-						old_file[index] = new_line
-					elif right_mos in line:
-						new_line = line.split('AS')[0] + 'AS=0 ' + line.split('PS')[0].split(' ')[-2] + ' PS=0\n'
-						old_file[index] = new_line
-						capacitance_line = index
-				
-				#转换 capacitance 的格式 pF
-				node1_num1 = float(str(node1_capacitance).split('e')[0])
-				node1_num2 = float(str(node1_capacitance).split('e')[1])
-				node1_num1 = str(round(node1_num1 * pow(10, 12 + node1_num2), 1))
+					if 'netlist_sim' in line:
+						index_list.append(index)
+				old_file.insert(index_list[-1]-1, capacitor_line)
 
-				node2_num1 = float(str(node2_capacitance).split('e')[0])
-				node2_num2 = float(str(node2_capacitance).split('e')[1])
-				node2_num1 = str(round(node2_num1 * pow(10, 12 + node2_num2), 1))
+				n_pipelinenode_has_capacitor_dict[node_in_3AND] = 1
 
-				old_file.insert(capacitance_line + 1, ''.join(['C ' + left_mos + ' ' + middle_mos + ' ' + node1_num1 + 'pF' + '\n']))
-				old_file.insert(capacitance_line + 2, ''.join(['C ' + middle_mos + ' ' + right_mos + ' ' + node2_num1 + 'pF' + '\n']))
-			'''
+			elif node == n_pipeline_top_bot_node_list[2]:
+				#找到最底端的 foot_NMOS
+				for line in old_file:
+					if re.findall(r'\bm\w+', line):
+						line = line.split(' ')
+						if (line[1] == node_in_3AND and line[2] == 'cd_n_3' and line[3] == 'gnd') or (line[1] == 'gnd' and line[2] == 'cd_n_3' and line[3] == node_in_3AND):
+							n_pipeline_foot_NMOS = line[0]
+
+				capacitance = str(round(n_pipeline_node_capacitance_dict[node_in_3AND]/pow(10, -15) ,2)) + 'f'
+
+				#需要写入的容量的一行
+				capacitor_line = 'c' + str(n_pipeline_capacitor_num) + ' ' + node_in_3AND + ' ' + 'gnd ' + capacitance + '\n'
+				index_list = []
+				for index, line in enumerate(old_file):
+					if 'netlist_sim' in line:
+						index_list.append(index)
+				old_file.insert(index_list[-1]-1, capacitor_line)
+
+				n_pipelinenode_has_capacitor_dict[node_in_3AND] = 1
+
+			#再对中间 node 进行处理
+			else:
+				#对于一个 node, 先确定是否存在于三个 mos 的列表中, 没有的话, 再对两个 mos 的列表进行查询
+				for single_pattern_list in n_pipeline_group_pattern_list:
+					if len(single_pattern_list) == 7 and node in single_pattern_list and n_pipelinenode_has_capacitor_dict[node_in_3AND] == 0:
+						node_index = single_pattern_list.index(node)
+						mos_before_capacitor = single_pattern_list[node_index - 1]
+						capacitance = str(round(n_pipeline_node_capacitance_dict[node_in_3AND]/pow(10, -15), 2)) + 'f'
+
+						#需要写入的容量的一行
+						capacitor_line = 'c' + str(n_pipeline_capacitor_num) + ' ' + node_in_3AND + ' ' + 'gnd ' + capacitance + '\n'
+
+						#将需要添加的 capacitor 添加到 '*** netlist_sim ***'这行的前面
+						index_list = []
+						for index, line in enumerate(old_file):
+							if 'netlist_sim' in line:
+								index_list.append(index)
+						old_file.insert(index_list[-1]-1, capacitor_line)
+
+						#表明此 net 容量已经填加完毕
+						n_pipelinenode_has_capacitor_dict[node_in_3AND] = 1
+
+					elif len(single_pattern_list) == 5 and node == single_pattern_list[2] and n_pipelinenode_has_capacitor_dict[node_in_3AND] == 0:
+						mos_before_capacitor = single_pattern_list[1]
+						capacitance = str(round(n_pipeline_node_capacitance_dict[node_in_3AND]/pow(10, -15) ,2)) + 'f'
+
+						#需要写入的容量的一行
+						capacitor_line = 'c' + str(n_pipeline_capacitor_num) + ' ' + node_in_3AND + ' ' + 'gnd ' + capacitance + '\n'
+						index_list = []
+						for index, line in enumerate(old_file):
+							if 'netlist_sim' in line:
+								index_list.append(index)
+						old_file.insert(index_list[-1]-1, capacitor_line)
+
+						n_pipelinenode_has_capacitor_dict[node_in_3AND] = 1
+			
+			n_pipeline_capacitor_num += 1
+
+
+		#对于 p_pipeline 中的 mos, 进行填加容量, 并改写 net 番号
+		p_pipeline_capacitor_num = 11
+		#用来记录该 net 处是否已经插入了 capacitor
+		p_pipelinenode_has_capacitor_dict = {}
+		for node_in_3AND in p_pipeline_node_capacitance_dict:
+			p_pipelinenode_has_capacitor_dict[node_in_3AND] = 0		
+
+		for node_in_3AND in p_pipeline_node_capacitance_dict:
+			#node_in_3AND 为原 sp 文件中的 net 番号, node 为 test.sp 文件中的番号, 用来寻找 node 所在的 pattern
+			for key, value in test_sp_to_3AND_sp_net_dict.items():
+				if node_in_3AND == value:
+					node = key
+			#print('node_in_3AND', node_in_3AND, node, n_pipeline_top_bot_node_list)
+
+			#先处理两个 top node 和一个 bottom node		
+			if node == p_pipeline_top_bot_node_list[0]:
+				#找到最顶端的 precharge_PMOS
+				for line in old_file:
+					if re.findall(r'\bm\w+', line):
+						line = line.split(' ')
+						if (line[1] == 'vdd' and line[2] == 'cd_3' and line[3] == node_in_3AND) or (line[1] == node_in_3AND and line[2] == 'cd_3' and line[3] == 'vdd'):
+							p_pipeline_precharge_PMOS_1 = line[0]
+
+				capacitance = str(round(p_pipeline_node_capacitance_dict[node_in_3AND]/pow(10, -15) ,2)) + 'f'
+
+				#需要写入的容量的一行
+				capacitor_line = 'c' + str(p_pipeline_capacitor_num) + ' ' + node_in_3AND + ' ' + 'gnd ' + capacitance + '\n'
+				index_list = []
+				for index, line in enumerate(old_file):
+					if 'netlist_sim' in line:
+						index_list.append(index)
+				old_file.insert(index_list[-1]-1, capacitor_line)
+
+				p_pipelinenode_has_capacitor_dict[node_in_3AND] = 1
+
+			elif node == p_pipeline_top_bot_node_list[1]:
+				#找到最顶端的 precharge_PMOS
+				for line in old_file:
+					if re.findall(r'\bm\w+', line):
+						line = line.split(' ')
+						if (line[1] == 'vdd' and line[2] == 'cd_3' and line[3] == node_in_3AND) or (line[1] == node_in_3AND and line[2] == 'cd_3' and line[3] == 'vdd'):
+							p_pipeline_precharge_PMOS_2 = line[0]
+
+				capacitance = str(round(p_pipeline_node_capacitance_dict[node_in_3AND]/pow(10, -15) ,2)) + 'f'
+
+				#需要写入的容量的一行
+				capacitor_line = 'c' + str(p_pipeline_capacitor_num) + ' ' + node_in_3AND + ' ' + 'gnd ' + capacitance + '\n'
+				index_list = []
+				for index, line in enumerate(old_file):
+					if 'netlist_sim' in line:
+						index_list.append(index)
+				old_file.insert(index_list[-1]-1, capacitor_line)
+
+				p_pipelinenode_has_capacitor_dict[node_in_3AND] = 1
+
+			elif node == p_pipeline_top_bot_node_list[2]:
+				#找到最底端的 foot_NMOS
+				for line in old_file:
+					if re.findall(r'\bm\w+', line):
+						line = line.split(' ')
+						if (line[1] == node_in_3AND and line[2] == 'cd_3' and line[3] == 'gnd') or (line[1] == 'gnd' and line[2] == 'cd_3' and line[3] == node_in_3AND):
+							p_pipeline_foot_NMOS = line[0]
+
+				capacitance = str(round(p_pipeline_node_capacitance_dict[node_in_3AND]/pow(10, -15) ,2)) + 'f'
+
+				#需要写入的容量的一行
+				capacitor_line = 'c' + str(p_pipeline_capacitor_num) + ' ' + node_in_3AND + ' ' + 'gnd ' + capacitance + '\n'
+				index_list = []
+				for index, line in enumerate(old_file):
+					if 'netlist_sim' in line:
+						index_list.append(index)
+				old_file.insert(index_list[-1]-1, capacitor_line)
+
+				p_pipelinenode_has_capacitor_dict[node_in_3AND] = 1
+
+			#再对中间 node 进行处理
+			else:
+				#对于一个 node, 先确定是否存在于三个 mos 的列表中, 没有的话, 再对两个 mos 的列表进行查询
+				for single_pattern_list in p_pipeline_group_pattern_list:
+					if len(single_pattern_list) == 7 and node in single_pattern_list and p_pipelinenode_has_capacitor_dict[node_in_3AND] == 0:
+						node_index = single_pattern_list.index(node)
+						mos_before_capacitor = single_pattern_list[node_index - 1]
+						capacitance = str(round(p_pipeline_node_capacitance_dict[node_in_3AND]/pow(10, -15), 2)) + 'f'
+
+						#需要写入的容量的一行
+						capacitor_line = 'c' + str(p_pipeline_capacitor_num) + ' ' + node_in_3AND + ' ' + 'gnd ' + capacitance + '\n'
+
+						#将需要添加的 capacitor 添加到 '*** netlist_sim ***'这行的前面
+						index_list = []
+						for index, line in enumerate(old_file):
+							if 'netlist_sim' in line:
+								index_list.append(index)
+						old_file.insert(index_list[-1]-1, capacitor_line)
+
+						#表明此 net 容量已经填加完毕
+						p_pipelinenode_has_capacitor_dict[node_in_3AND] = 1
+
+					elif len(single_pattern_list) == 5 and node == single_pattern_list[2] and p_pipelinenode_has_capacitor_dict[node_in_3AND] == 0:
+						mos_before_capacitor = single_pattern_list[1]
+						capacitance = str(round(p_pipeline_node_capacitance_dict[node_in_3AND]/pow(10, -15) ,2)) + 'f'
+
+						#需要写入的容量的一行
+						capacitor_line = 'c' + str(p_pipeline_capacitor_num) + ' ' + node_in_3AND + ' ' + 'gnd ' + capacitance + '\n'
+		
+						index_list = []
+						for index, line in enumerate(old_file):
+							if 'netlist_sim' in line:
+								index_list.append(index)
+						old_file.insert(index_list[-1]-1, capacitor_line)
+
+						p_pipelinenode_has_capacitor_dict[node_in_3AND] = 1
+
+			p_pipeline_capacitor_num += 1
+
 
 	#将替换后的临时文件写入新的 sp 文件
 	with open('./sp_file_for_all_combination/combination%s.sp' %combination_num ,'w+') as new_file:
@@ -458,7 +656,7 @@ def create_new_sp_file(mos_replace_dict, combination_num, group_pattern_list, CD
 		part_area_W_list = []   #从中选出最宽的部分作为 pipeline_area 的 W, 整体的总和为 pipeline_area 的 L
 
 		new_file.write('\n' + '*'*20 + ' pattern list ' + '*'*20 + '\n')
-		for single_pattern_list in group_pattern_list:
+		for single_pattern_list in n_pipeline_group_pattern_list:
 			new_file.write('* ')
 			for part in single_pattern_list:
 				new_file.write(part + '  ')
@@ -469,7 +667,7 @@ def create_new_sp_file(mos_replace_dict, combination_num, group_pattern_list, CD
 		area_ratio_dict_list = []
 
 		#计算每部分的每个 pattern 的面积和电路的总面积(standard cell 的总面积)
-		for single_pattern_list in group_pattern_list:
+		for single_pattern_list in n_pipeline_group_pattern_list:
 			single_pattern_list_block_area = 0
 
 			#保存 single pattern 中每一个 block 的面积
@@ -553,33 +751,59 @@ def write_into_file(pipeline1, pipeline2, main_circuit, sp_file):
 			for group_3 in pipeline1.list_of_group_pattern_list[2]:
 				pipeline1_all_pattern_combination_list.append([group_1, group_2, group_3])
 
+	pipeline2_all_pattern_combination_list = []
+	for group_1 in pipeline2.list_of_group_pattern_list[0]:
+		for group_2 in pipeline2.list_of_group_pattern_list[1]:
+			for group_3 in pipeline2.list_of_group_pattern_list[2]:
+				pipeline2_all_pattern_combination_list.append([group_1, group_2, group_3])
+
 	#先生成每个 pipeline 的 group_pattern_name_list 之后依次在 list_of_block_info 中找到对应的具体信息
 	#pipeline 的 list_of_group_pattern_list 中的分层方法
 	#group_pattern_list - single_pattern_list - block_list - block
 	pipeline1_all_pattern_combination_list = create_all_pattern_combination_list(pipeline1_all_pattern_combination_list)
+	pipeline2_all_pattern_combination_list = create_all_pattern_combination_list(pipeline2_all_pattern_combination_list)
+
+	#决定 n pipeline 和 p pipeline
+	if pipeline1_all_pattern_combination_list[0][0][0] == 'net5':
+		n_pipeline_all_pattern_combination_list = pipeline1_all_pattern_combination_list
+		p_pipeline_all_pattern_combination_list = pipeline2_all_pattern_combination_list
+	else:
+		n_pipeline_all_pattern_combination_list = pipeline2_all_pattern_combination_list
+		p_pipeline_all_pattern_combination_list = pipeline1_all_pattern_combination_list
+
 
 	#对于每个 mos 计算其 AD AS PD PS, 之后插入到 sp 文件之中
 	pipeline1_AD_AS_PD_PS_dict = create_AD_AS_PD_PS_dict(pipeline1, pipeline1.list_of_group_pattern_list, main_circuit)
-	pipeline2_AD_AS_PD_PS_dict = create_AD_AS_PD_PS_dict(pipeline1, pipeline2.list_of_group_pattern_list, main_circuit)
+	pipeline2_AD_AS_PD_PS_dict = create_AD_AS_PD_PS_dict(pipeline2, pipeline2.list_of_group_pattern_list, main_circuit)
 
+	temp_list = [key for key in pipeline1_AD_AS_PD_PS_dict.keys()]
+	temp_list_has_node = 0
+	for part in temp_list:
+		if 'net5' == part:
+			temp_list_has_node += 1
+
+	if temp_list_has_node != 0:
+		n_pipeline_AD_AS_PD_PS_dict = pipeline1_AD_AS_PD_PS_dict
+	else:
+		n_pipeline_AD_AS_PD_PS_dict = pipeline2_AD_AS_PD_PS_dict
 
 	#计算 CD 回路的 L 和 W
 	CD_circuit_area = calculate_CD_circuit_area(main_circuit)
 
 	combination_num = 1
-	for group_pattern_list in pipeline1_all_pattern_combination_list:
+	for index, n_pipeline_group_pattern_list in enumerate(n_pipeline_all_pattern_combination_list):
 		#对于 group pattern list 中包含的所有 mos, 替换其后面的 AD AS PD PS 参数
 		mos_replace_dict = {}
 
 		#对于一个特定的 single_pattern_list, 找出其中所包含的 mos 并计算其 AD AS PD PS 信息
-		for single_pattern_list in group_pattern_list:
-			mos_list, AD_AS_PD_PS_list = search_AS_PS_PD_PS(single_pattern_list, pipeline1_AD_AS_PD_PS_dict)
+		for single_pattern_list in n_pipeline_group_pattern_list:
+			mos_list, AD_AS_PD_PS_list = search_AS_PS_PD_PS(single_pattern_list, n_pipeline_AD_AS_PD_PS_dict)
 			#将 mos 和其参数一一对应并保存到 mos_replace_dict 之中
 			for index, mos in enumerate(mos_list):
 				mos_replace_dict[mos] = AD_AS_PD_PS_list[index]
 
 		#对于给定的 mos_replace_dict 生成新的 sp 文件
-		create_new_sp_file(mos_replace_dict, combination_num, group_pattern_list, CD_circuit_area, main_circuit)
+		create_new_sp_file(mos_replace_dict, combination_num, n_pipeline_group_pattern_list, p_pipeline_all_pattern_combination_list[index], CD_circuit_area, pipeline1, pipeline2, main_circuit)
 		combination_num += 1
 
 	'''
