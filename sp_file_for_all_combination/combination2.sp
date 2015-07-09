@@ -13,7 +13,7 @@
 
 .TRAN 1p simtime
 .param injection_timing_n1 = 100n   ***N_and_3
-.param current_height = -4000e-6   * 4000e-6   ***100e-6 = 0.1mA  
+.param current_height = -4000e-6   ***100e-6 = 0.1mA  
 
 *** 输出error pulse的注入时间
 .MEASURE TRAN error_pulse_injection_timing PARAM=injection_timing_n1
@@ -410,26 +410,26 @@ xi81 gnd p_nand_4 net0279 vdd inv2
 xi80 gnd p_and_4 net0280 vdd inv2
 
 
-c1 net132 gnd 1.7f   *** ( 2.38 f)
-c2 net0316 gnd 7.28f   *** ( 12.39 f)
+c1 net284 gnd 0.47f   *** ( 1.83 f)
+c2 net132 gnd 1.7f   *** ( 2.38 f)
 c3 net0330 gnd 3.48f   *** ( 5.87 f)
-c4 net0348 gnd 5.41f   *** ( 8.82 f)
-c5 net0136 gnd 1.42f   *** ( 3.13 f)
+c4 net246 gnd 5.18f   *** ( 8.25 f)
+c5 net0342 gnd 4.19f   *** ( 6.92 f)
 c6 net105 gnd 8.5f   *** ( 11.91 f)
-c7 net246 gnd 5.18f   *** ( 8.25 f)
-c8 net0342 gnd 4.19f   *** ( 6.92 f)
-c9 net284 gnd 0.47f   *** ( 1.83 f)
-c10 net0336 gnd 0.47f   *** ( 1.83 f)
-c11 net0386 gnd 8.5f   *** ( 11.91 f)
-c12 net0129 gnd 0.47f   *** ( 1.83 f)
-c13 net0118 gnd 0.47f   *** ( 1.83 f)
-c14 net296 gnd 1.42f   *** ( 3.13 f)
-c15 net0382 gnd 1.7f   *** ( 2.38 f)
-c16 net0117 gnd 4.19f   *** ( 6.92 f)
-c17 net0381 gnd 5.41f   *** ( 8.82 f)
-c18 net0116 gnd 7.28f   *** ( 12.39 f)
-c19 net0367 gnd 5.18f   *** ( 8.25 f)
-c20 net0112 gnd 3.48f   *** ( 5.87 f)
+c7 net0336 gnd 0.47f   *** ( 1.83 f)
+c8 net0348 gnd 5.41f   *** ( 8.82 f)
+c9 net0316 gnd 8.64f   *** ( 12.39 f)
+c10 net0136 gnd 1.42f   *** ( 3.13 f)
+c11 net0118 gnd 0.47f   *** ( 1.83 f)
+c12 net0381 gnd 5.41f   *** ( 8.82 f)
+c13 net0117 gnd 4.19f   *** ( 6.92 f)
+c14 net0116 gnd 7.28f   *** ( 12.39 f)
+c15 net0129 gnd 0.47f   *** ( 1.83 f)
+c16 net0367 gnd 5.18f   *** ( 8.25 f)
+c17 net0112 gnd 3.48f   *** ( 5.87 f)
+c18 net0382 gnd 1.7f   *** ( 2.38 f)
+c19 net0386 gnd 8.5f   *** ( 11.91 f)
+c20 net296 gnd 1.42f   *** ( 3.13 f)
 
 *********************netlist_sim**********************
 
@@ -486,6 +486,7 @@ i_p7 gnd net0367 PULSE 0 current_height injection_timing_p7 0 0 current_duration
 i_p8 gnd net0381 PULSE 0 current_height injection_timing_p8 0 0 current_duration simtime
 i_p9 gnd net0386 PULSE 0 current_height injection_timing_p9 0 0 current_duration simtime
 i_cd gnd net278 PULSE 0 current_height injection_timing_cd 0 0 current_duration simtime
+
 ******************** injection node ********************
 
 
@@ -502,6 +503,7 @@ i_cd gnd net278 PULSE 0 current_height injection_timing_cd 0 0 current_duration 
  
  
 ******************** area ratio list ********************
+* standard cell area : 364.4784
 * m216 : 0.0012
 * m217 : 0.0012
 * m218 : 0.0027

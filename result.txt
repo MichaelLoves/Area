@@ -1,0 +1,1033 @@
+combination1_n1_100.0.lis   deadlock
+combination1_n1_100.1.lis   deadlock
+combination1_n9_100.0.lis   deadlock
+combination1_n9_100.1.lis   deadlock
+combination2_n1_100.0.lis   deadlock
+combination2_n1_100.1.lis   deadlock
+combination2_n9_100.0.lis   deadlock
+combination2_n9_100.1.lis   deadlock
+
+
+Data Analysis
+injection timing : 100.0 -- 100.1 ns 
+
+
+********************  combination1  ********************
+
+injection_node : n1
+number of simulation : 2 
+number of normal : 0 
+number of deadlock : 2 
+number of 11 error : 0 
+number of wrong output: 0 
+number of wrong cd: 0 
+number of unknown : 0 
+
+injection_node : n9
+number of simulation : 2 
+number of normal : 0 
+number of deadlock : 2 
+number of 11 error : 0 
+number of wrong output: 0 
+number of wrong cd: 0 
+number of unknown : 0 
+
+Total number
+total number of simulation : 4 
+total number of normal : 0 
+total number of deadlock : 4 
+total number of 11 error : 0 
+total number of wrong output: 0 
+total number of wrong cd: 0 
+total number of unknown : 0 
+
+********************  combination1  ********************
+
+
+********************  combination2  ********************
+
+injection_node : n1
+number of simulation : 2 
+number of normal : 0 
+number of deadlock : 2 
+number of 11 error : 0 
+number of wrong output: 0 
+number of wrong cd: 0 
+number of unknown : 0 
+
+injection_node : n9
+number of simulation : 2 
+number of normal : 0 
+number of deadlock : 2 
+number of 11 error : 0 
+number of wrong output: 0 
+number of wrong cd: 0 
+number of unknown : 0 
+
+Total number
+total number of simulation : 4 
+total number of normal : 0 
+total number of deadlock : 4 
+total number of 11 error : 0 
+total number of wrong output: 0 
+total number of wrong cd: 0 
+total number of unknown : 0 
+
+********************  combination2  ********************
+
+
+********************  combination3  ********************
+
+injection_node : n1
+number of simulation : 2 
+number of normal : 0 
+number of deadlock : 2 
+number of 11 error : 0 
+number of wrong output: 0 
+number of wrong cd: 0 
+number of unknown : 0 
+
+injection_node : n9
+number of simulation : 2 
+number of normal : 0 
+number of deadlock : 2 
+number of 11 error : 0 
+number of wrong output: 0 
+number of wrong cd: 0 
+number of unknown : 0 
+
+Total number
+total number of simulation : 4 
+total number of normal : 0 
+total number of deadlock : 4 
+total number of 11 error : 0 
+total number of wrong output: 0 
+total number of wrong cd: 0 
+total number of unknown : 0 
+
+********************  combination3  ********************
+
+********************  combination4  ********************
+
+injection_node : n1
+number of simulation : 2 
+number of normal : 0 
+number of deadlock : 2 
+number of 11 error : 0 
+number of wrong output: 0 
+number of wrong cd: 0 
+number of unknown : 0 
+
+injection_node : n9
+number of simulation : 2 
+number of normal : 0 
+number of deadlock : 2 
+number of 11 error : 0 
+number of wrong output: 0 
+number of wrong cd: 0 
+number of unknown : 0 
+
+Total number
+total number of simulation : 4 
+total number of normal : 0 
+total number of deadlock : 4 
+total number of 11 error : 0 
+total number of wrong output: 0 
+total number of wrong cd: 0 
+total number of unknown : 0 
+
+********************  combination4  ********************
+
+********************  combination5  ********************
+
+injection_node : n1
+number of simulation : 2 
+number of normal : 0 
+number of deadlock : 2 
+number of 11 error : 0 
+number of wrong output: 0 
+number of wrong cd: 0 
+number of unknown : 0 
+
+injection_node : n9
+number of simulation : 2 
+number of normal : 0 
+number of deadlock : 2 
+number of 11 error : 0 
+number of wrong output: 0 
+number of wrong cd: 0 
+number of unknown : 0 
+
+Total number
+total number of simulation : 4 
+total number of normal : 0 
+total number of deadlock : 4 
+total number of 11 error : 0 
+total number of wrong output: 0 
+total number of wrong cd: 0 
+total number of unknown : 0 
+
+********************  combination5  ********************
+
+********************  combination6  ********************
+
+injection_node : n1
+number of simulation : 2 
+number of normal : 0 
+number of deadlock : 2 
+number of 11 error : 0 
+number of wrong output: 0 
+number of wrong cd: 0 
+number of unknown : 0 
+
+injection_node : n9
+number of simulation : 2 
+number of normal : 0 
+number of deadlock : 2 
+number of 11 error : 0 
+number of wrong output: 0 
+number of wrong cd: 0 
+number of unknown : 0 
+
+Total number
+total number of simulation : 4 
+total number of normal : 0 
+total number of deadlock : 4 
+total number of 11 error : 0 
+total number of wrong output: 0 
+total number of wrong cd: 0 
+total number of unknown : 0 
+
+********************  combination6  ********************
+
+********************  combination7  ********************
+
+injection_node : n1
+number of simulation : 2 
+number of normal : 0 
+number of deadlock : 2 
+number of 11 error : 0 
+number of wrong output: 0 
+number of wrong cd: 0 
+number of unknown : 0 
+
+injection_node : n9
+number of simulation : 2 
+number of normal : 0 
+number of deadlock : 2 
+number of 11 error : 0 
+number of wrong output: 0 
+number of wrong cd: 0 
+number of unknown : 0 
+
+Total number
+total number of simulation : 4 
+total number of normal : 0 
+total number of deadlock : 4 
+total number of 11 error : 0 
+total number of wrong output: 0 
+total number of wrong cd: 0 
+total number of unknown : 0 
+
+********************  combination7  ********************
+
+********************  combination8  ********************
+
+injection_node : n1
+number of simulation : 2 
+number of normal : 0 
+number of deadlock : 2 
+number of 11 error : 0 
+number of wrong output: 0 
+number of wrong cd: 0 
+number of unknown : 0 
+
+injection_node : n9
+number of simulation : 2 
+number of normal : 0 
+number of deadlock : 2 
+number of 11 error : 0 
+number of wrong output: 0 
+number of wrong cd: 0 
+number of unknown : 0 
+
+Total number
+total number of simulation : 4 
+total number of normal : 0 
+total number of deadlock : 4 
+total number of 11 error : 0 
+total number of wrong output: 0 
+total number of wrong cd: 0 
+total number of unknown : 0 
+
+********************  combination8  ********************
+
+********************  combination9  ********************
+
+injection_node : n1
+number of simulation : 2 
+number of normal : 0 
+number of deadlock : 2 
+number of 11 error : 0 
+number of wrong output: 0 
+number of wrong cd: 0 
+number of unknown : 0 
+
+injection_node : n9
+number of simulation : 2 
+number of normal : 0 
+number of deadlock : 2 
+number of 11 error : 0 
+number of wrong output: 0 
+number of wrong cd: 0 
+number of unknown : 0 
+
+Total number
+total number of simulation : 4 
+total number of normal : 0 
+total number of deadlock : 4 
+total number of 11 error : 0 
+total number of wrong output: 0 
+total number of wrong cd: 0 
+total number of unknown : 0 
+
+********************  combination9  ********************
+
+
+********************  combination10  ********************
+
+injection_node : n1
+number of simulation : 2 
+number of normal : 0 
+number of deadlock : 2 
+number of 11 error : 0 
+number of wrong output: 0 
+number of wrong cd: 0 
+number of unknown : 0 
+
+injection_node : n9
+number of simulation : 2 
+number of normal : 0 
+number of deadlock : 2 
+number of 11 error : 0 
+number of wrong output: 0 
+number of wrong cd: 0 
+number of unknown : 0 
+
+Total number
+total number of simulation : 4 
+total number of normal : 0 
+total number of deadlock : 4 
+total number of 11 error : 0 
+total number of wrong output: 0 
+total number of wrong cd: 0 
+total number of unknown : 0 
+
+********************  combination10  ********************
+
+
+********************  combination11  ********************
+
+injection_node : n1
+number of simulation : 2 
+number of normal : 0 
+number of deadlock : 2 
+number of 11 error : 0 
+number of wrong output: 0 
+number of wrong cd: 0 
+number of unknown : 0 
+
+injection_node : n9
+number of simulation : 2 
+number of normal : 0 
+number of deadlock : 2 
+number of 11 error : 0 
+number of wrong output: 0 
+number of wrong cd: 0 
+number of unknown : 0 
+
+Total number
+total number of simulation : 4 
+total number of normal : 0 
+total number of deadlock : 4 
+total number of 11 error : 0 
+total number of wrong output: 0 
+total number of wrong cd: 0 
+total number of unknown : 0 
+
+********************  combination11  ********************
+
+
+********************  combination12  ********************
+
+injection_node : n1
+number of simulation : 2 
+number of normal : 0 
+number of deadlock : 2 
+number of 11 error : 0 
+number of wrong output: 0 
+number of wrong cd: 0 
+number of unknown : 0 
+
+injection_node : n9
+number of simulation : 2 
+number of normal : 0 
+number of deadlock : 2 
+number of 11 error : 0 
+number of wrong output: 0 
+number of wrong cd: 0 
+number of unknown : 0 
+
+Total number
+total number of simulation : 4 
+total number of normal : 0 
+total number of deadlock : 4 
+total number of 11 error : 0 
+total number of wrong output: 0 
+total number of wrong cd: 0 
+total number of unknown : 0 
+
+********************  combination12  ********************
+
+
+********************  combination13  ********************
+
+injection_node : n1
+number of simulation : 2 
+number of normal : 0 
+number of deadlock : 2 
+number of 11 error : 0 
+number of wrong output: 0 
+number of wrong cd: 0 
+number of unknown : 0 
+
+injection_node : n9
+number of simulation : 2 
+number of normal : 0 
+number of deadlock : 2 
+number of 11 error : 0 
+number of wrong output: 0 
+number of wrong cd: 0 
+number of unknown : 0 
+
+Total number
+total number of simulation : 4 
+total number of normal : 0 
+total number of deadlock : 4 
+total number of 11 error : 0 
+total number of wrong output: 0 
+total number of wrong cd: 0 
+total number of unknown : 0 
+
+********************  combination13  ********************
+
+
+********************  combination14  ********************
+
+injection_node : n1
+number of simulation : 2 
+number of normal : 0 
+number of deadlock : 2 
+number of 11 error : 0 
+number of wrong output: 0 
+number of wrong cd: 0 
+number of unknown : 0 
+
+injection_node : n9
+number of simulation : 2 
+number of normal : 0 
+number of deadlock : 2 
+number of 11 error : 0 
+number of wrong output: 0 
+number of wrong cd: 0 
+number of unknown : 0 
+
+Total number
+total number of simulation : 4 
+total number of normal : 0 
+total number of deadlock : 4 
+total number of 11 error : 0 
+total number of wrong output: 0 
+total number of wrong cd: 0 
+total number of unknown : 0 
+
+********************  combination14  ********************
+
+
+********************  combination15  ********************
+
+injection_node : n1
+number of simulation : 2 
+number of normal : 0 
+number of deadlock : 2 
+number of 11 error : 0 
+number of wrong output: 0 
+number of wrong cd: 0 
+number of unknown : 0 
+
+injection_node : n9
+number of simulation : 2 
+number of normal : 0 
+number of deadlock : 2 
+number of 11 error : 0 
+number of wrong output: 0 
+number of wrong cd: 0 
+number of unknown : 0 
+
+Total number
+total number of simulation : 4 
+total number of normal : 0 
+total number of deadlock : 4 
+total number of 11 error : 0 
+total number of wrong output: 0 
+total number of wrong cd: 0 
+total number of unknown : 0 
+
+********************  combination15  ********************
+
+
+********************  combination16  ********************
+
+injection_node : n1
+number of simulation : 2 
+number of normal : 0 
+number of deadlock : 2 
+number of 11 error : 0 
+number of wrong output: 0 
+number of wrong cd: 0 
+number of unknown : 0 
+
+injection_node : n9
+number of simulation : 2 
+number of normal : 0 
+number of deadlock : 2 
+number of 11 error : 0 
+number of wrong output: 0 
+number of wrong cd: 0 
+number of unknown : 0 
+
+Total number
+total number of simulation : 4 
+total number of normal : 0 
+total number of deadlock : 4 
+total number of 11 error : 0 
+total number of wrong output: 0 
+total number of wrong cd: 0 
+total number of unknown : 0 
+
+********************  combination16  ********************
+
+
+********************  combination17  ********************
+
+injection_node : n1
+number of simulation : 2 
+number of normal : 0 
+number of deadlock : 2 
+number of 11 error : 0 
+number of wrong output: 0 
+number of wrong cd: 0 
+number of unknown : 0 
+
+injection_node : n9
+number of simulation : 2 
+number of normal : 0 
+number of deadlock : 2 
+number of 11 error : 0 
+number of wrong output: 0 
+number of wrong cd: 0 
+number of unknown : 0 
+
+Total number
+total number of simulation : 4 
+total number of normal : 0 
+total number of deadlock : 4 
+total number of 11 error : 0 
+total number of wrong output: 0 
+total number of wrong cd: 0 
+total number of unknown : 0 
+
+********************  combination17  ********************
+
+
+********************  combination18  ********************
+
+injection_node : n1
+number of simulation : 2 
+number of normal : 0 
+number of deadlock : 2 
+number of 11 error : 0 
+number of wrong output: 0 
+number of wrong cd: 0 
+number of unknown : 0 
+
+injection_node : n9
+number of simulation : 2 
+number of normal : 0 
+number of deadlock : 2 
+number of 11 error : 0 
+number of wrong output: 0 
+number of wrong cd: 0 
+number of unknown : 0 
+
+Total number
+total number of simulation : 4 
+total number of normal : 0 
+total number of deadlock : 4 
+total number of 11 error : 0 
+total number of wrong output: 0 
+total number of wrong cd: 0 
+total number of unknown : 0 
+
+********************  combination18  ********************
+
+
+********************  combination19  ********************
+
+injection_node : n1
+number of simulation : 2 
+number of normal : 0 
+number of deadlock : 2 
+number of 11 error : 0 
+number of wrong output: 0 
+number of wrong cd: 0 
+number of unknown : 0 
+
+injection_node : n9
+number of simulation : 2 
+number of normal : 0 
+number of deadlock : 2 
+number of 11 error : 0 
+number of wrong output: 0 
+number of wrong cd: 0 
+number of unknown : 0 
+
+Total number
+total number of simulation : 4 
+total number of normal : 0 
+total number of deadlock : 4 
+total number of 11 error : 0 
+total number of wrong output: 0 
+total number of wrong cd: 0 
+total number of unknown : 0 
+
+********************  combination19  ********************
+
+********************  combination20  ********************
+
+injection_node : n1
+number of simulation : 2 
+number of normal : 0 
+number of deadlock : 2 
+number of 11 error : 0 
+number of wrong output: 0 
+number of wrong cd: 0 
+number of unknown : 0 
+
+injection_node : n9
+number of simulation : 2 
+number of normal : 0 
+number of deadlock : 2 
+number of 11 error : 0 
+number of wrong output: 0 
+number of wrong cd: 0 
+number of unknown : 0 
+
+Total number
+total number of simulation : 4 
+total number of normal : 0 
+total number of deadlock : 4 
+total number of 11 error : 0 
+total number of wrong output: 0 
+total number of wrong cd: 0 
+total number of unknown : 0 
+
+********************  combination20  ********************
+
+
+********************  combination21  ********************
+
+injection_node : n1
+number of simulation : 2 
+number of normal : 0 
+number of deadlock : 2 
+number of 11 error : 0 
+number of wrong output: 0 
+number of wrong cd: 0 
+number of unknown : 0 
+
+injection_node : n9
+number of simulation : 2 
+number of normal : 0 
+number of deadlock : 2 
+number of 11 error : 0 
+number of wrong output: 0 
+number of wrong cd: 0 
+number of unknown : 0 
+
+Total number
+total number of simulation : 4 
+total number of normal : 0 
+total number of deadlock : 4 
+total number of 11 error : 0 
+total number of wrong output: 0 
+total number of wrong cd: 0 
+total number of unknown : 0 
+
+********************  combination21  ********************
+
+
+********************  combination22  ********************
+
+injection_node : n1
+number of simulation : 2 
+number of normal : 0 
+number of deadlock : 2 
+number of 11 error : 0 
+number of wrong output: 0 
+number of wrong cd: 0 
+number of unknown : 0 
+
+injection_node : n9
+number of simulation : 2 
+number of normal : 0 
+number of deadlock : 2 
+number of 11 error : 0 
+number of wrong output: 0 
+number of wrong cd: 0 
+number of unknown : 0 
+
+Total number
+total number of simulation : 4 
+total number of normal : 0 
+total number of deadlock : 4 
+total number of 11 error : 0 
+total number of wrong output: 0 
+total number of wrong cd: 0 
+total number of unknown : 0 
+
+********************  combination22  ********************
+
+
+********************  combination23  ********************
+
+injection_node : n1
+number of simulation : 2 
+number of normal : 0 
+number of deadlock : 2 
+number of 11 error : 0 
+number of wrong output: 0 
+number of wrong cd: 0 
+number of unknown : 0 
+
+injection_node : n9
+number of simulation : 2 
+number of normal : 0 
+number of deadlock : 2 
+number of 11 error : 0 
+number of wrong output: 0 
+number of wrong cd: 0 
+number of unknown : 0 
+
+Total number
+total number of simulation : 4 
+total number of normal : 0 
+total number of deadlock : 4 
+total number of 11 error : 0 
+total number of wrong output: 0 
+total number of wrong cd: 0 
+total number of unknown : 0 
+
+********************  combination23  ********************
+
+
+********************  combination24  ********************
+
+injection_node : n1
+number of simulation : 2 
+number of normal : 0 
+number of deadlock : 2 
+number of 11 error : 0 
+number of wrong output: 0 
+number of wrong cd: 0 
+number of unknown : 0 
+
+injection_node : n9
+number of simulation : 2 
+number of normal : 0 
+number of deadlock : 2 
+number of 11 error : 0 
+number of wrong output: 0 
+number of wrong cd: 0 
+number of unknown : 0 
+
+Total number
+total number of simulation : 4 
+total number of normal : 0 
+total number of deadlock : 4 
+total number of 11 error : 0 
+total number of wrong output: 0 
+total number of wrong cd: 0 
+total number of unknown : 0 
+
+********************  combination24  ********************
+
+
+********************  combination25  ********************
+
+injection_node : n1
+number of simulation : 2 
+number of normal : 0 
+number of deadlock : 2 
+number of 11 error : 0 
+number of wrong output: 0 
+number of wrong cd: 0 
+number of unknown : 0 
+
+injection_node : n9
+number of simulation : 2 
+number of normal : 0 
+number of deadlock : 2 
+number of 11 error : 0 
+number of wrong output: 0 
+number of wrong cd: 0 
+number of unknown : 0 
+
+Total number
+total number of simulation : 4 
+total number of normal : 0 
+total number of deadlock : 4 
+total number of 11 error : 0 
+total number of wrong output: 0 
+total number of wrong cd: 0 
+total number of unknown : 0 
+
+********************  combination25  ********************
+
+
+********************  combination26  ********************
+
+injection_node : n1
+number of simulation : 2 
+number of normal : 0 
+number of deadlock : 2 
+number of 11 error : 0 
+number of wrong output: 0 
+number of wrong cd: 0 
+number of unknown : 0 
+
+injection_node : n9
+number of simulation : 2 
+number of normal : 0 
+number of deadlock : 2 
+number of 11 error : 0 
+number of wrong output: 0 
+number of wrong cd: 0 
+number of unknown : 0 
+
+Total number
+total number of simulation : 4 
+total number of normal : 0 
+total number of deadlock : 4 
+total number of 11 error : 0 
+total number of wrong output: 0 
+total number of wrong cd: 0 
+total number of unknown : 0 
+
+********************  combination26  ********************
+
+
+********************  combination27  ********************
+
+injection_node : n1
+number of simulation : 2 
+number of normal : 0 
+number of deadlock : 2 
+number of 11 error : 0 
+number of wrong output: 0 
+number of wrong cd: 0 
+number of unknown : 0 
+
+injection_node : n9
+number of simulation : 2 
+number of normal : 0 
+number of deadlock : 2 
+number of 11 error : 0 
+number of wrong output: 0 
+number of wrong cd: 0 
+number of unknown : 0 
+
+Total number
+total number of simulation : 4 
+total number of normal : 0 
+total number of deadlock : 4 
+total number of 11 error : 0 
+total number of wrong output: 0 
+total number of wrong cd: 0 
+total number of unknown : 0 
+
+********************  combination27  ********************
+
+
+********************  combination28  ********************
+
+injection_node : n1
+number of simulation : 2 
+number of normal : 0 
+number of deadlock : 2 
+number of 11 error : 0 
+number of wrong output: 0 
+number of wrong cd: 0 
+number of unknown : 0 
+
+injection_node : n9
+number of simulation : 2 
+number of normal : 0 
+number of deadlock : 2 
+number of 11 error : 0 
+number of wrong output: 0 
+number of wrong cd: 0 
+number of unknown : 0 
+
+Total number
+total number of simulation : 4 
+total number of normal : 0 
+total number of deadlock : 4 
+total number of 11 error : 0 
+total number of wrong output: 0 
+total number of wrong cd: 0 
+total number of unknown : 0 
+
+********************  combination28  ********************
+
+
+********************  combination29  ********************
+
+injection_node : n1
+number of simulation : 2 
+number of normal : 0 
+number of deadlock : 2 
+number of 11 error : 0 
+number of wrong output: 0 
+number of wrong cd: 0 
+number of unknown : 0 
+
+injection_node : n9
+number of simulation : 2 
+number of normal : 0 
+number of deadlock : 2 
+number of 11 error : 0 
+number of wrong output: 0 
+number of wrong cd: 0 
+number of unknown : 0 
+
+Total number
+total number of simulation : 4 
+total number of normal : 0 
+total number of deadlock : 4 
+total number of 11 error : 0 
+total number of wrong output: 0 
+total number of wrong cd: 0 
+total number of unknown : 0 
+
+********************  combination29  ********************
+
+
+********************  combination30  ********************
+
+injection_node : n1
+number of simulation : 2 
+number of normal : 0 
+number of deadlock : 2 
+number of 11 error : 0 
+number of wrong output: 0 
+number of wrong cd: 0 
+number of unknown : 0 
+
+injection_node : n9
+number of simulation : 2 
+number of normal : 0 
+number of deadlock : 2 
+number of 11 error : 0 
+number of wrong output: 0 
+number of wrong cd: 0 
+number of unknown : 0 
+
+Total number
+total number of simulation : 4 
+total number of normal : 0 
+total number of deadlock : 4 
+total number of 11 error : 0 
+total number of wrong output: 0 
+total number of wrong cd: 0 
+total number of unknown : 0 
+
+********************  combination30  ********************
+
+
+********************  combination31  ********************
+
+injection_node : n1
+number of simulation : 2 
+number of normal : 0 
+number of deadlock : 2 
+number of 11 error : 0 
+number of wrong output: 0 
+number of wrong cd: 0 
+number of unknown : 0 
+
+injection_node : n9
+number of simulation : 2 
+number of normal : 0 
+number of deadlock : 2 
+number of 11 error : 0 
+number of wrong output: 0 
+number of wrong cd: 0 
+number of unknown : 0 
+
+Total number
+total number of simulation : 4 
+total number of normal : 0 
+total number of deadlock : 4 
+total number of 11 error : 0 
+total number of wrong output: 0 
+total number of wrong cd: 0 
+total number of unknown : 0 
+
+********************  combination31  ********************
+
+
+********************  combination32  ********************
+
+injection_node : n1
+number of simulation : 2 
+number of normal : 0 
+number of deadlock : 2 
+number of 11 error : 0 
+number of wrong output: 0 
+number of wrong cd: 0 
+number of unknown : 0 
+
+injection_node : n9
+number of simulation : 2 
+number of normal : 0 
+number of deadlock : 2 
+number of 11 error : 0 
+number of wrong output: 0 
+number of wrong cd: 0 
+number of unknown : 0 
+
+Total number
+total number of simulation : 4 
+total number of normal : 0 
+total number of deadlock : 4 
+total number of 11 error : 0 
+total number of wrong output: 0 
+total number of wrong cd: 0 
+total number of unknown : 0 
+
+********************  combination32  ********************
+
+
+
+time used(s) : 25.7277030945

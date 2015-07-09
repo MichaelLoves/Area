@@ -419,6 +419,8 @@ def create_new_sp_file(mos_replace_dict, combination_num, n_pipeline_group_patte
 
 		#对于 n_pipeline 中的 mos, 一一填加容量, 并改写 mos 所连接的 net 番号
 		n_pipeline_capacitor_num = 1
+
+		#Hspice Simulation 时系统自动根据 net 上下的 MOS 的 W 来填加容量时, 1u 所对应的容量 f
 		capacitance_per_u = 0.341
 
 		#用来记录该 net 处是否已经插入了 capacitor
@@ -433,7 +435,8 @@ def create_new_sp_file(mos_replace_dict, combination_num, n_pipeline_group_patte
 					node = key
 			#print('node_in_3AND', node_in_3AND, node, n_pipeline_top_bot_node_list)
 
-			#先处理两个 top node 和一个 bottom node		
+			#先处理两个 top node 和一个 bottom node
+			#AND 侧的 top node		
 			if node == n_pipeline_top_bot_node_list[0]:
 				#找到最顶端的 precharge_PMOS
 				for line in old_file:
@@ -461,6 +464,7 @@ def create_new_sp_file(mos_replace_dict, combination_num, n_pipeline_group_patte
 
 				n_pipelinenode_has_capacitor_dict[node_in_3AND] = 1
 
+			#NAND 侧的 top node
 			elif node == n_pipeline_top_bot_node_list[1]:
 				#找到最顶端的 precharge_PMOS
 				for line in old_file:
@@ -486,6 +490,7 @@ def create_new_sp_file(mos_replace_dict, combination_num, n_pipeline_group_patte
 
 				n_pipelinenode_has_capacitor_dict[node_in_3AND] = 1
 
+			#最下面的 bottom node
 			elif node == n_pipeline_top_bot_node_list[2]:
 				#找到最底端的 foot_NMOS
 				for line in old_file:
@@ -496,7 +501,7 @@ def create_new_sp_file(mos_replace_dict, combination_num, n_pipeline_group_patte
 
 				number_of_W = 0.0
 				for mos in main_circuit.mos_list:
-					if (mos.drain == node or mos.source == node) and mos.type == "N":
+					if (mos.drain == node or mos.source == node) and mos.type == "N" and mos.gate != 'cd_n_3':
 						number_of_W += mos.W
 				capacitance = round(n_pipeline_node_capacitance_dict[node_in_3AND]/pow(10, -15) ,2)
 				modified_capacitance = str( round(capacitance - number_of_W * capacitance_per_u, 2) ) + 'f'
@@ -578,6 +583,7 @@ def create_new_sp_file(mos_replace_dict, combination_num, n_pipeline_group_patte
 			#print('node_in_3AND', node_in_3AND, node, n_pipeline_top_bot_node_list)
 
 			#先处理两个 top node 和一个 bottom node		
+			#AND 侧的 top node		
 			if node == p_pipeline_top_bot_node_list[0]:
 				#找到最顶端的 precharge_PMOS
 				for line in old_file:
@@ -604,6 +610,7 @@ def create_new_sp_file(mos_replace_dict, combination_num, n_pipeline_group_patte
 
 				p_pipelinenode_has_capacitor_dict[node_in_3AND] = 1
 
+			#NAND 侧的 top node		
 			elif node == p_pipeline_top_bot_node_list[1]:
 				#找到最顶端的 precharge_PMOS
 				for line in old_file:
@@ -630,6 +637,7 @@ def create_new_sp_file(mos_replace_dict, combination_num, n_pipeline_group_patte
 
 				p_pipelinenode_has_capacitor_dict[node_in_3AND] = 1
 
+			#最下侧的 bottom node
 			elif node == p_pipeline_top_bot_node_list[2]:
 				#找到最底端的 foot_NMOS
 				for line in old_file:
@@ -640,7 +648,7 @@ def create_new_sp_file(mos_replace_dict, combination_num, n_pipeline_group_patte
 
 				number_of_W = 0.0
 				for mos in main_circuit.mos_list:
-					if (mos.drain == node or mos.source == node) and mos.type == "N":
+					if (mos.drain == node or mos.source == node) and mos.type == "N" and mos.gate != 'cd_n_3':
 						number_of_W += mos.W
 				capacitance = round(p_pipeline_node_capacitance_dict[node_in_3AND]/pow(10, -15) ,2)
 				modified_capacitance = str( round(capacitance - number_of_W * capacitance_per_u, 2) ) + 'f'
@@ -785,6 +793,7 @@ def create_new_sp_file(mos_replace_dict, combination_num, n_pipeline_group_patte
 
 		#把 final_area_ratio_dict 写入到文件中
 		new_file.write('*'*20 + ' area ratio list ' + '*'*20 + '\n')
+		new_file.write('* standard cell area : ' + str(standard_cell_area) + '\n')
 
 		#对 final_area_ratio_dict 中的 key 做排序, 得到的结果为存有元祖的列表.
 		#元祖中的第一个要素是 node, 第二个是面积比例

@@ -13,7 +13,7 @@
 
 .TRAN 1p simtime
 .param injection_timing_n1 = 100n   ***N_and_3
-.param current_height = -4000e-6   * 4000e-6   ***100e-6 = 0.1mA  
+.param current_height = -4000e-6   ***100e-6 = 0.1mA  
 
 *** 输出error pulse的注入时间
 .MEASURE TRAN error_pulse_injection_timing PARAM=injection_timing_n1
@@ -466,6 +466,7 @@ i_p7 gnd net0367 PULSE 0 current_height injection_timing_p7 0 0 current_duration
 i_p8 gnd net0381 PULSE 0 current_height injection_timing_p8 0 0 current_duration simtime
 i_p9 gnd net0386 PULSE 0 current_height injection_timing_p9 0 0 current_duration simtime
 i_cd gnd net278 PULSE 0 current_height injection_timing_cd 0 0 current_duration simtime
+
 ******************** injection node ********************
 
 

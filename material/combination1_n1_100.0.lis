@@ -1,0 +1,846 @@
+ ****** HSPICE -- J-2014.09-SP1-2 64-BIT (Jan 29 2015) RHEL64 ******            
+  Copyright (C) 2014 Synopsys, Inc. All Rights Reserved.                        
+  Unpublished-rights reserved under US copyright laws.
+  This program is protected by law and is subject to the
+  terms and conditions of the license agreement from Synopsys.
+  Use of this program is your acceptance to be bound by the
+  license agreement. HSPICE is the trademark of Synopsys, Inc.
+  Input File: ./input_file/combination1_n1_100.0.sp                             
+  Command line options: -hpp -mt 4 -i ./input_file/combination1_n1_100.0.sp -o output_file/combination1_n1_100.0.lis
+ lic:  
+ lic: FLEXlm: v10.9.8 
+ lic: USER:   sai                  HOSTNAME: linux19 
+ lic: HOSTID: 60a44cb1708a         PID:      30228 
+ lic: Using FLEXlm license file: 
+ lic: 1700@vdec-cad1 
+ lic: Checkout 1 hspice 
+ lic: License/Maintenance for hspice will expire on 31-mar-2016/2014.09 
+ lic: 64(in_use)/180(total) FLOATING license(s) on SERVER 1700@vdec-cad1 
+ lic:   
+ Init: read install configuration file: /mnt/rose/cad/linux/synopsys/hspice.latest/hspice/meta.cfg
+ 
+ ****** Advanced Analog Library - J-2014.09-SP1-2 (Jan 29 2015) ****** 
+  **warning** (./input_file/combination1_n1_100.0.sp:178) Global net name, "gnd", in subckt pin list. The pin will be connected to the local net. Recommend to not use global net names in subckt pin lists.
+1****** HSPICE -- J-2014.09-SP1-2 64-BIT (Jan 29 2015) RHEL64 ******            
+ ******  
+ .title 3nand_2_np_errorall
+
+ ****** circuit name directory
+ circuit number to circuit name directory
+   number circuitname                     definition         multiplier
+        0 main circuit
+        1 xi63.                           inv                1.00 
+        2 xi56.                           inv                1.00 
+        3 xi47.                           inv                1.00 
+        4 xi83.                           inv                1.00 
+        5 xi64.                           inv_with_reset     1.00 
+        6 xi62.                           inv_with_reset     1.00 
+        7 xi61.                           inv_with_reset     1.00 
+        8 xi60.                           inv_with_reset     1.00 
+        9 xi59.                           inv_with_reset     1.00 
+       10 xi58.                           inv_with_reset     1.00 
+       11 xi57.                           inv_with_reset     1.00 
+       12 xi52.                           inv_with_reset     1.00 
+       13 xi49.                           inv_with_reset     1.00 
+       14 xi51.                           inv_with_reset     1.00 
+       15 xi53.                           inv_with_reset     1.00 
+       16 xi50.                           inv_with_reset     1.00 
+       17 xi48.                           inv_with_reset     1.00 
+       18 xi44.                           inv_with_reset     1.00 
+       19 xi43.                           inv_with_reset     1.00 
+       20 xi42.                           inv_with_reset     1.00 
+       21 xi41.                           inv_with_reset     1.00 
+       22 xi40.                           inv_with_reset     1.00 
+       23 xi78.                           inv_with_reset     1.00 
+       24 xi75.                           inv_with_reset     1.00 
+       25 xi74.                           inv_with_reset     1.00 
+       26 xi82.                           inv_with_reset     1.00 
+       27 xi85.                           inv_with_reset     1.00 
+       28 xi84.                           inv_with_reset     1.00 
+       29 xi39.                           inv2               1.00 
+       30 xi38.                           inv2               1.00 
+       31 xi55.                           inv2               1.00 
+       32 xi54.                           inv2               1.00 
+       33 xi46.                           inv2               1.00 
+       34 xi45.                           inv2               1.00 
+       35 xi81.                           inv2               1.00 
+       36 xi80.                           inv2               1.00 
+  **info** (./input_file/combination1_n1_100.0.sp:144) DC voltage reset to initial transient source value              in source        0:va                  new dc=  0.0000D+00
+  **warning** (./input_file/combination1_n1_100.0.sp:128) Both nodes of element vgnd are connected together; Line ignored.
+ **warning** (v_$va:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (v_$va:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (v_$va_p:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (v_$va_p:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (v_$vb:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (v_$vb:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (v_$vb_p:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (v_$vb_p:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (v_$vc:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (v_$vc:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (v_$vc_p:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (v_$vc_p:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (v_$vna:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (v_$vna:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (v_$vna_p:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (v_$vna_p:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (v_$vnb:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (v_$vnb:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (v_$vnb_p:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (v_$vnb_p:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (v_$vnc:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (v_$vnc:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (v_$vnc_p:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (v_$vnc_p:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (v_$vreset:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (v_$vreset:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (i_$i_n1:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (i_$i_n1:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (i_$i_n2:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (i_$i_n2:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (i_$i_n3:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (i_$i_n3:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (i_$i_n4:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (i_$i_n4:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (i_$i_n5:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (i_$i_n5:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (i_$i_n6:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (i_$i_n6:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (i_$i_n7:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (i_$i_n7:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (i_$i_n8:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (i_$i_n8:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (i_$i_n9:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (i_$i_n9:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (i_$i_p1:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (i_$i_p1:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (i_$i_p2:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (i_$i_p2:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (i_$i_p3:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (i_$i_p3:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (i_$i_p4:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (i_$i_p4:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (i_$i_p5:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (i_$i_p5:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (i_$i_p6:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (i_$i_p6:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (i_$i_p7:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (i_$i_p7:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (i_$i_p8:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (i_$i_p8:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (i_$i_p9:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (i_$i_p9:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (i_$i_cd:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (i_$i_cd:0) pulse fall time is  < or = zero, reset to tstep
+ ***************************************************************************
+ ***        model parameters  model name:   0:p.2      model type:pmos   ***
+ ***************************************************************************
+
+   *** general parameters ***
+    deriv=   0.           
+
+   ***  level 53  model parameters  ***
+
+      hspver=    2006.03               level=         53         
+     version=        3.2            paramchk=          0         
+      apwarn=          1                lite=          0         
+      vgslim=          0             binUnit=          1         
+      capMod=          3               xpart=          0         
+      mobMod=          3              nqsMod=          0         
+      stiMod=          0                 elm=          5         
+    sfvtflag=          0                 tox=    3.2e-09 meter   
+          xj=    1.5e-07 meter       binflag=          0         
+        lmin=    1.8e-07 meter          lmax=      5e-07 meter   
+        wmin=      1e-06 meter          wmax=      1e-05 meter   
+        lref=          0 meter          wref=          0 meter   
+        lint=      1e-09 meter          wint=     -2e-08 meter   
+       lmult=          1               wmult=          1         
+          ll=          0                 lln=          1         
+          lw=          0                 lwn=          0         
+         lwl=          0                  wl=    5.5e-15         
+         wln=       0.99                  ww=      1e-15         
+         wwn=      1e-06                 wwl=          0         
+         dwg=   9.45e-09 m/V             dwb=    2.5e-08 m/V^1/2 
+          xl=          0                  xw=          0         
+          a0=    -0.3739                 ags=      1e-12 V^-1    
+          b0=  8.438e-05 meter            b1=  9.051e-05 meter   
+        keta=     -0.064 V^-1           voff=   -0.07968 V       
+       ngate=          0 cm^-3           vbx=          0 V       
+         vbm=         -3 V                xt=   1.55e-07 meter   
+        vth0=    -0.3922 V               nch=    1.7e+17 cm^-3   
+        nsub=      6e+16 cm^-3           nlx=  8.505e-08 meter   
+      gamma1=          0 V^-1/2       gamma2=          0 V^-1/2  
+          k1=     0.5328 V^1/2            k2=   -0.07631         
+          k3=     -8.953                 k3b=      6.192 V^-1    
+          w0=      1e-09 meter          dvt0=      9.935         
+        dvt1=      1.305                dvt2= -4.441e-16 V^-1    
+       dvt0w=    0.02761 meter^-1      dvt1w=  2.495e-09 meter^-1
+       dvt2w=  -2.22e-17 V^-1           dsub=     0.7104         
+        eta0=     0.1499                etab=       -0.1 V^-1    
+          u0=      60.03 cm^2/V/sec         ua=  5.923e-10 m/V     
+          ub=  1.281e-19 (m/V)^2          uc=   -0.04374 V^-1    
+        vsat=      1e+06 m/sec            a1=      0.001 v^-1    
+          a2=    0.06757               delta=    0.01877 V       
+        rdsw=        100 ohm-um         prwg=    -0.7655 V^-1    
+        prwb=          0 V^-1/2           wr=          1         
+        pclm=      2.235             pdiblc1=       1.65         
+     pdiblc2=    0.02496             pdiblcb=         -2 V^-1    
+      pscbe1=  9.852e+08 V/m          pscbe2=   4.01e-09 V/m     
+       drout=      1.675                pvag=         10         
+     nfactor=          2                cdsc=      0.001 f/m^2   
+       cdscb=    -0.0001 f/V/m^2       cdscd= -9.945e-05 f/V/m^2 
+         cit=          0 f/m^2        alpha0=  7.001e-09 m/V     
+       beta0=      15.32 V               dlc=      1e-09 meter   
+         dwc=     -2e-08 meter           clc=      6e-07 meter   
+         cle=        0.6                cgso= 1.0791e-11 f/m     
+        cgdo= 1.0791e-11 f/m            cgbo=-4.31642e-10 f/m     
+        cgsl=          0 f/m            cgdl=          0 f/m     
+      ckappa=        0.6                  cf=1.07911e-10 f/m     
+        acde=          1 m/V            moin=         15 V^1/2   
+        toxm=    3.2e-09 m            dtoxcv=          0 m       
+         vfb (not used)                alpha1=          0 1/V     
+        ijth=          0 A              noff=          1         
+      voffcv=          0                 tcj=    8.7e-05 1/K     
+       tcjsw=   5.71e-11 1/K          tcjswg=          0 1/K     
+         tpb=      0.001 V/K           tpbsw=      0.001 V/K     
+      tpbswg=          0 V/K             llc=          0         
+         lwc=          0                lwlc=          0         
+         wlc=    5.5e-15                 wwc=      1e-15         
+        wwlc=          0                tnom=     298.15 K       
+         kt1=    -0.3309 V              kt1l=  2.939e-09         
+         kt2=          0                 ute=      -1.42         
+         ua1=      1e-18 m/V             ub1= -1.351e-18 (m/V)^2 
+         uc1=    -0.2805 m/V^2            at=          1 m/s     
+         prt=          0         
+         using Berkeley noise model       noiMod=          1         
+        noia=    9.9e+18                noib=       2400         
+        noic=    1.4e-12                  em=    4.1e+07         
+          ef=          1                  af=          1         
+          kf=          0              gdsnoi=-1.23457e-29         
+         using Hspice diodes            using ACM 
+         acm=         2                 hdif=   6.4e-07 meter    
+        ldif=         0 meter             js=     8e-06 amp/m^2  
+         jsw=         0 amp/m            xti=         0          
+           n=         1                   cj=   0.00179 f/m^2    
+          mj=    0.4529                   pb=    0.8526 V        
+        cjsw=  1.62e-10 f/m             mjsw=    0.3809          
+         php=    0.8526 V               pbsw (not used)           
+      cjgate=  1.62e-10 f/m            cjswg (not used)           
+       mjswg (not used)                 pbswg (not used)           
+         pwr= -4.441e-15         
+ ***************************************************************************
+ ***        model parameters  model name:   0:n.2      model type:nmos   ***
+ ***************************************************************************
+
+   *** general parameters ***
+    deriv=   0.           
+
+   ***  level 53  model parameters  ***
+
+      hspver=    2006.03               level=         53         
+     version=        3.2            paramchk=          0         
+      apwarn=          1                lite=          0         
+      vgslim=          0             binUnit=          1         
+      capMod=          3               xpart=          0         
+      mobMod=          3              nqsMod=          0         
+      stiMod=          0                 elm=          5         
+    sfvtflag=          0                 tox=    3.2e-09 meter   
+          xj=    1.5e-07 meter       binflag=          0         
+        lmin=    1.8e-07 meter          lmax=      5e-07 meter   
+        wmin=      1e-06 meter          wmax=   1.01e-05 meter   
+        lref=          0 meter          wref=          0 meter   
+        lint=  2.378e-08 meter          wint=  4.612e-09 meter   
+       lmult=          1               wmult=          1         
+          ll=          0                 lln=          1         
+          lw=          0                 lwn=          0         
+         lwl=          0                  wl=      8e-16         
+         wln=       1.12                  ww=     -1e-15         
+         wwn=          1                 wwl=          0         
+         dwg= -3.682e-08 m/V             dwb=          0 m/V^1/2 
+          xl=          0                  xw=          0         
+          a0=      1.766                 ags=     0.7566 V^-1    
+          b0= -8.838e-06 meter            b1=   2.43e-05 meter   
+        keta=     0.0159 V^-1           voff=    -0.1662 V       
+       ngate=          0 cm^-3           vbx=          0 V       
+         vbm=         -3 V                xt=   1.55e-07 meter   
+        vth0=     0.4624 V               nch=    1.7e+17 cm^-3   
+        nsub=      6e+16 cm^-3           nlx=  8.967e-08 meter   
+      gamma1=          0 V^-1/2       gamma2=          0 V^-1/2  
+          k1=     0.4128 V^1/2            k2=    -0.0161         
+          k3=      8.095                 k3b=      5.101 V^-1    
+          w0=      1e-09 meter          dvt0=       4.26         
+        dvt1=      1.248                dvt2=       -0.1 V^-1    
+       dvt0w=      15440 meter^-1      dvt1w=  6.973e+07 meter^-1
+       dvt2w=          0 V^-1           dsub=     0.7451         
+        eta0=    0.01787                etab=    -0.0619 V^-1    
+          u0=      276.8 cm^2/V/sec         ua= -1.473e-09 m/V     
+          ub=  2.642e-18 (m/V)^2          uc=     0.2385 V^-1    
+        vsat=      92170 m/sec            a1=  0.0005758 v^-1    
+          a2=     0.6551               delta=  1.444e-15 V       
+        rdsw=      290.9 ohm-um         prwg=  -0.009464 V^-1    
+        prwb=          0 V^-1/2           wr=      1.038         
+        pclm=      1.844             pdiblc1=       0.43         
+     pdiblc2=  0.0008522             pdiblcb= -4.441e-16 V^-1    
+      pscbe1=  3.792e+07 V/m          pscbe2=          0 V/m     
+       drout=     0.9994                pvag=     0.2047         
+     nfactor=      1.172                cdsc=   0.002468 f/m^2   
+       cdscb=  -0.001006 f/V/m^2       cdscd=    -0.0001 f/V/m^2 
+         cit=          0 f/m^2        alpha0=  3.609e-06 m/V     
+       beta0=      16.53 V               dlc=  2.378e-08 meter   
+         dwc=  4.612e-09 meter           clc=      1e-07 meter   
+         cle=        0.6                cgso=2.56611e-10 f/m     
+        cgdo=2.56611e-10 f/m            cgbo=9.95366e-11 f/m     
+        cgsl=          0 f/m            cgdl=          0 f/m     
+      ckappa=        0.6                  cf=1.07911e-10 f/m     
+        acde=          1 m/V            moin=         15 V^1/2   
+        toxm=    3.2e-09 m            dtoxcv=          0 m       
+         vfb (not used)                alpha1=          0 1/V     
+        ijth=          0 A              noff=          1         
+      voffcv=          0                 tcj=      0.001 1/K     
+       tcjsw=  1.444e-15 1/K          tcjswg=          0 1/K     
+         tpb=  2.175e-09 V/K           tpbsw=      1e-15 V/K     
+      tpbswg=          0 V/K             llc=          0         
+         lwc=          0                lwlc=          0         
+         wlc=      8e-16                 wwc=     -1e-15         
+        wwlc=          0                tnom=     298.15 K       
+         kt1=     -0.248 V              kt1l=  1.579e-09         
+         kt2=  4.441e-16                 ute=     -2.297         
+         ua1=  1.713e-09 m/V             ub1= -3.511e-18 (m/V)^2 
+         uc1=    -0.1888 m/V^2            at=      50760 m/s     
+         prt=          0         
+         using Berkeley noise model       noiMod=          1         
+        noia=      1e+20                noib=      50000         
+        noic=   -1.4e-12                  em=    4.1e+07         
+          ef=          1                  af=          1         
+          kf=          0              gdsnoi=-1.23457e-29         
+         using Hspice diodes            using ACM 
+         acm=         2                 hdif=   6.4e-07 meter    
+        ldif=         0 meter             js=     6e-06 amp/m^2  
+         jsw=         0 amp/m            xti=         0          
+           n=         1                   cj= 0.0009478 f/m^2    
+          mj=    0.2932                   pb=    0.7758 V        
+        cjsw= 2.968e-10 f/m             mjsw=    0.4036          
+         php=    0.7758 V               pbsw (not used)           
+      cjgate= 2.968e-10 f/m            cjswg (not used)           
+       mjswg (not used)                 pbswg (not used)           
+ 
+
+ Warning: Pscbe2 = 0 is not positive in BSIM3 model    0:n.2 with W = 2e-06, L = 1.8e-07.
+  
+      
+ **warning** (v_$va:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (v_$va:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (v_$va_p:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (v_$va_p:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (v_$vb:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (v_$vb:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (v_$vb_p:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (v_$vb_p:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (v_$vc:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (v_$vc:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (v_$vc_p:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (v_$vc_p:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (v_$vna:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (v_$vna:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (v_$vna_p:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (v_$vna_p:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (v_$vnb:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (v_$vnb:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (v_$vnb_p:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (v_$vnb_p:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (v_$vnc:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (v_$vnc:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (v_$vnc_p:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (v_$vnc_p:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (v_$vreset:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (v_$vreset:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (i_$i_n1:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (i_$i_n1:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (i_$i_n2:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (i_$i_n2:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (i_$i_n3:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (i_$i_n3:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (i_$i_n4:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (i_$i_n4:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (i_$i_n5:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (i_$i_n5:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (i_$i_n6:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (i_$i_n6:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (i_$i_n7:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (i_$i_n7:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (i_$i_n8:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (i_$i_n8:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (i_$i_n9:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (i_$i_n9:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (i_$i_p1:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (i_$i_p1:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (i_$i_p2:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (i_$i_p2:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (i_$i_p3:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (i_$i_p3:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (i_$i_p4:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (i_$i_p4:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (i_$i_p5:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (i_$i_p5:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (i_$i_p6:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (i_$i_p6:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (i_$i_p7:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (i_$i_p7:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (i_$i_p8:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (i_$i_p8:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (i_$i_p9:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (i_$i_p9:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (i_$i_cd:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (i_$i_cd:0) pulse fall time is  < or = zero, reset to tstep
+ **info** set option symb=1 internally to help for convergence.
+ *****************************************************************
+ ******  option summary
+ ******
+ runlvl  = 3         bypass  = 2         
+  Opening plot unit= 15
+ file=output_file/combination1_n1_100.0.pa0
+
+ **warning** (v_$va:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (v_$va:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (v_$va_p:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (v_$va_p:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (v_$vb:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (v_$vb:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (v_$vb_p:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (v_$vb_p:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (v_$vc:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (v_$vc:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (v_$vc_p:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (v_$vc_p:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (v_$vna:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (v_$vna:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (v_$vna_p:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (v_$vna_p:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (v_$vnb:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (v_$vnb:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (v_$vnb_p:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (v_$vnb_p:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (v_$vnc:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (v_$vnc:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (v_$vnc_p:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (v_$vnc_p:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (v_$vreset:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (v_$vreset:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (i_$i_n1:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (i_$i_n1:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (i_$i_n2:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (i_$i_n2:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (i_$i_n3:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (i_$i_n3:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (i_$i_n4:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (i_$i_n4:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (i_$i_n5:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (i_$i_n5:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (i_$i_n6:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (i_$i_n6:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (i_$i_n7:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (i_$i_n7:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (i_$i_n8:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (i_$i_n8:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (i_$i_n9:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (i_$i_n9:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (i_$i_p1:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (i_$i_p1:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (i_$i_p2:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (i_$i_p2:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (i_$i_p3:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (i_$i_p3:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (i_$i_p4:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (i_$i_p4:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (i_$i_p5:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (i_$i_p5:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (i_$i_p6:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (i_$i_p6:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (i_$i_p7:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (i_$i_p7:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (i_$i_p8:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (i_$i_p8:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (i_$i_p9:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (i_$i_p9:0) pulse fall time is  < or = zero, reset to tstep
+ **warning** (i_$i_cd:0) pulse rise time is  < or = zero, reset to tstep
+ **warning** (i_$i_cd:0) pulse fall time is  < or = zero, reset to tstep
+ **info** dc convergence successful at GMINDC ramping method 
+1****** HSPICE -- J-2014.09-SP1-2 64-BIT (Jan 29 2015) RHEL64 ******            
+ ******  
+ .title 3nand_2_np_errorall
+
+ ****** operating point information tnom=  25.000 temp=  27.000 ******
+ ****** operating point status is all       simulation time is     0.     
+     node    =voltage       node    =voltage       node    =voltage
+
+ + 0:a_n     =   0.       0:a_p     =   0.       0:b_n     =   0.     
+ + 0:b_p     =   0.       0:c_n     =   0.       0:c_p     =   0.     
+ + 0:cd_1    = 3.277e-09  0:cd_2    =   0.8241   0:cd_3    = 3.277e-09
+ + 0:cd_4    = 3.277e-09  0:cd_n_1  =   0.1715   0:cd_n_2  =   1.8000 
+ + 0:cd_n_3  =   1.8000   0:cd_n_4  =   1.8000   0:n_and_1 = 3.277e-09
+ + 0:n_and_2 = 3.277e-09  0:n_and_3 = 3.277e-09  0:n_and_4 = 3.277e-09
+ + 0:n_nand_1= 3.277e-09  0:n_nand_2= 3.277e-09  0:n_nand_3= 3.277e-09
+ + 0:n_nand_4= 3.277e-09  0:na_n    =   0.       0:na_p    =   0.     
+ + 0:nb_n    =   0.       0:nb_p    =   0.       0:nc_n    =   0.     
+ + 0:nc_p    =   0.       0:net0112 =   0.5948   0:net0116 = 2.626e-02
+ + 0:net0117 = 8.699e-02  0:net0118 =   0.4566   0:net0129 =   0.3935 
+ + 0:net0136 = 1.454e-02  0:net0152 =   1.8000   0:net0154 =   0.3891 
+ + 0:net0155 =   0.2043   0:net0156 = 5.329e-02  0:net0157 = 1.793e-02
+ + 0:net0160 =   0.5948   0:net0161 =   0.4682   0:net0162 = 3.547e-02
+ + 0:net0163 = 9.913e-10  0:net0164 = 2.626e-02  0:net0165 = 8.698e-02
+ + 0:net0179 =   1.8000   0:net0180 =   1.8000   0:net0191 =   1.8000 
+ + 0:net0262 =   1.8000   0:net0279 =   1.8000   0:net0280 =   1.8000 
+ + 0:net0281 =   0.2345   0:net0282 = 1.454e-02  0:net0283 =   0.3514 
+ + 0:net0284 =   0.3934   0:net0285 = 4.777e-02  0:net0286 =   0.4565 
+ + 0:net0316 = 9.913e-10  0:net0330 =   0.4682   0:net0336 =   0.2345 
+ + 0:net0342 = 3.548e-02  0:net0348 = 1.793e-02  0:net0367 =   0.3891 
+ + 0:net0381 = 5.329e-02  0:net0382 =   1.8000   0:net0386 =   1.8000 
+ + 0:net105  =   1.8000   0:net13   = 1.810e-02  0:net132  =   1.8000 
+ + 0:net151  =   1.8000   0:net157  =   0.2043   0:net158  =   0.2057 
+ + 0:net159  = 1.793e-02  0:net16   =   0.4682   0:net17   =   0.4693 
+ + 0:net173  =   1.8000   0:net18   = 3.569e-02  0:net19   = 1.391e-04
+ + 0:net190  =   1.8000   0:net195  =   1.8000   0:net20   = 2.171e-09
+ + 0:net201  =   0.3891   0:net202  =   0.2043   0:net203  = 5.329e-02
+ + 0:net21   = 3.547e-02  0:net217  =   1.8000   0:net234  =   0.7618 
+ + 0:net246  =   0.2043   0:net278  =   1.8000   0:net280  =   1.8000 
+ + 0:net281  =   1.8000   0:net284  =   0.3514   0:net285  =   1.8000 
+ + 0:net286  =   1.8000   0:net287  =   0.2345   0:net288  = 1.454e-02
+ + 0:net289  =   0.3514   0:net290  =   1.8000   0:net291  =   1.8000 
+ + 0:net292  =   0.2357   0:net293  = 1.471e-02  0:net294  =   0.3523 
+ + 0:net296  = 4.777e-02  0:net298  =   0.3934   0:net299  = 4.777e-02
+ + 0:net300  =   0.4565   0:net301  =   0.2345   0:net302  = 1.454e-02
+ + 0:net303  =   0.3514   0:net36   =   1.8000   0:net57   =   1.8000 
+ + 0:net61   = 1.793e-02  0:net64   =   0.5948   0:net65   =   0.4682 
+ + 0:net66   = 3.547e-02  0:net67   = 9.913e-10  0:net68   = 2.626e-02
+ + 0:net69   = 8.698e-02  0:net84   =   1.8000   0:net9    =   1.8000 
+ + 0:p_and_1 = 3.277e-09  0:p_and_2 = 3.277e-09  0:p_and_3 = 3.277e-09
+ + 0:p_and_4 = 3.277e-09  0:p_nand_1= 3.277e-09  0:p_nand_2= 3.277e-09
+ + 0:p_nand_3= 3.277e-09  0:p_nand_4= 3.277e-09  0:reset   =   0.     
+ + 0:vdd     =   1.8000   5:net23   =   1.8000   6:net23   =   1.8000 
+ + 7:net23   =   1.8000   8:net23   =   1.8000   9:net23   =   1.8000 
+ +10:net23   =   1.8000  11:net23   =   1.6914  12:net23   =   1.8000 
+ +13:net23   =   1.8000  14:net23   =   1.8000  15:net23   =   1.8000 
+ +16:net23   =   1.8000  17:net23   =   1.8000  18:net23   =   1.8000 
+ +19:net23   =   1.8000  20:net23   =   1.6974  21:net23   =   1.8000 
+ +22:net23   =   1.8000  23:net23   =   1.8000  24:net23   =   1.8000 
+ +25:net23   =   1.8000  26:net23   =   1.8000  27:net23   =   1.8000 
+ +28:net23   =   1.8000 
+
+
+ maximum nodal capacitance=   3.289E-12         on node     0:vdd             
+
+    nodal  capacitance table 
+
+     node    =    cap       node    =    cap       node    =    cap
+
+ + 0:a_n     = 5.871e-15  0:a_p     = 5.871e-15  0:b_n     = 5.871e-15
+ + 0:b_p     = 5.871e-15  0:c_n     = 5.919e-15  0:c_p     = 5.919e-15
+ + 0:cd_1    = 2.491e-14  0:cd_2    = 5.417e-14  0:cd_3    = 7.994e-14
+ + 0:cd_4    = 5.243e-14  0:cd_n_1  = 3.826e-14  0:cd_n_2  = 3.983e-14
+ + 0:cd_n_3  = 3.983e-14  0:cd_n_4  = 3.983e-14  0:n_and_1 = 4.153e-14
+ + 0:n_and_2 = 4.153e-14  0:n_and_3 = 4.153e-14  0:n_and_4 = 2.387e-14
+ + 0:n_nand_1= 4.063e-14  0:n_nand_2= 4.063e-14  0:n_nand_3= 4.063e-14
+ + 0:n_nand_4= 2.387e-14  0:na_n    = 5.871e-15  0:na_p    = 5.871e-15
+ + 0:nb_n    = 5.919e-15  0:nb_p    = 5.919e-15  0:nc_n    = 4.965e-15
+ + 0:nc_p    = 4.965e-15  0:net0112 = 5.960e-15  0:net0116 = 2.369e-14
+ + 0:net0117 = 7.034e-15  0:net0118 = 1.880e-15  0:net0129 = 1.880e-15
+ + 0:net0136 = 3.195e-15  0:net0152 = 5.257e-14  0:net0154 = 2.692e-14
+ + 0:net0155 = 2.833e-14  0:net0156 = 3.145e-14  0:net0157 = 3.186e-14
+ + 0:net0160 = 1.986e-14  0:net0161 = 2.043e-14  0:net0162 = 2.601e-14
+ + 0:net0163 = 5.095e-14  0:net0164 = 4.707e-14  0:net0165 = 2.554e-14
+ + 0:net0179 = 4.171e-14  0:net0180 = 3.322e-14  0:net0191 = 7.182e-14
+ + 0:net0262 = 6.106e-14  0:net0279 = 1.887e-14  0:net0280 = 1.887e-14
+ + 0:net0281 = 1.271e-14  0:net0282 = 1.653e-14  0:net0283 = 1.230e-14
+ + 0:net0284 = 1.217e-14  0:net0285 = 1.633e-14  0:net0286 = 1.198e-14
+ + 0:net0316 = 2.723e-14  0:net0330 = 5.960e-15  0:net0336 = 1.880e-15
+ + 0:net0342 = 7.034e-15  0:net0348 = 8.093e-15  0:net0367 = 6.135e-15
+ + 0:net0381 = 8.093e-15  0:net0382 = 3.928e-14  0:net0386 = 4.890e-14
+ + 0:net105  = 4.041e-14  0:net13   = 3.186e-14  0:net132  = 3.079e-14
+ + 0:net151  = 6.028e-14  0:net157  = 2.833e-14  0:net158  = 2.832e-14
+ + 0:net159  = 3.186e-14  0:net16   = 2.043e-14  0:net17   = 2.043e-14
+ + 0:net173  = 4.093e-14  0:net18   = 2.601e-14  0:net19   = 4.753e-14
+ + 0:net190  = 7.182e-14  0:net195  = 6.106e-14  0:net20   = 5.053e-14
+ + 0:net201  = 2.692e-14  0:net202  = 2.833e-14  0:net203  = 3.145e-14
+ + 0:net21   = 2.601e-14  0:net217  = 4.171e-14  0:net234  = 5.797e-14
+ + 0:net246  = 6.135e-15  0:net278  = 7.182e-14  0:net280  = 1.887e-14
+ + 0:net281  = 1.887e-14  0:net284  = 1.880e-15  0:net285  = 1.887e-14
+ + 0:net286  = 1.887e-14  0:net287  = 1.271e-14  0:net288  = 1.653e-14
+ + 0:net289  = 1.230e-14  0:net290  = 1.887e-14  0:net291  = 1.887e-14
+ + 0:net292  = 1.271e-14  0:net293  = 1.653e-14  0:net294  = 1.230e-14
+ + 0:net296  = 3.195e-15  0:net298  = 1.217e-14  0:net299  = 1.633e-14
+ + 0:net300  = 1.198e-14  0:net301  = 1.271e-14  0:net302  = 1.653e-14
+ + 0:net303  = 1.230e-14  0:net36   = 4.163e-14  0:net57   = 5.257e-14
+ + 0:net61   = 3.186e-14  0:net64   = 1.986e-14  0:net65   = 2.043e-14
+ + 0:net66   = 2.601e-14  0:net67   = 5.095e-14  0:net68   = 4.707e-14
+ + 0:net69   = 2.554e-14  0:net84   = 3.322e-14  0:net9    = 6.098e-14
+ + 0:p_and_1 = 4.450e-14  0:p_and_2 = 4.450e-14  0:p_and_3 = 4.450e-14
+ + 0:p_and_4 = 2.684e-14  0:p_nand_1= 4.360e-14  0:p_nand_2= 4.360e-14
+ + 0:p_nand_3= 4.360e-14  0:p_nand_4= 2.684e-14  0:reset   = 1.791e-13
+ + 0:vdd     = 3.289e-12  5:net23   = 3.185e-14  6:net23   = 3.185e-14
+ + 7:net23   = 3.185e-14  8:net23   = 3.183e-14  9:net23   = 3.185e-14
+ +10:net23   = 3.185e-14 11:net23   = 3.201e-14 12:net23   = 3.185e-14
+ +13:net23   = 3.185e-14 14:net23   = 3.183e-14 15:net23   = 3.185e-14
+ +16:net23   = 3.185e-14 17:net23   = 3.185e-14 18:net23   = 3.185e-14
+ +19:net23   = 3.185e-14 20:net23   = 3.212e-14 21:net23   = 3.185e-14
+ +22:net23   = 3.185e-14 23:net23   = 3.185e-14 24:net23   = 3.185e-14
+ +25:net23   = 3.185e-14 26:net23   = 3.183e-14 27:net23   = 3.185e-14
+ +28:net23   = 3.185e-14
+
+ 
+ 
+Warning: 3 port signals are assumed local to their subcircuits 
+ 
+Port signals that have the same names as global nets: 
+Location                                                       Port name  Subckt            
+ 
+(/usr1/sai/design/rules/rohm180/spice/hspice/bu40n1.mdl:6327)  "GND"      "INV"             
+ 
+(./input_file/combination1_n1_100.0.sp:180)                    "GND"      "INV_WITH_RESET"  
+ 
+(./input_file/combination1_n1_100.0.sp:191)                    "GND"      "INV2"            
+ 
+ 
+".opt runlvl= 3" sets ".opt sim_accuracy= 1"  
+ 
+Warning: (./input_file/combination1_n1_100.0.sp:488) pulse rise time is  < or = zero, reset to tstep
+ 
+ 
+Warning: (./input_file/combination1_n1_100.0.sp:488) pulse fall time is  < or = zero, reset to tstep
+ 
+ 
+Warning: (./input_file/combination1_n1_100.0.sp:469) pulse rise time is  < or = zero, reset to tstep
+ 
+ 
+Warning: (./input_file/combination1_n1_100.0.sp:469) pulse fall time is  < or = zero, reset to tstep
+ 
+ 
+Warning: (./input_file/combination1_n1_100.0.sp:144) pulse rise time is  < or = zero, reset to tstep
+ 
+ 
+Warning: (./input_file/combination1_n1_100.0.sp:144) pulse fall time is  < or = zero, reset to tstep
+ 
+ 
+Warning: (./input_file/combination1_n1_100.0.sp:148) pulse rise time is  < or = zero, reset to tstep
+ 
+ 
+Warning: (./input_file/combination1_n1_100.0.sp:148) pulse fall time is  < or = zero, reset to tstep
+ 
+ 
+Warning: (./input_file/combination1_n1_100.0.sp:152) pulse rise time is  < or = zero, reset to tstep
+ 
+ 
+Warning: (./input_file/combination1_n1_100.0.sp:152) pulse fall time is  < or = zero, reset to tstep
+ 
+ 
+Warning: (./input_file/combination1_n1_100.0.sp:142) pulse rise time is  < or = zero, reset to tstep
+ 
+ 
+Warning: (./input_file/combination1_n1_100.0.sp:142) pulse fall time is  < or = zero, reset to tstep
+ 
+ 
+  ******  Summary of Possible Problems in Netlist  *************** 
+  Negative resistor              0   
+  Negative capacitor             0   
+  Negative inductor              0   
+  Unconnected node               0   
+  Dangling terminal              0   
+  Non-rail bulk terminal         0   
+  Floating MOS gate              0   
+  Floating MOS bulk              0   
+  Floating BJT substrate         0   
+  Floating controlled input      0   
+  Floating current source nodes  0   
+  Source loop                    0   
+   
+Running HSPICE Precision Parallel (HPP) 
+Auto-select simulation algortithm 
+.   
+SSolve ...  
+  
+NDD 16 
+Running 4 threads. 
+  
+ 
+License user information 
+FLEXLM    v8.5b          
+USER      sai            
+HOSTNAME  linux19        
+HOSTID    60a44cb1708a   
+PID       30228          
+ 
+License file: 1700@vdec-cad1 
+license  checkout number  expiration date       # in use / total  server          
+ 
+hspice   1                31-mar-2016/2014.09  65/180             1700@vdec-cad1  
+ 
+0.1% time = 306.403704 ps ( etc = 51.1 sec, ett = 51.2 sec ) 
+( wall = 0.1 sec cpu = 0.1 sec s=1.36748 ) 
+10.0% time = 30.015507 ns ( etc = 2.8 sec, ett = 3.1 sec ) 
+( wall = 0.3 sec cpu = 1.1 sec s=3.46354 ) 
+20.0% time = 60.001749 ns ( etc = 2.1 sec, ett = 2.6 sec ) 
+( wall = 0.5 sec cpu = 1.9 sec s=3.62601 ) 
+30.0% time = 90.009086 ns ( etc = 1.7 sec, ett = 2.4 sec ) 
+( wall = 0.7 sec cpu = 2.7 sec s=3.70543 ) 
+40.0% time = 120.109483 ns ( etc = 1.3 sec, ett = 2.2 sec ) 
+( wall = 0.9 sec cpu = 3.2 sec s=3.72606 ) 
+50.0% time = 150.349284 ns ( etc = 0.9 sec, ett = 1.9 sec ) 
+( wall = 0.9 sec cpu = 3.5 sec s=3.73785 ) 
+60.0% time = 180.121804 ns ( etc = 0.7 sec, ett = 1.7 sec ) 
+( wall = 1.0 sec cpu = 3.8 sec s=3.72459 ) 
+70.0% time = 210.348434 ns ( etc = 0.5 sec, ett = 1.5 sec ) 
+( wall = 1.1 sec cpu = 4.0 sec s=3.72002 ) 
+80.0% time = 240.220392 ns ( etc = 0.3 sec, ett = 1.4 sec ) 
+( wall = 1.1 sec cpu = 4.2 sec s=3.72771 ) 
+90.0% time = 270.361589 ns ( etc = 0.1 sec, ett = 1.3 sec ) 
+( wall = 1.2 sec cpu = 4.5 sec s=3.73147 ) 
+ ****** 
+ ****** 
+ ******  transient analysis       temp=  27 
+ ****** 
+error_pulse_injection_timing=  1.0000e-07     1.000e-07 
+n_and_3_pulse_width=  9.7606e-10    targ=  5.4837e-08 trig=  5.3861e-08 
+n_and_4_pulse_width=  6.9432e-10    targ=  5.4906e-08 trig=  5.4211e-08 
+cd_3_pulse_width=  6.3083e-09    targ=  6.0530e-08 trig=  5.4222e-08 
+cd_4_pulse_width=  6.2652e-09    targ=  6.0742e-08 trig=  5.4477e-08 
+n_and_3_timing1=  3.0018e-08    when/at= 3.002e-08 
+n_and_3_timing2=  4.2018e-08    when/at= 4.202e-08 
+n_and_3_period=  1.2000e-08     1.200e-08 
+n_and_4_timing1=  3.0315e-08    when/at= 3.031e-08 
+n_and_4_timing2=  4.2315e-08    when/at= 4.231e-08 
+n_and_4_period=  1.2000e-08     1.200e-08 
+cd_3_timing1=  3.0471e-08    when/at= 3.047e-08 
+cd_3_timing2=  4.2470e-08    when/at= 4.247e-08 
+cd_3_period=  1.2000e-08     1.200e-08 
+cd_4_timing1=  3.0640e-08    when/at= 3.064e-08 
+cd_4_timing2=  4.2639e-08    when/at= 4.264e-08 
+cd_4_period=  1.2000e-08     1.200e-08 
+n_and_3_rise_timing_before_pulse=    failed     
+n_and_4_rise_timing_before_pulse=    failed     
+cd_4_rise_timing_before_pulse=    failed     
+n_and_3_rise_timing_1=  1.0002e-07    when/at= 1.000e-07 
+n_and_3_fall_timing_1=  1.0086e-07    when/at= 1.009e-07 
+n_and_3_rise_timing_2=    failed    (null) 
+n_and_3_fall_timing_2=    failed    (null) 
+n_and_3_rise_timing_3=    failed    (null) 
+n_and_3_fall_timing_3=    failed    (null) 
+n_and_3_fall_timing_4=    failed    (null) 
+cd_4_rise_timing_1=  1.0050e-07    when/at= 1.005e-07 
+cd_4_fall_timing_1=    failed    (null) 
+cd_4_rise_timing_2=    failed    (null) 
+cd_4_fall_timing_2=    failed    (null) 
+n_and_3_pulse_width_after_pulse_in_period1_1=  8.4016e-10     8.402e-10 
+n_and_3_pulse_width_after_pulse_in_period1_2=    failed    (null) 
+n_and_3_pulse_width_after_pulse_in_period2_1=    failed    (null) 
+n_and_3_pulse_width_after_pulse_in_period2_2=    failed    (null) 
+n_and_3_pulse_width_after_pulse_in_period3_1=    failed    (null) 
+n_and_3_pulse_width_after_pulse_in_period3_2=    failed    (null) 
+n_and_3_max_vol_after_pulse_in_period1=  1.8428      from=   1.000e-07  to=   1.120e-07
+ 
+n_and_3_max_vol_after_pulse_in_period2=  5.9518e-08      from=   1.120e-07  to=   1.240e-07
+ 
+n_and_3_max_vol_after_pulse_in_period3=  5.6786e-08      from=   1.240e-07  to=   1.360e-07
+ 
+n_and_4_max_vol_after_pulse_in_period1=  1.8523      from=   1.000e-07  to=   1.120e-07
+ 
+n_and_4_max_vol_after_pulse_in_period2=  -3.9892e-07      from=   1.120e-07  to=   1.240e-07
+ 
+n_and_4_max_vol_after_pulse_in_period3=  -3.9892e-07      from=   1.240e-07  to=   1.360e-07
+ 
+cd_3_rise_timing_after_pulse_1=  1.0028e-07    when/at= 1.003e-07 
+cd_3_rise_timing_after_pulse_2=    failed    (null) 
+cd_3_fall_timing_after_pulse_1=    failed    (null) 
+cd_3_fall_timing_after_pulse_2=    failed    (null) 
+cd_3_pulse_width_after_pulse_in_period1_1=    failed    (null) 
+cd_3_pulse_width_after_pulse_in_period1_2=    failed    (null) 
+cd_4_rise_timing_after_pulse_1=  1.0052e-07    when/at= 1.005e-07 
+cd_4_rise_timing_after_pulse_2=    failed    (null) 
+cd_4_fall_timing_after_pulse_1=    failed    (null) 
+cd_4_fall_timing_after_pulse_2=    failed    (null) 
+cd_4_pulse_width_after_pulse_in_period1_1=    failed    (null) 
+cd_4_pulse_width_after_pulse_in_period1_2=    failed    (null) 
+n_and_3_rise_to_vdd_timing_after_pulse=  1.0017e-07    when/at= 1.002e-07 
+n_and_4_rise_timing_after_pulse_1=  1.0025e-07    when/at= 1.002e-07 
+n_and_4_fall_timing_after_pulse_1=  1.0095e-07    when/at= 1.010e-07 
+n_and_4_pulse_width_after_pulse=  7.0749e-10     7.075e-10 
+n_and_4_rise_to_vdd_timing_after_pulse=  1.0044e-07    when/at= 1.004e-07 
+n_nand_3_max_vol_after_pulse=  5.8373e-03      from=   1.000e-07  to=   1.120e-07
+ 
+n_nand_4_max_vol_after_pulse=  6.9679e-04      from=   1.000e-07  to=   1.120e-07
+ 
+ 
+ 
+100.0% time = 300.000000 ns ( etc = 0.0 sec, ett = 1.3 sec ) 
+( wall = 1.3 sec cpu = 4.8 sec s=3.60858 ) 
+ *************************  
+ 
+Resource Usage for Transient Analysis 
+CPU Time     4.81 sec    
+Peak Memory  302.34 Mb   
+  
+Wall Time Statistics:  
+  Transient Wall time                   = 1.3305 
+  Transient Wall time per timestep      = 0.0004 
+  Transient Wall time per timestep-node = 2.4504e-06 
+  Total CPU time                       = 4.8100 
+  Total CPU time per step              = 0.0015 
+ 
+ 
+  Memory          = 3.17028e+08 
+ 
+
+          ***** job concluded
+1****** HSPICE -- J-2014.09-SP1-2 64-BIT (Jan 29 2015) RHEL64 ******            
+ ******  
+ .title 3nand_2_np_errorall
+
+ ****** job statistics summary tnom=  25.000 temp=  27.000 ******
+  
+  
+ ******  Machine Information  ******
+ CPU:
+ model name	: Intel(R) Core(TM) i3-3220 CPU @ 3.30GHz
+ cpu MHz	: 1900.000
+  
+ OS:
+ Linux version 2.6.18-371.9.1.el5 (mockbuild@builder17.centos.org) (gcc version 4.1.2 20080704 (Red Hat 4.1.2-54)) #1 SMP Tue Jun 10 17:49:56 EDT 2014
+
+
+  ******  HSPICE Threads Information  ******
+
+  Command Line Threads Count :     4
+  Available CPU Count        :     4
+  Actual Threads Count       :     4
+
+
+  ****** Statistics of Ignored Elements ******
+  Voltage Sources :       1
+
+  ******  Circuit Statistics  ******
+  # nodes       =     155 # elements   =     341
+  # resistors   =       0 # capacitors =      20 # inductors   =       0
+  # mutual_inds =       0 # vccs       =       0 # vcvs        =       0
+  # cccs        =       0 # ccvs       =       0 # volt_srcs   =      14
+  # curr_srcs   =      19 # diodes     =       0 # bjts        =       0
+  # jfets       =       0 # mosfets    =     288 # U elements  =       0
+  # T elements  =       0 # W elements =       0 # B elements  =       0
+  # S elements  =       0 # P elements =       0 # va device   =       0
+  # vector_srcs =       0 # N elements =       0
+
+
+  ******  Runtime Statistics (seconds)  ******
+
+  analysis           time    # points   tot. iter  conv.iter
+  op point           0.10           1         194
+  transient          1.33      300001        6904        3232  rev= 101 
+  readin             0.11
+  errchk             0.02
+  setup              0.04
+  output             0.00
+           peak memory used        302.34 megabytes 
+           total cpu time            1.96 seconds
+           total elapsed time        2.37 seconds
+           job started at     18:50:46 06/18/2015
+           job ended   at     18:50:48 06/18/2015
+
+
+ lic: Release hspice token(s) 
+ lic: total license checkout elapse time:        0.39(s)
